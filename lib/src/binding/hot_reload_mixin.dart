@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:hotreloader/hotreloader.dart';
@@ -30,6 +31,20 @@ mixin HotReloadBinding on NoctermBinding {
 
     try {
       print('[HotReload] Initializing hot reload support...');
+      
+      // Get and print VM service info
+      try {
+        final info = await Service.getInfo();
+        if (info.serverUri != null) {
+          print('[HotReload] VM Service URL: ${info.serverUri}');
+          if (info.serverWebSocketUri != null) {
+            print('[HotReload] DevTools URL: ${info.serverUri}devtools/?uri=${info.serverWebSocketUri}');
+          }
+        }
+      } catch (e) {
+        // Service.getInfo might not be available in all environments
+        print('[HotReload] Could not retrieve VM service URL: $e');
+      }
 
       _reloader = await HotReloader.create(
         debounceInterval: const Duration(seconds: 1),
