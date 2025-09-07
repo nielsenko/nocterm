@@ -41,13 +41,25 @@ class ScrollController extends ChangeNotifier {
     required double maxScrollExtent,
     required double viewportDimension,
   }) {
+    final oldMin = _minScrollExtent;
+    final oldMax = _maxScrollExtent;
+    final oldViewport = _viewportDimension;
+    final oldOffset = _offset;
+    
     _minScrollExtent = minScrollExtent;
     _maxScrollExtent = maxScrollExtent;
     _viewportDimension = viewportDimension;
 
     // Clamp the current offset to valid range
     _offset = _offset.clamp(minScrollExtent, maxScrollExtent);
-    notifyListeners();
+    
+    // Only notify listeners if something actually changed
+    if (oldMin != _minScrollExtent ||
+        oldMax != _maxScrollExtent ||
+        oldViewport != _viewportDimension ||
+        oldOffset != _offset) {
+      notifyListeners();
+    }
   }
 
   /// Jumps the scroll position to the given value.
