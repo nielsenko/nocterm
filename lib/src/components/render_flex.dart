@@ -115,6 +115,15 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     return parentData.fit ?? FlexFit.tight;
   }
 
+  bool _hasFlexChildren() {
+    for (final child in children) {
+      if (_getFlex(child) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   BoxConstraints _getChildConstraints(BoxConstraints constraints, double? maxMainAxisExtent) {
     // For non-flex children (when maxMainAxisExtent is null), pass infinite constraint along the main axis
     // This matches Flutter's behavior in _constraintsForNonFlexChild
@@ -142,15 +151,47 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     final double maxMainAxisExtent = direction == Axis.horizontal ? constraints.maxWidth : constraints.maxHeight;
     final bool canFlex = maxMainAxisExtent.isFinite;
 
-    // Throw if infinite constraints along main axis
-    if (maxMainAxisExtent == double.infinity) {
-      throw Exception('RenderFlex has infinite constraints along the main axis');
+    // Check for invalid flex usage with unbounded constraints
+    // This matches Flutter's behavior - only error when there are flex children
+    if (!canFlex && (mainAxisSize == MainAxisSize.max || _hasFlexChildren())) {
+      // Check if we actually have flex children that would cause issues
+      bool hasProblematicFlexChild = false;
+      for (final child in children) {
+        final int flex = _getFlex(child);
+        if (flex > 0 && (mainAxisSize == MainAxisSize.max || _getFlexFit(child) == FlexFit.tight)) {
+          hasProblematicFlexChild = true;
+          break;
+        }
+      }
+      
+      if (hasProblematicFlexChild) {
+        final String identity = direction == Axis.horizontal ? 'Row' : 'Column';
+        final String axis = direction == Axis.horizontal ? 'horizontal' : 'vertical';
+        final String dimension = direction == Axis.horizontal ? 'width' : 'height';
+        
+        throw FlutterError(
+          'RenderFlex children have non-zero flex but incoming $dimension constraints are unbounded.\n'
+          'When a $identity is in a parent that does not provide a finite $dimension constraint, for example '
+          'if it is in a $axis scrollable or another $identity, it will try to shrink-wrap its children along the $axis '
+          'axis. Setting a flex on a child (e.g. using Expanded) indicates that the child is to '
+          'expand to fill the remaining space in the $axis direction.\n'
+          'These two directives are mutually exclusive. If a parent is to shrink-wrap its child, the child '
+          'cannot simultaneously expand to fit its parent.\n'
+          'Consider setting mainAxisSize to MainAxisSize.min and using FlexFit.loose fits for the flexible '
+          'children (using Flexible rather than Expanded). This will allow the flexible children '
+          'to size themselves to less than the infinite remaining space they would otherwise be '
+          'forced to take, and then will cause the RenderFlex to shrink-wrap the children '
+          'rather than expanding to fit the maximum constraints provided by the parent.\n'
+          'The affected RenderFlex is: $this\n'
+          'See also: https://flutter.dev/unbounded-constraints'
+        );
+      }
     }
 
     // First pass: layout non-flexible children and count total flex
     for (final child in children) {
       final int flex = _getFlex(child);
-      if (canFlex && flex > 0) {
+      if (flex > 0) {
         totalFlex += flex;
       } else {
         // Layout non-flexible children
@@ -163,37 +204,53 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     }
 
     // Second pass: layout flexible children with remaining space
-    if (totalFlex > 0 && canFlex) {
-      final double freeSpace = math.max(0.0, maxMainAxisExtent - allocatedSize);
-      final double spacePerFlex = freeSpace / totalFlex;
-
-      for (final child in children) {
-        final int flex = _getFlex(child);
-        if (flex > 0) {
-          final double maxChildExtent = spacePerFlex * flex;
-          final FlexFit fit = _getFlexFit(child);
-
-          // Create constraints for flex child
-          final BoxConstraints childConstraints;
-          if (direction == Axis.horizontal) {
-            childConstraints = BoxConstraints(
-              minWidth: fit == FlexFit.tight ? maxChildExtent : 0.0,
-              maxWidth: maxChildExtent,
-              minHeight: 0.0,
-              maxHeight: constraints.maxHeight,
-            );
-          } else {
-            childConstraints = BoxConstraints(
-              minWidth: 0.0,
-              maxWidth: constraints.maxWidth,
-              minHeight: fit == FlexFit.tight ? maxChildExtent : 0.0,
-              maxHeight: maxChildExtent,
-            );
+    if (totalFlex > 0) {
+      if (!canFlex) {
+        // If we get here, we have flexible children but unbounded constraints
+        // This should have been caught above, but handle gracefully
+        // Layout flex children with their natural size
+        for (final child in children) {
+          final int flex = _getFlex(child);
+          if (flex > 0) {
+            final childConstraints = _getChildConstraints(constraints, null);
+            child.layout(childConstraints, parentUsesSize: true);
+            final childSize = child.size;
+            allocatedSize += _getMainAxisExtent(childSize);
+            maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
           }
+        }
+      } else {
+        final double freeSpace = math.max(0.0, maxMainAxisExtent - allocatedSize);
+        final double spacePerFlex = freeSpace / totalFlex;
 
-          child.layout(childConstraints, parentUsesSize: true);
-          final childSize = child.size;
-          maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
+        for (final child in children) {
+          final int flex = _getFlex(child);
+          if (flex > 0) {
+            final double maxChildExtent = spacePerFlex * flex;
+            final FlexFit fit = _getFlexFit(child);
+
+            // Create constraints for flex child
+            final BoxConstraints childConstraints;
+            if (direction == Axis.horizontal) {
+              childConstraints = BoxConstraints(
+                minWidth: fit == FlexFit.tight ? maxChildExtent : 0.0,
+                maxWidth: maxChildExtent,
+                minHeight: 0.0,
+                maxHeight: constraints.maxHeight,
+              );
+            } else {
+              childConstraints = BoxConstraints(
+                minWidth: 0.0,
+                maxWidth: constraints.maxWidth,
+                minHeight: fit == FlexFit.tight ? maxChildExtent : 0.0,
+                maxHeight: maxChildExtent,
+              );
+            }
+
+            child.layout(childConstraints, parentUsesSize: true);
+            final childSize = child.size;
+            maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
+          }
         }
       }
     }
@@ -208,6 +265,7 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
       actualAllocatedSize += _getMainAxisExtent(child.size);
     }
 
+    // Handle MainAxisSize - support shrink-wrap behavior with MainAxisSize.min
     if (mainAxisSize == MainAxisSize.max && maxMainAxisExtent.isFinite) {
       mainAxisExtent = maxMainAxisExtent;
     } else {
