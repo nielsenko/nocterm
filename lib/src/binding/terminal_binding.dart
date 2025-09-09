@@ -12,6 +12,7 @@ import '../buffer.dart' as buf;
 import '../keyboard/input_parser.dart';
 import '../keyboard/input_event.dart';
 import '../keyboard/mouse_event.dart';
+import '../components/block_focus.dart';
 import 'hot_reload_mixin.dart';
 
 /// Terminal UI binding that handles terminal input/output and event loop
@@ -27,6 +28,9 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
   final term.Terminal terminal;
   PipelineOwner? _pipelineOwner;
   PipelineOwner get pipelineOwner => _pipelineOwner!;
+  
+  // Expose buildOwner from the base class
+  BuildOwner get buildOwner => super.buildOwner;
 
   Timer? _frameTimer;
   bool _shouldExit = false;
@@ -34,7 +38,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
   final _keyboardEventController = StreamController<KeyboardEvent>.broadcast();
   final _inputParser = InputParser();
   final _mouseEventController = StreamController<MouseEvent>.broadcast();
-  
+
   // Event-driven loop support
   final _eventLoopController = StreamController<void>.broadcast();
   Stream<void> get _eventLoopStream => _eventLoopController.stream;
@@ -83,7 +87,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 
     // Start listening for terminal resize events
     _startResizeHandling();
-    
+
     // Start listening for termination signals
     _startSignalHandling();
   }
@@ -115,6 +119,13 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 
           // Route the event through the component tree
           _routeKeyboardEvent(event);
+          
+          // After handling keyboard events, immediately process any pending builds
+          // This ensures UI updates happen synchronously with keyboard events like ESC
+          // which might trigger navigation changes (e.g., closing dialogs)
+          if (buildOwner.hasDirtyElements) {
+            drawFrame();
+          }
 
           // Exit on Ctrl+C or Escape
           if (event.logicalKey == LogicalKey.escape || (event.matches(LogicalKey.keyC, ctrl: true))) {
@@ -167,7 +178,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
         // Exit the process
         exit(0);
       });
-      
+
       // Handle SIGTERM (kill command)
       _sigtermSubscription = ProcessSignal.sigterm.watch().listen((_) {
         // Perform cleanup before exit
@@ -243,6 +254,12 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 
   /// Dispatch a keyboard event to an element and its children
   bool _dispatchKeyToElement(Element element, KeyboardEvent event) {
+    // Check if this element is a BlockFocus that's blocking
+    if (element is BlockFocusElement && element.isBlocking) {
+      // Block all keyboard events from reaching children
+      return false; // Event is "handled" (blocked)
+    }
+
     // First, try to dispatch to children (depth-first)
     bool handled = false;
     element.visitChildren((child) {
@@ -326,12 +343,12 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
     // Keep the app running until shutdown is called
     // Use a completer-based approach for truly event-driven behavior
     final exitCompleter = Completer<void>();
-    
+
     // Listen to the event stream
     final subscription = _eventLoopStream.listen((_) {
       // Events are handled by scheduleFrame, nothing to do here
     });
-    
+
     // Check periodically for exit condition (much less frequently)
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_shouldExit) {
@@ -342,7 +359,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
         }
       }
     });
-    
+
     // Wait until we should exit
     await exitCompleter.future;
   }
@@ -351,7 +368,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
   void shutdown() {
     // Prevent multiple shutdowns
     if (_shouldExit) return;
-    
+
     _shouldExit = true;
     _frameTimer?.cancel();
     _inputSubscription?.cancel();
@@ -361,7 +378,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
     _inputController.close();
     _keyboardEventController.close();
     _mouseEventController.close();
-    
+
     // Wake up event loop one last time before closing
     if (!_eventLoopController.isClosed) {
       _eventLoopController.add(null);
@@ -379,14 +396,14 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
       stdout.write('\x1B[?1006l'); // Disable SGR mouse mode
       stdout.write('\x1B[?1002l'); // Disable button event tracking
       stdout.write('\x1B[?1000l'); // Disable basic mouse tracking LAST
-      
+
       // Flush to ensure mouse disable commands are sent immediately
       stdout.flush();
 
       // Restore terminal (this includes leaving alternate screen)
       terminal.showCursor();
       terminal.leaveAlternateScreen();
-      
+
       // CRITICAL: Disable mouse tracking again after leaving alternate screen
       // Some terminals restore previous state when switching buffers
       stdout.write('\x1B[?1003l'); // Disable all motion tracking
@@ -394,9 +411,9 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
       stdout.write('\x1B[?1002l'); // Disable button event tracking
       stdout.write('\x1B[?1000l'); // Disable basic mouse tracking
       stdout.flush();
-      
+
       terminal.clear();
-      
+
       // Final flush to ensure all cleanup is complete
       terminal.flush();
     } catch (e) {
@@ -427,7 +444,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
       drawFrame();
       _frameTimer = null;
     });
-    
+
     // Wake up the event loop
     if (!_eventLoopController.isClosed) {
       _eventLoopController.add(null);

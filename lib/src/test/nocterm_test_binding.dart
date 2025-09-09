@@ -187,6 +187,16 @@ class NoctermTestBinding extends NoctermBinding {
 
   /// Dispatch a keyboard event to an element and its children
   bool _dispatchKeyToElement(Element element, KeyboardEvent event) {
+    // Check if this element is a BlockFocus that's blocking
+    // Import BlockFocusElement dynamically to avoid circular dependencies
+    if (element.runtimeType.toString() == 'BlockFocusElement') {
+      final dynamic blockFocusElement = element;
+      if (blockFocusElement.isBlocking == true) {
+        // Block all keyboard events from reaching children
+        return true; // Event is "handled" (blocked)
+      }
+    }
+    
     // First, try to dispatch to children (depth-first)
     bool handled = false;
     element.visitChildren((child) {

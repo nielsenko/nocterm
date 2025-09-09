@@ -7,6 +7,9 @@ import 'render_flex.dart';
 // Import from stack.dart for alignment and text direction
 import 'stack.dart' show AlignmentGeometry, Alignment, TextDirection;
 
+// Export keyboard listener
+export 'keyboard_listener.dart' show KeyboardListener;
+
 // Container is now defined in decorated_box.dart with full decoration support
 export 'decorated_box.dart'
     show

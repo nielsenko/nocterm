@@ -44,6 +44,9 @@ class BuildOwner {
     _dirtyElementsNeedsResorting = true;
   }
 
+  /// Check if there are any dirty elements that need to be rebuilt
+  bool get hasDirtyElements => _dirtyElements.isNotEmpty;
+  
   /// Builds all dirty elements
   void buildScope(Element context, [VoidCallback? callback]) {
     if (callback != null) {

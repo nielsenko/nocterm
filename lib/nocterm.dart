@@ -13,6 +13,8 @@ export 'src/test/nocterm_test_binding.dart';
 export 'src/binding/terminal_binding.dart';
 export 'src/components/basic.dart';
 export 'src/components/focusable.dart';
+export 'src/components/focus_scope.dart';
+export 'src/components/block_focus.dart';
 export 'src/components/scroll_controller.dart';
 export 'src/components/single_child_scroll_view.dart';
 export 'src/components/list_view.dart';
@@ -25,3 +27,10 @@ export 'src/components/spacer.dart';
 export 'src/process/pty_controller.dart';
 export 'src/components/stack.dart';
 export 'src/components/render_stack.dart' show Stack;
+
+// Navigation
+export 'src/navigation/navigator.dart';
+export 'src/navigation/route.dart';
+export 'src/navigation/route_settings.dart';
+export 'src/navigation/pop_behavior.dart';
+export 'src/navigation/navigator_observer.dart';

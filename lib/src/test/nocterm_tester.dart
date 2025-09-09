@@ -50,6 +50,36 @@ class NoctermTester {
   /// Get the number of frames that have been rendered
   int get frameCount => _binding.frameCount;
 
+  /// Find a state of a specific type in the component tree
+  T findState<T extends State>() {
+    final element = _binding.rootElement;
+    if (element == null) {
+      throw StateError('No component tree has been built yet');
+    }
+    
+    T? foundState;
+    void visitor(Element element) {
+      if (element is StatefulElement && element.state is T) {
+        foundState = element.state as T;
+        return;
+      }
+      element.visitChildren(visitor);
+    }
+    
+    // Check the root element itself first
+    if (element is StatefulElement && element.state is T) {
+      return element.state as T;
+    }
+    
+    element.visitChildren(visitor);
+    
+    if (foundState == null) {
+      throw StateError('No state of type $T found in the component tree');
+    }
+    
+    return foundState!;
+  }
+
   /// Pump a component as the root of the tree
   Future<void> pumpComponent(Component component, [Duration? duration]) async {
     _binding.attachRootComponent(component);
