@@ -459,7 +459,7 @@ class NavigatorState extends State<TuiNavigator> {
     // No modals, just render the current route
     return KeyboardListener(
       onKeyEvent: _handleKeyPress,
-      autofocus: false, // Don't steal focus from page content
+      autofocus: true,
       child: _routeStack.last.route.component,
     );
   }

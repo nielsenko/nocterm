@@ -28,7 +28,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
   final term.Terminal terminal;
   PipelineOwner? _pipelineOwner;
   PipelineOwner get pipelineOwner => _pipelineOwner!;
-  
+
   // Expose buildOwner from the base class
   BuildOwner get buildOwner => super.buildOwner;
 
@@ -119,7 +119,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 
           // Route the event through the component tree
           _routeKeyboardEvent(event);
-          
+
           // After handling keyboard events, immediately process any pending builds
           // This ensures UI updates happen synchronously with keyboard events like ESC
           // which might trigger navigation changes (e.g., closing dialogs)
@@ -128,7 +128,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
           }
 
           // Exit on Ctrl+C or Escape
-          if (event.logicalKey == LogicalKey.escape || (event.matches(LogicalKey.keyC, ctrl: true))) {
+          if (event.matches(LogicalKey.keyC, ctrl: true)) {
             shutdown();
           }
         } else if (inputEvent is MouseInputEvent) {
@@ -219,6 +219,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 
   /// Route a keyboard event through the component tree
   void _routeKeyboardEvent(KeyboardEvent event) {
+    print('DEBUG: _routeKeyboardEvent called with event: $event');
     if (rootElement == null) return;
 
     // Try to dispatch the event to the root element
