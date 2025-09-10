@@ -610,14 +610,7 @@ class _TextFieldState extends State<TextField> {
     return Focusable(
       focused: isFocused,
       onKeyEvent: _handleKeyEvent,
-      child: GestureDetector(
-        onTap: () {
-          if (component.enabled && !component.readOnly) {
-            component.onFocusChange?.call(true);
-          }
-        },
-        child: content,
-      ),
+      child: content,
     );
   }
 }
@@ -934,25 +927,6 @@ class InputDecoration {
   final BoxBorder? focusedBorder;
   final BoxBorder? errorBorder;
   final EdgeInsets? contentPadding;
-}
-
-/// Gesture detector for handling tap events
-class GestureDetector extends StatelessComponent {
-  const GestureDetector({
-    super.key,
-    this.onTap,
-    required this.child,
-  });
-
-  final VoidCallback? onTap;
-  final Component child;
-
-  @override
-  Component build(BuildContext context) {
-    // For now, just pass through the child
-    // In a full implementation, this would handle mouse/tap events
-    return child;
-  }
 }
 
 // TextAlign is now imported from text_layout_engine.dart
