@@ -34,3 +34,5 @@ export 'src/navigation/route.dart';
 export 'src/navigation/route_settings.dart';
 export 'src/navigation/pop_behavior.dart';
 export 'src/navigation/navigator_observer.dart';
+
+export 'src/components/markdown_text.dart';
