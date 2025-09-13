@@ -20,7 +20,7 @@ abstract class Route<T> {
   /// Navigator that this route is in.
   dynamic get navigator => _navigator;
   dynamic _navigator;
-  
+
   set navigatorState(dynamic navigator) {
     _navigator = navigator;
   }
@@ -62,6 +62,7 @@ class PageRoute<T> extends Route<T> {
       OverlayEntry(
         builder: builder,
         maintainState: true,
+        opaque: true,
       ),
     ];
   }
@@ -109,7 +110,7 @@ class ModalRoute<T> extends Route<T> {
       OverlayEntry(
         builder: (context) {
           Component modalContent = builder(context);
-          
+
           // Apply decoration if provided
           if (decoration != null) {
             modalContent = DecoratedBox(
@@ -117,7 +118,7 @@ class ModalRoute<T> extends Route<T> {
               child: modalContent,
             );
           }
-          
+
           // Apply size constraints if provided
           if (width != null || height != null) {
             modalContent = SizedBox(
@@ -126,7 +127,7 @@ class ModalRoute<T> extends Route<T> {
               child: modalContent,
             );
           }
-          
+
           // Apply alignment
           return Positioned.fill(
             child: Align(
