@@ -2,7 +2,8 @@ import 'package:nocterm/nocterm.dart';
 
 void main() {
   // Super performant
-  //runApp(const NoNavigation());
+  // runApp(const NoNavigation());
+  // return;
 
   // Super slow
   runApp(const Navigator(

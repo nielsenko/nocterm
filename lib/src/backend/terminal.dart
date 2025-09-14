@@ -12,6 +12,9 @@ class Terminal {
   late Size _size;
   bool _altScreenEnabled = false;
 
+  // Write buffer for batching output
+  final StringBuffer _writeBuffer = StringBuffer();
+
   // ANSI escape codes for terminal control
   static const _hideCursor = '\x1b[?25l';
   static const _showCursor = '\x1b[?25h';
@@ -40,6 +43,8 @@ class Terminal {
 
   void enterAlternateScreen() {
     if (!_altScreenEnabled) {
+      // These need immediate effect, so flush any pending writes first
+      flush();
       stdout.write(_alternateBuffer);
       clear();
       _altScreenEnabled = true;
@@ -48,34 +53,41 @@ class Terminal {
 
   void leaveAlternateScreen() {
     if (_altScreenEnabled) {
+      // These need immediate effect, so flush any pending writes first
+      flush();
       stdout.write(_mainBuffer);
       _altScreenEnabled = false;
     }
   }
 
   void hideCursor() {
-    stdout.write(_hideCursor);
+    // Buffer this - will be flushed with frame
+    write(_hideCursor);
   }
 
   void showCursor() {
+    // This needs immediate effect when exiting
+    flush();
     stdout.write(_showCursor);
   }
 
   void clear() {
-    stdout.write(_clearScreen);
-    stdout.write(_moveCursorHome);
+    // Buffer this - will be flushed with frame
+    write(_clearScreen);
+    write(_moveCursorHome);
   }
 
   void clearLine() {
-    stdout.write(_clearLine);
+    // Buffer this - will be flushed with frame
+    write(_clearLine);
   }
 
   void moveCursor(int x, int y) {
-    stdout.write('\x1b[${y + 1};${x + 1}H');
+    write('\x1b[${y + 1};${x + 1}H');
   }
 
   void moveToHome() {
-    stdout.write(_moveCursorHome);
+    write(_moveCursorHome);
   }
 
   void moveTo(int x, int y) {
@@ -83,10 +95,14 @@ class Terminal {
   }
 
   void write(String text) {
-    stdout.write(text);
+    _writeBuffer.write(text);
   }
 
   void flush() {
+    if (_writeBuffer.isNotEmpty) {
+      stdout.write(_writeBuffer.toString());
+      _writeBuffer.clear();
+    }
     stdout.flush();
   }
 
