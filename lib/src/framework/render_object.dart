@@ -818,7 +818,7 @@ class MultiChildRenderObjectElement extends RenderObjectElement {
   MultiChildRenderObjectElement(RenderObjectComponent super.component);
 
   List<Element> _children = const [];
-
+  List<Element> get children => _children;
   @override
   void performRebuild() {
     // Render object elements don't rebuild like buildable elements

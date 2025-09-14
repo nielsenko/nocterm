@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
+import 'package:nocterm/src/navigation/render_theater.dart';
 import 'package:nocterm/src/rectangle.dart';
 import 'package:nocterm/src/rendering/scrollable_render_object.dart';
 
@@ -42,7 +43,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
   // Event-driven loop support
   final _eventLoopController = StreamController<void>.broadcast();
   Stream<void> get _eventLoopStream => _eventLoopController.stream;
-  
+
   // Post-frame callbacks
   final List<VoidCallback> _postFrameCallbacks = [];
   StreamSubscription? _inputSubscription;
@@ -207,13 +208,23 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
     _sigtermSubscription?.cancel();
 
     // Close all controllers
-    try { _inputController.close(); } catch (_) {}
-    try { _keyboardEventController.close(); } catch (_) {}
-    try { _mouseEventController.close(); } catch (_) {}
-    try { _eventLoopController.close(); } catch (_) {}
+    try {
+      _inputController.close();
+    } catch (_) {}
+    try {
+      _keyboardEventController.close();
+    } catch (_) {}
+    try {
+      _mouseEventController.close();
+    } catch (_) {}
+    try {
+      _eventLoopController.close();
+    } catch (_) {}
 
     // Stop hot reload if it was initialized
-    try { shutdownWithHotReload(); } catch (_) {}
+    try {
+      shutdownWithHotReload();
+    } catch (_) {}
 
     // Perform terminal cleanup synchronously
     try {
@@ -307,6 +318,14 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
     if (element is BlockFocusElement && element.isBlocking) {
       // Block all keyboard events from reaching children
       return false; // Event is "handled" (blocked)
+    }
+
+    if (element.renderObject is RenderTheater) {
+      final multiChildRenderObject = element as MultiChildRenderObjectElement;
+      if (multiChildRenderObject.children.length > 0) {
+        final child = multiChildRenderObject.children.last;
+        return _dispatchKeyToElement(child, event);
+      }
     }
 
     // First, try to dispatch to children (depth-first)
@@ -428,9 +447,15 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
     // _sigintSubscription?.cancel();
     // _sigtermSubscription?.cancel();
 
-    try { _inputController.close(); } catch (_) {}
-    try { _keyboardEventController.close(); } catch (_) {}
-    try { _mouseEventController.close(); } catch (_) {}
+    try {
+      _inputController.close();
+    } catch (_) {}
+    try {
+      _keyboardEventController.close();
+    } catch (_) {}
+    try {
+      _mouseEventController.close();
+    } catch (_) {}
 
     // Wake up event loop one last time before closing
     if (!_eventLoopController.isClosed) {
@@ -587,7 +612,7 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
       }
     }
     terminal.flush();
-    
+
     // Execute post-frame callbacks
     final callbacks = List<VoidCallback>.from(_postFrameCallbacks);
     _postFrameCallbacks.clear();
@@ -595,9 +620,9 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
       callback();
     }
   }
-  
+
   /// Schedules a callback to be executed after the next frame is drawn.
-  /// 
+  ///
   /// This is useful for performing actions that depend on the layout being
   /// complete, such as scrolling to a specific position after adding content.
   void addPostFrameCallback(VoidCallback callback) {
