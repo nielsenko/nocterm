@@ -120,6 +120,8 @@ class TextField extends StatefulComponent {
     this.onSubmitted,
     this.enabled = true,
     this.cursorColor,
+    this.cursorStyle = CursorStyle.block,
+    this.cursorBlinkRate = const Duration(milliseconds: 800),
     this.selectionColor,
     this.showCursor = true,
     this.width,
@@ -152,6 +154,8 @@ class TextField extends StatefulComponent {
   final ValueChanged<String>? onSubmitted;
   final bool enabled;
   final Color? cursorColor;
+  final CursorStyle cursorStyle;
+  final Duration? cursorBlinkRate;
   final Color? selectionColor;
   final bool showCursor;
   final double? width;
@@ -210,8 +214,9 @@ class _TextFieldState extends State<TextField> {
   void didUpdateComponent(TextField oldComponent) {
     super.didUpdateComponent(oldComponent);
 
-    // Handle focus changes
-    if (component.focused != oldComponent.focused) {
+    // Handle focus changes or blink rate changes
+    if (component.focused != oldComponent.focused ||
+        component.cursorBlinkRate != oldComponent.cursorBlinkRate) {
       if (component.focused && component.showCursor) {
         _startCursorBlink();
       } else {
@@ -223,8 +228,16 @@ class _TextFieldState extends State<TextField> {
   void _startCursorBlink() {
     _cursorVisible = true;
     _cursorTimer?.cancel();
-    // Slower blink rate to reduce visual noise
-    _cursorTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
+
+    // Check if blinking is disabled (null blink rate means static cursor)
+    if (component.cursorBlinkRate == null) {
+      // Non-blinking cursor - always visible
+      _cursorVisible = true;
+      return;
+    }
+
+    // Start blinking with specified rate
+    _cursorTimer = Timer.periodic(component.cursorBlinkRate!, (timer) {
       setState(() {
         _cursorVisible = !_cursorVisible;
       });
@@ -586,6 +599,7 @@ class _TextFieldState extends State<TextField> {
       viewOffset: _viewOffset,
       cursorVisible: _cursorVisible && isFocused && component.showCursor,
       cursorColor: component.cursorColor,
+      cursorStyle: component.cursorStyle,
       selectionColor: component.selectionColor,
       textAlign: component.textAlign,
       maxLines: component.maxLines,
@@ -626,6 +640,7 @@ class _TextFieldContent extends SingleChildRenderObjectComponent {
     required this.viewOffset,
     required this.cursorVisible,
     this.cursorColor,
+    this.cursorStyle = CursorStyle.block,
     this.selectionColor,
     required this.textAlign,
     this.maxLines,
@@ -640,6 +655,7 @@ class _TextFieldContent extends SingleChildRenderObjectComponent {
   final int viewOffset;
   final bool cursorVisible;
   final Color? cursorColor;
+  final CursorStyle cursorStyle;
   final Color? selectionColor;
   final TextAlign textAlign;
   final int? maxLines;
@@ -656,6 +672,7 @@ class _TextFieldContent extends SingleChildRenderObjectComponent {
       viewOffset: viewOffset,
       cursorVisible: cursorVisible,
       cursorColor: cursorColor,
+      cursorStyle: cursorStyle,
       selectionColor: selectionColor,
       textAlign: textAlign,
       maxLines: maxLines,
@@ -674,6 +691,7 @@ class _TextFieldContent extends SingleChildRenderObjectComponent {
       ..viewOffset = viewOffset
       ..cursorVisible = cursorVisible
       ..cursorColor = cursorColor
+      ..cursorStyle = cursorStyle
       ..selectionColor = selectionColor
       ..textAlign = textAlign
       ..maxLines = maxLines
@@ -692,6 +710,7 @@ class RenderTextField extends RenderObject {
     required int viewOffset,
     required bool cursorVisible,
     Color? cursorColor,
+    CursorStyle cursorStyle = CursorStyle.block,
     Color? selectionColor,
     required TextAlign textAlign,
     int? maxLines,
@@ -704,6 +723,7 @@ class RenderTextField extends RenderObject {
         _viewOffset = viewOffset,
         _cursorVisible = cursorVisible,
         _cursorColor = cursorColor,
+        _cursorStyle = cursorStyle,
         _selectionColor = selectionColor,
         _textAlign = textAlign,
         _maxLines = maxLines,
@@ -717,6 +737,7 @@ class RenderTextField extends RenderObject {
   int _viewOffset;
   bool _cursorVisible;
   Color? _cursorColor;
+  CursorStyle _cursorStyle;
   Color? _selectionColor;
   TextAlign _textAlign;
   int? _maxLines;
@@ -778,6 +799,13 @@ class RenderTextField extends RenderObject {
     }
   }
 
+  set cursorStyle(CursorStyle value) {
+    if (_cursorStyle != value) {
+      _cursorStyle = value;
+      markNeedsPaint();
+    }
+  }
+
   set selectionColor(Color? value) {
     if (_selectionColor != value) {
       _selectionColor = value;
@@ -835,36 +863,7 @@ class RenderTextField extends RenderObject {
 
     // Paint cursor only for the focused field
     if (_cursorVisible && _isFocused) {
-      // Only show cursor for the focused field
-
-      if (_text.isEmpty && _placeholder == null) {
-        final cursorStyle = TextStyle(
-          color: _cursorColor ?? Colors.white,
-          backgroundColor: _cursorColor ?? Colors.white,
-        );
-        canvas.drawText(offset, ' ', style: cursorStyle);
-      } else {
-        // Calculate cursor position for visual indicator
-        final cursorPos = _selection.extentOffset - _viewOffset;
-        if (cursorPos >= 0 && cursorPos <= displayText.length) {
-          final cursorOffset = offset + Offset(cursorPos.toDouble(), 0);
-
-          // Draw a visual cursor indicator
-          final cursorStyle = TextStyle(
-            color: _cursorColor ?? Colors.white,
-            backgroundColor: _cursorColor ?? Colors.white,
-          );
-
-          // Draw cursor at the correct position
-          if (cursorPos < displayText.length) {
-            // Draw cursor over the character
-            canvas.drawText(cursorOffset, displayText[cursorPos], style: cursorStyle);
-          } else {
-            // Draw cursor at the end
-            canvas.drawText(cursorOffset, ' ', style: cursorStyle);
-          }
-        }
-      }
+      _paintCursor(canvas, offset, displayText);
     }
   }
 
@@ -893,6 +892,64 @@ class RenderTextField extends RenderObject {
 
     // Paint the text
     canvas.drawText(lineOffset, line, style: style);
+  }
+
+  void _paintCursor(TerminalCanvas canvas, Offset offset, String displayText) {
+    final cursorColor = _cursorColor ?? Colors.white;
+
+    if (_text.isEmpty && _placeholder == null) {
+      // Empty field - show cursor at beginning
+      _drawCursorAtPosition(canvas, offset, ' ', 0, cursorColor);
+    } else {
+      // Calculate cursor position for visual indicator
+      final cursorPos = _selection.extentOffset - _viewOffset;
+      if (cursorPos >= 0 && cursorPos <= displayText.length) {
+        final cursorOffset = offset + Offset(cursorPos.toDouble(), 0);
+
+        // Get the character at cursor position (or space if at end)
+        final charAtCursor = cursorPos < displayText.length ? displayText[cursorPos] : ' ';
+
+        _drawCursorAtPosition(canvas, cursorOffset, charAtCursor, cursorPos, cursorColor);
+      }
+    }
+  }
+
+  void _drawCursorAtPosition(
+    TerminalCanvas canvas,
+    Offset position,
+    String charUnderCursor,
+    int cursorPos,
+    Color cursorColor,
+  ) {
+    switch (_cursorStyle) {
+      case CursorStyle.block:
+        // Filled block - traditional terminal cursor
+        final blockStyle = TextStyle(
+          color: Colors.black,
+          backgroundColor: cursorColor,
+        );
+        canvas.drawText(position, charUnderCursor, style: blockStyle);
+        break;
+
+      case CursorStyle.underline:
+        // Draw the character with underline decoration
+        final underlineStyle = TextStyle(
+          color: _style?.color ?? Colors.white,
+          backgroundColor: _style?.backgroundColor,
+          decoration: TextDecoration.underline,
+        );
+        canvas.drawText(position, charUnderCursor, style: underlineStyle);
+        break;
+
+      case CursorStyle.blockOutline:
+        // Draw block outline - invert the colors
+        final outlineStyle = TextStyle(
+          color: Colors.black,
+          backgroundColor: cursorColor,
+        );
+        canvas.drawText(position, charUnderCursor, style: outlineStyle);
+        break;
+    }
   }
 }
 
@@ -930,6 +987,18 @@ class InputDecoration {
 }
 
 // TextAlign is now imported from text_layout_engine.dart
+
+/// Cursor style options for the text field
+enum CursorStyle {
+  /// A filled block cursor (default terminal style)
+  block,
+
+  /// An underline cursor
+  underline,
+
+  /// An outlined block cursor
+  blockOutline,
+}
 
 /// Type definitions
 typedef ValueChanged<T> = void Function(T value);
