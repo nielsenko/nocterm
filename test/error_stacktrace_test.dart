@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/components/error_widget.dart';
-import 'package:nocterm/nocterm_test.dart';
 
 void main() {
   group('Error Stack Trace Display', () {
@@ -23,7 +22,7 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Layout errors in ErrorThrowingWidget still show "No Error" in paint
           // because the error is caught, a default size is set, and paint continues
           expect(output, contains('No Error'));
@@ -52,17 +51,17 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Should show paint error
           expect(output, contains('Paint Error'));
-          
+
           // Should show the custom error message
           expect(output, contains('Test paint error'));
-          
+
           // Should show stack trace
           expect(output, contains('Stack trace:'));
           expect(output, contains('#0'));
-          
+
           // Should show the actual error location
           expect(output, contains('RenderErrorThrowing.paint'));
         },
@@ -89,18 +88,18 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Should show error and stack trace
           expect(output, contains('Paint Error'));
           expect(output, contains('Stack trace:'));
-          
+
           // Check that lines are truncated to fit width
           final lines = output.split('\n');
           for (final line in lines) {
             // Each line should be at most 80 chars (terminal width)
             expect(line.length, lessThanOrEqualTo(80));
           }
-          
+
           // Should indicate more lines if stack is truncated
           // (This happens when there are more than 10 stack frames)
           if (output.contains('more lines')) {
@@ -134,13 +133,13 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Should show custom message
           expect(output, contains('Custom Error Display'));
-          
+
           // Should show the error
           expect(output, contains('Exception: Custom error message'));
-          
+
           // Should show the stack trace
           expect(output, contains('Stack trace:'));
           expect(output, contains('someFunction'));

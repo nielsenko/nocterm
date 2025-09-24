@@ -46,7 +46,6 @@ class _ShowcaseAppState extends State<ShowcaseApp> {
       onKeyEvent: (event) {
         if (event.logicalKey == LogicalKey.keyQ) {
           exit(0);
-          return true;
         } else if (event.logicalKey == LogicalKey.digit1) {
           setState(() => _selectedTab = 0);
           return true;
@@ -234,7 +233,6 @@ class DashboardTab extends StatefulComponent {
 
 class _DashboardTabState extends State<DashboardTab> {
   Timer? _timer;
-  int _counter = 0;
   List<double> _cpuHistory = List.generate(20, (_) => 0.0);
   double _cpu = 0.0;
   double _memory = 0.0;
@@ -245,7 +243,6 @@ class _DashboardTabState extends State<DashboardTab> {
     super.initState();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        _counter++;
         _cpu = 20 + math.Random().nextDouble() * 60;
         _memory = 40 + math.Random().nextDouble() * 30;
         _disk = 60 + math.Random().nextDouble() * 20;

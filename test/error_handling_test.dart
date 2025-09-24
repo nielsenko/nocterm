@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/components/error_widget.dart';
-import 'package:nocterm/nocterm_test.dart';
 
 void main() {
   group('RenderObject Error Handling', () {
@@ -21,14 +20,14 @@ void main() {
           // The app should not crash and should display an error
           // Check that the terminal contains error indicators
           final output = tester.terminalState.getText();
-          
+
           // Should contain error border characters
           expect(output, contains('┌'));
           expect(output, contains('┐'));
           expect(output, contains('└'));
           expect(output, contains('┘'));
           expect(output, contains('│'));
-          
+
           // The error message should be visible
           expect(output, contains('Layout Error'));
         },
@@ -51,11 +50,11 @@ void main() {
 
           // The app should not crash and should display an error
           final output = tester.terminalState.getText();
-          
+
           // Should contain error border
           expect(output, contains('┌'));
           expect(output, contains('│'));
-          
+
           // The error should be related to paint
           expect(output, contains('Paint Error'));
         },
@@ -82,12 +81,12 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // The working widgets should still render
           expect(output, contains('Before Error'));
           expect(output, contains('After Error'));
-          
-          // The error is caught and isolated - the widget shows "No Error" 
+
+          // The error is caught and isolated - the widget shows "No Error"
           // because the error was in layout but the paint still runs
           // This demonstrates that errors don't crash the whole app
           expect(output, contains('No Error'));
@@ -108,11 +107,11 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Should show the custom message
           expect(output, contains('Custom'));
           expect(output, contains('Error'));
-          
+
           // Should have error box border
           expect(output, contains('┌'));
           expect(output, contains('┐'));
@@ -138,10 +137,10 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // Should have a box that fits within constraints
           expect(output, contains('┌'));
-          
+
           // Count the width of the box (should be constrained by SizedBox)
           final lines = output.split('\n');
           int maxBorderLength = 0;

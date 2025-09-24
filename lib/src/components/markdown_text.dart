@@ -3,11 +3,11 @@ import 'package:nocterm/nocterm.dart';
 import 'rich_text.dart';
 
 /// A widget that displays markdown-formatted text.
-/// 
+///
 /// This widget parses markdown text and displays it with appropriate styling
 /// for terminal output. It supports basic markdown features like bold, italic,
 /// headers, lists, code blocks, and links.
-/// 
+///
 /// Features supported:
 /// - **Bold text** using ** or __
 /// - *Italic text* using * or _
@@ -20,14 +20,14 @@ import 'rich_text.dart';
 /// - Links [text](url) - displayed as "text [url]"
 /// - Blockquotes using >
 /// - Horizontal rules using ---, ***, or ___
-/// 
+///
 /// Terminal limitations:
 /// - Images are shown as [Image: alt text]
 /// - Tables are rendered with basic ASCII formatting
 /// - No font size changes (headers use bold/colors instead)
 class MarkdownText extends StatelessComponent {
   /// Creates a markdown text widget.
-  /// 
+  ///
   /// The [data] parameter must not be null.
   const MarkdownText(
     this.data, {
@@ -64,10 +64,10 @@ class MarkdownText extends StatelessComponent {
       extensionSet: md.ExtensionSet.gitHubFlavored,
     );
     final nodes = document.parse(data);
-    
+
     final visitor = _MarkdownVisitor(effectiveStyleSheet);
     final spans = visitor.visitNodes(nodes);
-    
+
     return RichText(
       text: TextSpan(children: spans),
       textAlign: textAlign,
@@ -223,9 +223,11 @@ class _MarkdownVisitor {
       case 'h4':
       case 'h5':
       case 'h6':
-        final style = element.tag == 'h4' ? styleSheet.h4Style
-            : element.tag == 'h5' ? styleSheet.h5Style
-            : styleSheet.h6Style;
+        final style = element.tag == 'h4'
+            ? styleSheet.h4Style
+            : element.tag == 'h5'
+                ? styleSheet.h5Style
+                : styleSheet.h6Style;
         return TextSpan(
           children: [
             ...visitChildren(element),
@@ -266,9 +268,7 @@ class _MarkdownVisitor {
         );
       case 'pre':
         // Code block
-        final codeElement = element.children != null && element.children!.isNotEmpty 
-            ? element.children!.first 
-            : null;
+        final codeElement = element.children != null && element.children!.isNotEmpty ? element.children!.first : null;
         final code = codeElement?.textContent ?? element.textContent;
         return TextSpan(
           children: [
@@ -292,10 +292,12 @@ class _MarkdownVisitor {
         return TextSpan(
           children: [
             TextSpan(text: text, style: styleSheet.linkStyle),
-            TextSpan(text: ' [$href]', style: styleSheet.linkStyle?.copyWith(
-              fontWeight: FontWeight.normal,
-              decoration: TextDecoration.none,
-            )),
+            TextSpan(
+                text: ' [$href]',
+                style: styleSheet.linkStyle?.copyWith(
+                  fontWeight: FontWeight.normal,
+                  decoration: TextDecoration.none,
+                )),
           ],
         );
       case 'img':
@@ -320,9 +322,8 @@ class _MarkdownVisitor {
         final indent = '  ' * _listDepth;
         // In markdown package, we need to check the parent element differently
         final isOrderedList = false; // Default to unordered
-        final bullet = isOrderedList 
-            ? '${_orderedListCounter++}. '
-            : styleSheet.listBullet;
+        // ignore: dead_code
+        final bullet = isOrderedList ? '${_orderedListCounter++}. ' : styleSheet.listBullet;
         return TextSpan(
           children: [
             TextSpan(text: indent + bullet),
@@ -363,7 +364,7 @@ class _MarkdownVisitor {
   InlineSpan _renderTable(md.Element table) {
     final rows = <List<String>>[];
     final columnWidths = <int>[];
-    
+
     // Extract table data
     if (table.children != null) {
       for (final child in table.children!) {
@@ -381,15 +382,13 @@ class _MarkdownVisitor {
                     }
                   }
                   rows.add(cells);
-                  
+
                   // Update column widths
                   for (int i = 0; i < cells.length; i++) {
                     if (i >= columnWidths.length) {
                       columnWidths.add(0);
                     }
-                    columnWidths[i] = columnWidths[i] > cells[i].length 
-                        ? columnWidths[i] 
-                        : cells[i].length;
+                    columnWidths[i] = columnWidths[i] > cells[i].length ? columnWidths[i] : cells[i].length;
                   }
                 }
               }
@@ -398,7 +397,7 @@ class _MarkdownVisitor {
         }
       }
     }
-    
+
     // Render table as ASCII
     final buffer = StringBuffer();
     if (rows.isNotEmpty) {
@@ -411,7 +410,7 @@ class _MarkdownVisitor {
         }
       }
       buffer.write('┐\n');
-      
+
       // Rows
       for (int r = 0; r < rows.length; r++) {
         buffer.write('│');
@@ -421,7 +420,7 @@ class _MarkdownVisitor {
           buffer.write(' │');
         }
         buffer.write('\n');
-        
+
         // Separator after header
         if (r == 0 && rows.length > 1) {
           buffer.write('├');
@@ -434,7 +433,7 @@ class _MarkdownVisitor {
           buffer.write('┤\n');
         }
       }
-      
+
       // Bottom border
       buffer.write('└');
       for (int i = 0; i < columnWidths.length; i++) {
@@ -445,7 +444,7 @@ class _MarkdownVisitor {
       }
       buffer.write('┘\n');
     }
-    
+
     return TextSpan(text: buffer.toString());
   }
 }

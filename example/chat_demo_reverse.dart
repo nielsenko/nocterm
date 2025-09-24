@@ -61,7 +61,6 @@ class _ChatDemoReverseState extends State<ChatDemoReverse> {
       onKeyEvent: (event) {
         if (event.logicalKey == LogicalKey.escape) {
           exit(0);
-          return true;
         }
         return false;
       },

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/text_field.dart';
 
 void main() {
   group('TextField Cursor Styles', () {
@@ -43,7 +42,6 @@ void main() {
                   ),
                 ),
                 const SizedBox(height: 2),
-
 
                 // Block outline cursor
                 Text('Block Outline Cursor:', style: TextStyle(color: Colors.yellow)),
@@ -125,21 +123,17 @@ void main() {
               children: [
                 Text('Empty fields with different cursor styles:'),
                 const SizedBox(height: 1),
-
                 TextField(
                   focused: true,
                   cursorStyle: CursorStyle.block,
                   placeholder: 'Block cursor...',
                   width: 25,
                 ),
-
                 TextField(
                   cursorStyle: CursorStyle.underline,
                   placeholder: 'Underline cursor...',
                   width: 25,
                 ),
-
-
                 TextField(
                   cursorStyle: CursorStyle.blockOutline,
                   placeholder: 'Outline cursor...',
@@ -196,7 +190,6 @@ void main() {
               children: [
                 Text('Non-blinking cursors:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 1),
-
                 Text('Static block cursor:'),
                 TextField(
                   controller: TextEditingController(text: 'No blinking'),
@@ -210,8 +203,6 @@ void main() {
                   ),
                 ),
                 const SizedBox(height: 1),
-
-
                 Text('Fast blinking cursor (400ms):'),
                 TextField(
                   controller: TextEditingController(text: 'Fast blink'),
@@ -223,7 +214,6 @@ void main() {
                   ),
                 ),
                 const SizedBox(height: 1),
-
                 Text('Slow blinking cursor (1500ms):'),
                 TextField(
                   controller: TextEditingController(text: 'Slow blink'),

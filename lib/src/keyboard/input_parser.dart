@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'logical_key.dart';
 import 'keyboard_event.dart';
-import 'mouse_event.dart';
 import 'mouse_parser.dart';
 import 'input_event.dart';
 
@@ -30,13 +29,13 @@ class InputParser {
 
     return null;
   }
-  
+
   /// Parse incoming bytes and return first event
   InputEvent? parseBytes(List<int> bytes) {
     addBytes(bytes);
     return parseNext();
   }
-  
+
   void _clearConsumedBytes(InputEvent event, int bytesConsumed) {
     // Remove the consumed bytes from the buffer
     if (bytesConsumed > 0 && bytesConsumed <= _buffer.length) {
@@ -58,7 +57,6 @@ class InputParser {
       if (_buffer[1] == 0x5B && _buffer.length >= 3) {
         // SGR mouse mode: ESC [ <
         if (_buffer[2] == 0x3C) {
-          
           // Find the terminator to know how many bytes this event uses
           int terminatorIndex = -1;
           for (int i = 3; i < _buffer.length; i++) {
@@ -67,7 +65,7 @@ class InputParser {
               break;
             }
           }
-          
+
           if (terminatorIndex != -1) {
             // Parse only the bytes for this event
             final eventBytes = _buffer.sublist(0, terminatorIndex + 1);
@@ -276,7 +274,7 @@ class InputParser {
     if (_buffer.length >= 3 && (_buffer[2] == 0x3C || _buffer[2] == 0x4D)) {
       return null;
     }
-    
+
     // Arrow keys: ESC [ A/B/C/D
     if (_buffer.length == 3) {
       switch (_buffer[2]) {

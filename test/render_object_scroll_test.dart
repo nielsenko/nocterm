@@ -1,6 +1,5 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/keyboard/mouse_event.dart';
-import 'package:nocterm/src/rendering/scrollable_render_object.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -29,7 +28,7 @@ void main() {
         button: MouseButton.wheelDown,
         pressed: true,
       );
-      
+
       final handled = renderObject.handleMouseWheel(wheelDownEvent);
       expect(handled, true);
       expect(controller.offset, 3.0); // Should scroll 3 lines down
@@ -41,7 +40,7 @@ void main() {
         button: MouseButton.wheelUp,
         pressed: true,
       );
-      
+
       renderObject.handleMouseWheel(wheelUpEvent);
       expect(controller.offset, 0.0); // Should scroll back to 0
 
@@ -73,7 +72,7 @@ void main() {
         button: MouseButton.wheelDown,
         pressed: true,
       );
-      
+
       final handled = renderObject.handleMouseWheel(wheelDownEvent);
       expect(handled, true);
       expect(controller.offset, 3.0); // Should scroll 3 lines down
@@ -85,7 +84,7 @@ void main() {
         button: MouseButton.wheelUp,
         pressed: true,
       );
-      
+
       renderObject.handleMouseWheel(wheelUpEvent);
       expect(controller.offset, 0.0); // Should scroll back to 0
 
@@ -99,7 +98,7 @@ void main() {
         scrollDirection: Axis.vertical,
         controller: ScrollController(),
       );
-      
+
       final listViewport = RenderListViewport(
         scrollDirection: Axis.vertical,
         controller: ScrollController(),
@@ -112,7 +111,7 @@ void main() {
         button: MouseButton.wheelDown,
         pressed: true,
       );
-      
+
       // These should work without errors
       singleChildViewport.handleMouseWheel(wheelEvent);
       listViewport.handleMouseWheel(wheelEvent);
@@ -143,7 +142,7 @@ void main() {
         button: MouseButton.wheelDown,
         pressed: true,
       );
-      
+
       renderObject.handleMouseWheel(wheelDownEvent);
       expect(controller.offset, 3.0); // Should scroll horizontally
 

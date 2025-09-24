@@ -83,6 +83,7 @@ abstract class Element implements BuildContext {
   /// Otherwise, walks down the tree to find the first RenderObjectElement descendant.
   RenderObject? get renderObject {
     Element? current = this;
+    // ignore: unnecessary_null_comparison
     while (current != null) {
       if (current._lifecycleState == _ElementLifecycle.defunct) {
         break;

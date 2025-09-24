@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/markdown_text.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -11,7 +10,7 @@ void main() {
           await tester.pumpComponent(
             const MarkdownText('This is plain text'),
           );
-          
+
           expect(tester.terminalState, containsText('This is plain text'));
         },
         debugPrintAfterPump: true,
@@ -25,7 +24,7 @@ void main() {
           await tester.pumpComponent(
             const MarkdownText('This is **bold** text'),
           );
-          
+
           expect(tester.terminalState, containsText('This is bold text'));
         },
         debugPrintAfterPump: true,
@@ -39,7 +38,7 @@ void main() {
           await tester.pumpComponent(
             const MarkdownText('This is *italic* text'),
           );
-          
+
           expect(tester.terminalState, containsText('This is italic text'));
         },
         debugPrintAfterPump: true,
@@ -56,7 +55,7 @@ void main() {
 ### Header 3
 Regular text'''),
           );
-          
+
           expect(tester.terminalState, containsText('# Header 1'));
           expect(tester.terminalState, containsText('## Header 2'));
           expect(tester.terminalState, containsText('### Header 3'));
@@ -80,7 +79,7 @@ with multiple lines
 
 More text'''),
           );
-          
+
           expect(tester.terminalState, containsText('Some text with inline code'));
           expect(tester.terminalState, containsText('code block'));
           expect(tester.terminalState, containsText('with multiple lines'));
@@ -105,7 +104,7 @@ Ordered list:
 2. Second
 3. Third'''),
           );
-          
+
           expect(tester.terminalState, containsText('• Item 1'));
           expect(tester.terminalState, containsText('• Item 2'));
           expect(tester.terminalState, containsText('• Item 3'));
@@ -125,7 +124,7 @@ Ordered list:
           await tester.pumpComponent(
             const MarkdownText('Check out [Flutter](https://flutter.dev)!'),
           );
-          
+
           expect(tester.terminalState, containsText('Flutter'));
           expect(tester.terminalState, containsText('[https://flutter.dev]'));
         },
@@ -145,7 +144,7 @@ Ordered list:
 
 More normal text'''),
           );
-          
+
           expect(tester.terminalState, containsText('Normal text'));
           expect(tester.terminalState, containsText('│ This is a blockquote'));
           expect(tester.terminalState, containsText('More normal text'));
@@ -165,7 +164,7 @@ More normal text'''),
 
 Below the line'''),
           );
-          
+
           expect(tester.terminalState, containsText('Above the line'));
           expect(tester.terminalState, containsText('────')); // Horizontal rule
           expect(tester.terminalState, containsText('Below the line'));
@@ -205,7 +204,7 @@ void main() {
 
 That's all folks!'''),
           );
-          
+
           expect(tester.terminalState, containsText('# Welcome to Markdown'));
           expect(tester.terminalState, containsText('demonstration'));
           expect(tester.terminalState, containsText('## Features'));
@@ -228,7 +227,7 @@ That's all folks!'''),
           await tester.pumpComponent(
             const MarkdownText('Here is an image: ![Alt text](image.png)'),
           );
-          
+
           expect(tester.terminalState, containsText('[Image: Alt text]'));
         },
         debugPrintAfterPump: true,
@@ -245,7 +244,7 @@ That's all folks!'''),
 | Cell 1   | Cell 2   |
 | Cell 3   | Cell 4   |'''),
           );
-          
+
           // Check for table structure
           expect(tester.terminalState, containsText('Header 1'));
           expect(tester.terminalState, containsText('Header 2'));

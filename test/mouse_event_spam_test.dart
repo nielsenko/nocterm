@@ -1,6 +1,5 @@
 import 'package:test/test.dart' hide isEmpty;
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/test/matchers.dart' show isEmpty;
 
 void main() {
   group('Mouse Event Handling', () {
@@ -81,8 +80,8 @@ void main() {
           // they WILL reach focusable nodes. The fix prevents mouse events from
           // being converted to 'unknown' keyboard events in the first place.
           expect(unknownEvents.length, greaterThan(0),
-            reason: 'This test shows that unknown events (if sent) reach focusable nodes. '
-                   'The fix prevents mouse events from generating these unknown events.');
+              reason: 'This test shows that unknown events (if sent) reach focusable nodes. '
+                  'The fix prevents mouse events from generating these unknown events.');
         },
         debugPrintAfterPump: true,
       );

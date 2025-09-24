@@ -1,4 +1,3 @@
-import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/utils/unicode_width.dart';
 
 void main() {

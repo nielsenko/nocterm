@@ -13,12 +13,10 @@ class TheaterParentData extends stack_lib.StackParentData {
   LinkedList<OverlayEntryLocation>? sortedTheaterSiblings;
 
   /// Iterator for paint order traversal.
-  Iterator<RenderDeferredLayoutBox>? get paintOrderIterator =>
-      overlayEntry?.paintOrderIterable?.iterator;
+  Iterator<RenderDeferredLayoutBox>? get paintOrderIterator => overlayEntry?.paintOrderIterable?.iterator;
 
   /// Iterator for hit test order traversal.
-  Iterator<RenderDeferredLayoutBox>? get hitTestOrderIterator =>
-      overlayEntry?.hitTestOrderIterable?.iterator;
+  Iterator<RenderDeferredLayoutBox>? get hitTestOrderIterator => overlayEntry?.hitTestOrderIterable?.iterator;
 
   /// Visit overlay portal children on this overlay entry.
   void visitOverlayPortalChildrenOnOverlayEntry(void Function(RenderObject) visitor) {
@@ -108,12 +106,10 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   }
 
   /// Get the last onstage child.
-  RenderObject? get _lastOnstageChild =>
-      skipCount >= children.length ? null : children.last;
+  RenderObject? get _lastOnstageChild => skipCount >= children.length ? null : children.last;
 
   /// Flag to prevent layout loops when adding deferred children.
   bool _skipMarkNeedsLayout = false;
-
 
   /// Add a deferred child (from overlay portal).
   void addDeferredChild(RenderDeferredLayoutBox child) {
@@ -318,9 +314,7 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
 
   @override
   bool hitTest(HitTestResult result, {required Offset position}) {
-    if (position.dx >= 0 && position.dx < size.width &&
-        position.dy >= 0 && position.dy < size.height) {
-
+    if (position.dx >= 0 && position.dx < size.width && position.dy >= 0 && position.dy < size.height) {
       for (final child in childrenInHitTestOrder) {
         final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
         final Offset childPosition = position - childParentData.offset;
@@ -341,19 +335,6 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
       visitor(child);
       final TheaterParentData childParentData = child.parentData! as TheaterParentData;
       childParentData.visitOverlayPortalChildrenOnOverlayEntry(visitor);
-    }
-  }
-
-  @override
-  void visitChildrenForSemantics(void Function(RenderObject) visitor) {
-    RenderObject? child = _firstOnstageChild;
-    final childrenList = children.toList();
-    int index = skipCount;
-
-    while (child != null && index < childrenList.length) {
-      visitor(child);
-      index++;
-      child = index < childrenList.length ? childrenList[index] : null;
     }
   }
 }

@@ -106,7 +106,6 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
       onKeyEvent: (event) {
         if (event.logicalKey == LogicalKey.keyQ) {
           exit(0);
-          return true;
         } else if (event.logicalKey == LogicalKey.digit1) {
           setState(() => _selectedTab = 0);
           return true;

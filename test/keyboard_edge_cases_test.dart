@@ -156,6 +156,7 @@ void main() {
       expect(mod1.hashCode, isNot(equals(mod3.hashCode)));
 
       // Test in a Set
+      // ignore: equal_elements_in_set
       final modSet = <ModifierKeys>{mod1, mod2, mod3};
       expect(modSet.length, equals(2)); // mod1 and mod2 are the same
     });

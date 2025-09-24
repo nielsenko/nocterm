@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/render_flex.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,7 +15,7 @@ void main() {
               ],
             ),
           );
-          
+
           // Visual verification - no overflow indicators should appear
           // The test passing without overflow warnings indicates success
         },
@@ -41,7 +40,7 @@ void main() {
                     child: Text('Wide'),
                   ),
                 ),
-                // Test heightFactor  
+                // Test heightFactor
                 Align(
                   alignment: Alignment.center,
                   heightFactor: 3.0,
@@ -54,7 +53,7 @@ void main() {
               ],
             ),
           );
-          
+
           // Visual verification of factor behavior
         },
       );
@@ -86,7 +85,7 @@ void main() {
               ],
             ),
           );
-          
+
           // All centers should shrink to child size
           // No overflow should occur
         },

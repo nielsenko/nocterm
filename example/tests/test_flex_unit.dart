@@ -55,8 +55,10 @@ void main() {
 void testComponent(Component component, String testName) {
   try {
     // Create element tree
+    // ignore: invalid_use_of_protected_member
     final element = component.createElement();
     element.mount(null, null);
+    // ignore: invalid_use_of_protected_member
     element.performRebuild();
 
     // Find render object

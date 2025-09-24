@@ -36,14 +36,11 @@ void main() {
       await testNocterm(
         'overlay with stacked entries',
         (tester) async {
-          late OverlayState overlayState;
-
           await tester.pumpComponent(
             Overlay(
               initialEntries: [
                 OverlayEntry(
                   builder: (context) {
-                    overlayState = Overlay.of(context);
                     return Container(
                       width: 30,
                       height: 5,

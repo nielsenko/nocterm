@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/components/error_widget.dart';
-import 'package:nocterm/nocterm_test.dart';
 
 void main() {
   group('Tab Switching Error Handling', () {
@@ -20,7 +19,7 @@ void main() {
           expect(output, isNot(contains('Page 2')));
           expect(output, isNot(contains('Error')));
           expect(output, isNot(contains('┌'))); // No error box
-          
+
           print('Initial state (Page 1):');
           print(output);
           print('---');
@@ -28,14 +27,14 @@ void main() {
           // Press Tab to switch to page 2 - should show error
           await tester.sendKey(LogicalKey.tab);
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Page 2: Error Page'));
           expect(output, contains('Before error widget'));
           expect(output, contains('After error widget'));
           // Should show the error box (when layout fails, widget still shows "No Error")
           expect(output, contains('No Error')); // ErrorThrowingWidget shows this after layout error
-          
+
           print('After switching to Page 2:');
           print(output);
           print('---');
@@ -43,14 +42,14 @@ void main() {
           // Press Tab again to switch back to page 1 - error should be gone
           await tester.sendKey(LogicalKey.tab);
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Page 1: Working'));
           expect(output, contains('This is page 1 content'));
           expect(output, isNot(contains('Page 2')));
           expect(output, isNot(contains('Error')));
           expect(output, isNot(contains('┌'))); // No error box
-          
+
           print('After switching back to Page 1:');
           print(output);
           print('---');
@@ -58,11 +57,11 @@ void main() {
           // Switch to page 2 again to verify error still appears
           await tester.sendKey(LogicalKey.tab);
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Page 2: Error Page'));
           expect(output, contains('No Error')); // The error widget still renders
-          
+
           print('After switching to Page 2 again:');
           print(output);
         },
@@ -83,21 +82,21 @@ void main() {
           var output = tester.terminalState.getText();
           expect(output, contains('Page 1: Working'));
           expect(output, isNot(contains('┌'))); // No error box
-          
+
           // Press Tab to switch to page 2 with paint error
           await tester.sendKey(LogicalKey.tab);
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Page 2: Paint Error Page'));
           // Paint error should show error box
           expect(output, contains('Paint Error'));
           expect(output, contains('┌')); // Error box border
-          
+
           // Press Tab again to switch back to page 1 - error should be gone
           await tester.sendKey(LogicalKey.tab);
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Page 1: Working'));
           expect(output, isNot(contains('┌'))); // No error box
@@ -147,7 +146,7 @@ class _TabbedPageWidgetState extends State<_TabbedPageWidget> {
             Text('Press TAB to switch pages. Current: Page ${_currentPage + 1}'),
             Text('─' * 40),
             const SizedBox(height: 1),
-            
+
             // Page content - conditionally rendered
             if (_currentPage == 0) ...[
               const Text('Page 1: Working'),
@@ -169,7 +168,7 @@ class _TabbedPageWidgetState extends State<_TabbedPageWidget> {
               ),
               const Text('After error widget'),
             ],
-            
+
             const Spacer(),
             Text('─' * 40),
             const Text('Footer: Always visible'),
@@ -218,7 +217,7 @@ class _TabbedPageWithPaintErrorState extends State<_TabbedPageWithPaintError> {
             Text('Press TAB to switch. Current: Page ${_currentPage + 1}'),
             Text('─' * 40),
             const SizedBox(height: 1),
-            
+
             // Page content
             if (_currentPage == 0) ...[
               const Text('Page 1: Working'),

@@ -51,7 +51,7 @@ class TerminalCanvas {
       final effectiveStyle = style ?? const TextStyle();
 
       // If no background is set in the style, preserve the existing background
-      final finalStyle = effectiveStyle.backgroundColor == null && existingCell != null
+      final finalStyle = effectiveStyle.backgroundColor == null
           ? effectiveStyle.copyWith(backgroundColor: existingCell.style.backgroundColor)
           : effectiveStyle;
 
@@ -77,7 +77,7 @@ class TerminalCanvas {
         final nextEffectiveStyle = style ?? const TextStyle();
 
         // If no background is set in the style, preserve the existing background
-        final nextFinalStyle = nextEffectiveStyle.backgroundColor == null && nextExistingCell != null
+        final nextFinalStyle = nextEffectiveStyle.backgroundColor == null
             ? nextEffectiveStyle.copyWith(backgroundColor: nextExistingCell.style.backgroundColor)
             : nextEffectiveStyle;
 

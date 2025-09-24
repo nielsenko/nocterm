@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/error_widget.dart';
 
 void main() async {
   await runApp(const Navigator(home: ScrollDemo()));
@@ -218,9 +217,6 @@ class _ScrollDemoState extends State<ScrollDemo> {
   }
 
   Component _buildListViewBuilderDemo() {
-    return Center(
-      child: Text('ListView Builder Demo'),
-    );
     return Row(
       children: [
         // Standard builder
@@ -310,9 +306,6 @@ class _ScrollDemoState extends State<ScrollDemo> {
   }
 
   Component _buildScrollbarDemo() {
-    return Center(
-      child: Text('Scrollbar Demo'),
-    );
     return Row(
       children: [
         // SingleChildScrollView with scrollbar

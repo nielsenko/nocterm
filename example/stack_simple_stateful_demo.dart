@@ -223,12 +223,6 @@ class _StatefulChildState extends State<StatefulChild> {
     }
   }
 
-  void _increment() {
-    setState(() {
-      counter++;
-    });
-  }
-
   @override
   Component build(BuildContext context) {
     return Container(

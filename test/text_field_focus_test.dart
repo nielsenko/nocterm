@@ -73,13 +73,9 @@ void main() {
     });
 
     test('TextField calls onFocusChange when tapped', () {
-      bool focusChangeTriggered = false;
-
       final field = TextField(
         focused: false,
-        onFocusChange: (focused) {
-          focusChangeTriggered = focused;
-        },
+        onFocusChange: (focused) {},
       );
 
       // Verify onFocusChange callback is provided

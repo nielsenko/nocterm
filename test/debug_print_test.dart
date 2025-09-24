@@ -211,7 +211,6 @@ void main() {
           expect(tester.terminalState, containsText('Left aligned'));
           expect(tester.terminalState, containsText('Centered'));
           expect(tester.terminalState, containsText('Right aligned'));
-          // TODO: Fix multiline text rendering in Rows to properly show A and B boxes
         },
         debugPrintAfterPump: true,
         size: const Size(60, 15), // Smaller size for better visualization

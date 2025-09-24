@@ -1,6 +1,5 @@
 import 'package:nocterm/nocterm.dart';
 
-import '../framework/framework.dart';
 import '../components/stack.dart' as stack_lib;
 import 'render_theater.dart';
 
@@ -158,12 +157,6 @@ class OverlayState extends State<Overlay> {
     });
   }
 
-  void _markNeedsBuild() {
-    setState(() {
-      // Trigger a rebuild
-    });
-  }
-
   @override
   Component build(BuildContext context) {
     // Build only the entries that need to be visible
@@ -237,7 +230,7 @@ class _OverlayEntryWidgetState extends State<_OverlayEntryWidget> {
   Component build(BuildContext context) {
     // For now, ignore tickerEnabled since we don't have TickerMode yet
     return Container(
-      color: Color.defaultColor,  // Always use terminal default background
+      color: Color.defaultColor, // Always use terminal default background
       child: component.entry.builder(context),
     );
   }

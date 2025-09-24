@@ -38,21 +38,19 @@ void main() {
           final output = tester.terminalState.getText();
           print('Full output:');
           print(output);
-          
+
           // All widgets should be visible in a row
           final lines = output.split('\n');
-          
+
           // The error box should be constrained to its allocated space
           // and not overflow to other widgets
           expect(output, contains('Left'));
           expect(output, contains('Right'));
-          
+
           // Check that the error box appears between Left and Right
           // and doesn't take the full width
-          bool foundRow = false;
           for (final line in lines) {
             if (line.contains('Left') && line.contains('Layout Error')) {
-              foundRow = true;
               // Check positioning - Left should come before the error
               final leftIndex = line.indexOf('Left');
               final errorIndex = line.indexOf('Layout Error');
@@ -73,7 +71,7 @@ void main() {
         (tester) async {
           // Create a widget that fails initially but succeeds on rebuild
           final widget = _TestRecoverableWidget();
-          
+
           await tester.pumpComponent(
             Column(
               children: [
@@ -83,20 +81,20 @@ void main() {
               ],
             ),
           );
-          
+
           // First pump - should show error
           var output = tester.terminalState.getText();
           expect(output, contains('Before'));
           expect(output, contains('After'));
           // Should show error box
           expect(output, contains('Layout Error'));
-          
+
           // Change state to stop throwing
           widget.stopThrowing();
-          
+
           // Force a rebuild by pumping again
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Before'));
           expect(output, contains('After'));
@@ -113,17 +111,17 @@ void main() {
         'paint error recovery',
         (tester) async {
           final widget = _TestRecoverableWidget(throwInPaint: true);
-          
+
           await tester.pumpComponent(widget);
-          
+
           // First pump - should show paint error
           var output = tester.terminalState.getText();
           expect(output, contains('Paint Error'));
-          
+
           // Stop throwing
           widget.stopThrowing();
           await tester.pump();
-          
+
           output = tester.terminalState.getText();
           expect(output, contains('Recovered'));
           expect(output, isNot(contains('Paint Error')));
@@ -137,14 +135,14 @@ void main() {
 /// A test widget that can recover from errors
 class _TestRecoverableWidget extends SingleChildRenderObjectComponent {
   _TestRecoverableWidget({this.throwInPaint = false});
-  
+
   final bool throwInPaint;
   bool _shouldThrow = true;
-  
+
   void stopThrowing() {
     _shouldThrow = false;
   }
-  
+
   @override
   RenderObject createRenderObject(BuildContext context) {
     return _RenderRecoverable(
@@ -152,7 +150,7 @@ class _TestRecoverableWidget extends SingleChildRenderObjectComponent {
       throwInPaint: throwInPaint,
     );
   }
-  
+
   @override
   void updateRenderObject(BuildContext context, _RenderRecoverable renderObject) {
     renderObject.shouldThrow = _shouldThrow;
@@ -164,10 +162,10 @@ class _RenderRecoverable extends RenderObject {
     required bool shouldThrow,
     required this.throwInPaint,
   }) : _shouldThrow = shouldThrow;
-  
+
   bool _shouldThrow;
   final bool throwInPaint;
-  
+
   set shouldThrow(bool value) {
     if (_shouldThrow != value) {
       _shouldThrow = value;
@@ -175,7 +173,7 @@ class _RenderRecoverable extends RenderObject {
       markNeedsPaint();
     }
   }
-  
+
   @override
   void performLayout() {
     if (!throwInPaint && _shouldThrow) {
@@ -183,18 +181,18 @@ class _RenderRecoverable extends RenderObject {
     }
     size = constraints.constrain(const Size(20, 3));
   }
-  
+
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     if (throwInPaint && _shouldThrow) {
       throw Exception('Recoverable paint error');
     }
-    
+
     canvas.drawText(offset, 'Recovered');
   }
-  
+
   @override
   bool hitTestSelf(Offset position) => false;
 }

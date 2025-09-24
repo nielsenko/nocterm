@@ -1,10 +1,8 @@
-import 'dart:collection';
-
 import 'package:nocterm/nocterm.dart';
 import 'package:riverpod/riverpod.dart';
 
 /// Manages provider subscriptions for a single element.
-/// 
+///
 /// This class tracks all provider subscriptions for an element and ensures
 /// proper cleanup during rebuilds and disposal.
 class ProviderDependencies {
@@ -12,20 +10,20 @@ class ProviderDependencies {
 
   /// The element that owns these dependencies
   final Element dependent;
-  
+
   /// The current provider container
   ProviderContainer? _container;
-  
+
   /// Active subscriptions from the current build
   final Map<ProviderListenable, ProviderSubscription> _watchers = {};
   final Map<ProviderListenable, ProviderSubscription> _listeners = {};
-  
+
   /// Previous subscriptions from the last build (for cleanup)
   final Map<ProviderListenable, ProviderSubscription> _oldWatchers = {};
   final Map<ProviderListenable, ProviderSubscription> _oldListeners = {};
 
   /// Watch a provider and rebuild when it changes.
-  /// 
+  ///
   /// This method:
   /// 1. Reuses existing subscriptions when possible
   /// 2. Creates new subscriptions only when needed
@@ -67,7 +65,7 @@ class ProviderDependencies {
   }
 
   /// Listen to a provider with a callback.
-  /// 
+  ///
   /// Unlike watch, this doesn't trigger rebuilds but calls the provided callback.
   void listen<T>(
     ProviderListenable<T> provider,
@@ -97,12 +95,12 @@ class ProviderDependencies {
       fireImmediately: fireImmediately,
       onError: onError,
     );
-    
+
     _listeners[provider] = subscription;
   }
 
   /// Called when the element rebuilds.
-  /// 
+  ///
   /// This method:
   /// 1. Moves current subscriptions to "old" maps
   /// 2. Cleans up any unused old subscriptions
@@ -128,7 +126,7 @@ class ProviderDependencies {
   }
 
   /// Called when the element is deactivated.
-  /// 
+  ///
   /// This method cleans up ALL subscriptions.
   void deactivateDependent() {
     _deactivateAll();
@@ -155,7 +153,7 @@ class ProviderDependencies {
     _oldWatchers.clear();
     _listeners.clear();
     _oldListeners.clear();
-    
+
     _container = null;
   }
 }

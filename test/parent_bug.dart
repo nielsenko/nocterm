@@ -27,7 +27,7 @@ void main() {
 }
 
 class _Pusher extends StatefulComponent {
-  const _Pusher({super.key});
+  const _Pusher();
 
   @override
   State<_Pusher> createState() => _PusherState();
@@ -44,7 +44,7 @@ class _PusherState extends State<_Pusher> {
         print('  context.parent: ${context.parent}');
         print('  context.parent?.parent: ${context.parent?.parent}');
         print('  mounted: $mounted');
-        
+
         Navigator.of(context)
             .push(PageRoute(
           builder: (context) => _SecondPage(),
@@ -66,7 +66,7 @@ class _PusherState extends State<_Pusher> {
 }
 
 class _SecondPage extends StatelessComponent {
-  const _SecondPage({super.key});
+  const _SecondPage();
 
   @override
   Component build(BuildContext context) {

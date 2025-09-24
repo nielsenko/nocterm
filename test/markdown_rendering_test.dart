@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/markdown_text.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,7 +14,7 @@ Second paragraph.
 
 Third paragraph.'''),
           );
-          
+
           print('=== Paragraph Test Output ===');
           final lines = tester.terminalState.toString().split('\n');
           for (int i = 0; i < lines.length; i++) {
@@ -23,7 +22,7 @@ Third paragraph.'''),
               print('Line $i: "${lines[i].trim()}"');
             }
           }
-          
+
           expect(tester.terminalState, containsText('First paragraph.'));
           expect(tester.terminalState, containsText('Second paragraph.'));
           expect(tester.terminalState, containsText('Third paragraph.'));
@@ -43,7 +42,7 @@ Some text after header.
 ## Header 2
 More text here.'''),
           );
-          
+
           print('=== Header Test Output ===');
           final lines = tester.terminalState.toString().split('\n');
           for (int i = 0; i < lines.length; i++) {
@@ -51,7 +50,7 @@ More text here.'''),
               print('Line $i: "${lines[i].trim()}"');
             }
           }
-          
+
           expect(tester.terminalState, containsText('# Header 1'));
           expect(tester.terminalState, containsText('Some text after header.'));
           expect(tester.terminalState, containsText('## Header 2'));
@@ -74,7 +73,7 @@ More text here.'''),
 
 Text after list.'''),
           );
-          
+
           print('=== List Test Output ===');
           final lines = tester.terminalState.toString().split('\n');
           for (int i = 0; i < lines.length; i++) {
@@ -83,7 +82,7 @@ Text after list.'''),
               print('Line $i: "$line"');
             }
           }
-          
+
           expect(tester.terminalState, containsText('Some text before list.'));
           expect(tester.terminalState, containsText('• Item 1'));
           expect(tester.terminalState, containsText('• Item 2'));
@@ -112,7 +111,7 @@ void main() {
 Text after code.'''),
             ),
           );
-          
+
           print('=== Code Block Test Output ===');
           final lines = tester.terminalState.toString().split('\n');
           for (int i = 0; i < lines.length; i++) {
@@ -121,7 +120,7 @@ Text after code.'''),
               print('Line $i: "${line.substring(0, line.length > 50 ? 50 : line.length).trim()}"');
             }
           }
-          
+
           expect(tester.terminalState, containsText('Text before code.'));
           expect(tester.terminalState, containsText('void main()'));
           expect(tester.terminalState, containsText("print('Hello')"));
@@ -156,7 +155,7 @@ code example
 Final paragraph.'''),
             ),
           );
-          
+
           print('=== Mixed Content Test Output ===');
           final lines = tester.terminalState.toString().split('\n');
           for (int i = 0; i < lines.length; i++) {
@@ -165,7 +164,7 @@ Final paragraph.'''),
               print('Line $i: "${line.substring(0, line.length > 60 ? 60 : line.length).trim()}"');
             }
           }
-          
+
           expect(tester.terminalState, containsText('# Title'));
           expect(tester.terminalState, containsText('This is a paragraph with bold and italic text.'));
           expect(tester.terminalState, containsText('## Features'));
@@ -193,9 +192,9 @@ Paragraph text.
 - List item 2'''),
             ),
           );
-          
+
           print('=== Exact Line Structure ===');
-          
+
           // Check that all the expected content is there
           expect(tester.terminalState, containsText('# Header'));
           expect(tester.terminalState, containsText('Paragraph text.'));

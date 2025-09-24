@@ -5,5 +5,5 @@ library nocterm_riverpod;
 export 'package:riverpod/riverpod.dart';
 
 // Export nocterm-specific adaptations
-export 'src/framework.dart';
+export 'src/framework.dart' hide UncontrolledProviderScope;
 export 'src/provider_context.dart';

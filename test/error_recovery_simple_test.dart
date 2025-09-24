@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/components/error_widget.dart';
-import 'package:nocterm/nocterm_test.dart';
 
 void main() {
   group('Error Recovery Simple', () {
@@ -28,15 +27,15 @@ void main() {
 
           final output = tester.terminalState.getText();
           print('Output:\n$output');
-          
+
           // Check that A and B are visible and the error is between them
           expect(output, contains('A'));
           expect(output, contains('B'));
-          
+
           // The error should show "No Error" because ErrorThrowingWidget
           // still paints normally after a layout error
           expect(output, contains('No Error'));
-          
+
           // Verify horizontal layout
           final lines = output.split('\n');
           for (final line in lines) {
@@ -72,7 +71,7 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // When layout fails, the widget gets a default size and continues
           // The ErrorThrowingWidget will show "No Error" in its paint
           expect(output, contains('No Error'));
@@ -100,7 +99,7 @@ void main() {
           );
 
           final output = tester.terminalState.getText();
-          
+
           // When paint fails, we should see the error box
           expect(output, contains('Paint Error'));
           expect(output, contains('┌')); // Error box border

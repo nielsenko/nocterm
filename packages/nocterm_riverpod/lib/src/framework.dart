@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
@@ -64,20 +63,19 @@ class ProviderScope extends StatefulComponent {
 
     return scope.container;
   }
-  
+
   /// Returns the [_UncontrolledProviderScopeElement] of the closest [ProviderScope] ancestor.
   @internal
   static _UncontrolledProviderScopeElement scopeElementOf(BuildContext context) {
     // Find the InheritedElement for UncontrolledProviderScope
-    final InheritedElement? element = context
-        .getElementForInheritedWidgetOfExactType<UncontrolledProviderScope>();
-    
+    final InheritedElement? element = context.getElementForInheritedWidgetOfExactType<UncontrolledProviderScope>();
+
     if (element == null || element is! _UncontrolledProviderScopeElement) {
       throw StateError(
         'ProviderScope not found. Make sure to wrap your app with a ProviderScope.',
       );
     }
-    
+
     return element;
   }
 }
@@ -159,7 +157,7 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
   @override
   void updateDependencies(Element dependent, Object? aspect) {
     super.updateDependencies(dependent, aspect);
-    
+
     // When a dependency is registered, ensure we have a ProviderDependencies for it
     // This happens when an element calls dependOnInheritedComponentOfExactType
     getDependencies(dependent);
@@ -173,7 +171,7 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
     if (dependencies != null) {
       dependencies.didRebuildDependent();
     }
-    
+
     super.notifyDependent(dependent);
   }
 
@@ -192,7 +190,7 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
       dependencies.deactivateDependent();
     }
     _dependents.clear();
-    
+
     super.unmount();
   }
 }

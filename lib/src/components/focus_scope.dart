@@ -1,5 +1,4 @@
 import '../framework/framework.dart';
-import '../keyboard/keyboard_event.dart';
 import 'focusable.dart';
 
 /// A widget that creates a focus scope boundary.

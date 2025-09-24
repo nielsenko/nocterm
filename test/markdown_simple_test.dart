@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/markdown_text.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -14,7 +13,7 @@ void main() {
               child: const MarkdownText('First paragraph.'),
             ),
           );
-          
+
           expect(tester.terminalState, containsText('First paragraph.'));
         },
         debugPrintAfterPump: true,
@@ -33,14 +32,14 @@ void main() {
 Second paragraph.'''),
             ),
           );
-          
+
           print('=== Two Paragraphs Output ===');
           final output = tester.terminalState.toString();
           final lines = output.split('\n');
           for (int i = 0; i < lines.length && i < 10; i++) {
             print('Line $i: "${lines[i]}"');
           }
-          
+
           expect(tester.terminalState, containsText('First paragraph.'));
           expect(tester.terminalState, containsText('Second paragraph.'));
         },
@@ -58,7 +57,7 @@ Second paragraph.'''),
               child: const MarkdownText('This is plain text with no formatting.'),
             ),
           );
-          
+
           expect(tester.terminalState, containsText('This is plain text with no formatting.'));
         },
         debugPrintAfterPump: true,
@@ -79,7 +78,7 @@ Second.
 Third.'''),
             ),
           );
-          
+
           print('=== Line by Line Output ===');
           final lines = tester.terminalState.toString().split('\n');
           int contentLineCount = 0;
@@ -90,7 +89,7 @@ Third.'''),
               contentLineCount++;
             }
           }
-          
+
           expect(tester.terminalState, containsText('First.'));
           expect(tester.terminalState, containsText('Second.'));
           expect(tester.terminalState, containsText('Third.'));

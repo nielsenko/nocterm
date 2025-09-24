@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/src/rectangle.dart';
 import 'stack.dart' as stack_lib;
 
 /// Implements the stack layout algorithm.
@@ -41,7 +40,7 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
   }
 
   stack_lib.Alignment? _resolvedAlignment;
-  
+
   stack_lib.Alignment get resolvedAlignment {
     _resolvedAlignment ??= alignment.resolve(textDirection);
     return _resolvedAlignment!;
@@ -92,7 +91,7 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
 
   /// Get first child with proper type handling
   RenderObject? get firstChild => children.isNotEmpty ? children.first : null;
-  
+
   /// Get last child with proper type handling
   RenderObject? get lastChild => children.isNotEmpty ? children.last : null;
 
@@ -198,8 +197,7 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
     double height = 0.0;
     bool hasNonPositionedChildren = false;
 
-    final BoxConstraints nonPositionedConstraints = 
-        _computeNonPositionedChildConstraints(constraints);
+    final BoxConstraints nonPositionedConstraints = _computeNonPositionedChildConstraints(constraints);
 
     for (final child in children) {
       final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
@@ -207,7 +205,7 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
       if (!childParentData.isPositioned) {
         hasNonPositionedChildren = true;
         child.layout(nonPositionedConstraints, parentUsesSize: true);
-        
+
         final Size childSize = child.size;
         width = math.max(width, childSize.width);
         height = math.max(height, childSize.height);
@@ -256,11 +254,11 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     // Paint children in order (later children paint on top)
     for (final child in children) {
       final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
-      
+
       if (_hasVisualOverflow && clipBehavior != stack_lib.Clip.none) {
         // For now, skip clipping implementation as TerminalCanvas doesn't have clip methods
         // Just paint normally
@@ -275,18 +273,17 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
   @override
   bool hitTest(HitTestResult result, {required Offset position}) {
     // Check if position is within bounds
-    if (position.dx >= 0 && position.dx < size.width &&
-        position.dy >= 0 && position.dy < size.height) {
+    if (position.dx >= 0 && position.dx < size.width && position.dy >= 0 && position.dy < size.height) {
       // Hit test children in reverse order (topmost first)
       for (final child in children.reversed) {
         final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
-        
+
         final Offset childPosition = position - childParentData.offset;
         if (child.hitTest(result, position: childPosition)) {
           return true;
         }
       }
-      
+
       result.add(this);
       return true;
     }

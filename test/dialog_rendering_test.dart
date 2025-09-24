@@ -66,7 +66,7 @@ void main() {
           print('---');
 
           // Check what's rendered
-          final terminalContent = tester.terminalState.toString();
+          tester.terminalState.toString();
 
           // Dialog should be visible
           expect(tester.terminalState, containsText('Dialog Title'));
