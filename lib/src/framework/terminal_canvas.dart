@@ -15,6 +15,43 @@ class TerminalCanvas {
   final Buffer buffer;
   final Rect area;
 
+  /// Blends a style with the background color from the existing cell if needed.
+  ///
+  /// This handles alpha blending for semi-transparent colors:
+  /// - Foreground colors with alpha < 255 are blended with existing background
+  /// - Background colors with alpha < 255 are blended with existing background
+  /// - If no background exists, uses Color.defaultColor
+  TextStyle _blendStyle(TextStyle style, Cell existingCell) {
+    Color? blendedColor = style.color;
+    Color? blendedBgColor = style.backgroundColor;
+
+    // Blend foreground color if it has transparency
+    if (style.color != null && style.color!.alpha < 255) {
+      final existingBg = existingCell.style.backgroundColor ?? Color.defaultColor;
+      blendedColor = Color.alphaBlend(style.color!, existingBg);
+    }
+
+    // Blend background color if it has transparency
+    if (style.backgroundColor != null && style.backgroundColor!.alpha < 255) {
+      final existingBg = existingCell.style.backgroundColor ?? Color.defaultColor;
+      blendedBgColor = Color.alphaBlend(style.backgroundColor!, existingBg);
+    }
+
+    // If no background was specified in the style, preserve existing
+    if (style.backgroundColor == null) {
+      blendedBgColor = existingCell.style.backgroundColor;
+    }
+
+    return TextStyle(
+      color: blendedColor,
+      backgroundColor: blendedBgColor,
+      fontWeight: style.fontWeight,
+      fontStyle: style.fontStyle,
+      decoration: style.decoration,
+      reverse: style.reverse,
+    );
+  }
+
   /// Draw text at the given position
   void drawText(Offset position, String text, {TextStyle? style}) {
     final x = position.dx.round();
@@ -46,14 +83,10 @@ class TerminalCanvas {
       final cellX = area.left.round() + currentColumn;
       final cellY = area.top.round() + y;
 
-      // Get existing cell to preserve background if needed
+      // Get existing cell and blend style (handles alpha + background preservation)
       final existingCell = buffer.getCell(cellX, cellY);
       final effectiveStyle = style ?? const TextStyle();
-
-      // If no background is set in the style, preserve the existing background
-      final finalStyle = effectiveStyle.backgroundColor == null
-          ? effectiveStyle.copyWith(backgroundColor: existingCell.style.backgroundColor)
-          : effectiveStyle;
+      final finalStyle = _blendStyle(effectiveStyle, existingCell);
 
       buffer.setCell(
         cellX,
@@ -72,14 +105,10 @@ class TerminalCanvas {
         final nextCellX = area.left.round() + currentColumn + 1;
         final nextCellY = area.top.round() + y;
 
-        // Get existing cell to preserve background if needed
+        // Get existing cell and blend style (handles alpha + background preservation)
         final nextExistingCell = buffer.getCell(nextCellX, nextCellY);
         final nextEffectiveStyle = style ?? const TextStyle();
-
-        // If no background is set in the style, preserve the existing background
-        final nextFinalStyle = nextEffectiveStyle.backgroundColor == null
-            ? nextEffectiveStyle.copyWith(backgroundColor: nextExistingCell.style.backgroundColor)
-            : nextEffectiveStyle;
+        final nextFinalStyle = _blendStyle(nextEffectiveStyle, nextExistingCell);
 
         buffer.setCell(
           nextCellX,
@@ -102,14 +131,23 @@ class TerminalCanvas {
     final right = math.min(area.width, (rect.left + rect.width).round());
     final bottom = math.min(area.height, (rect.top + rect.height).round());
 
+    final effectiveStyle = style ?? const TextStyle();
+
     for (int y = top; y < bottom; y++) {
       for (int x = left; x < right; x++) {
+        final cellX = area.left.round() + x;
+        final cellY = area.top.round() + y;
+
+        // Get existing cell and blend style (handles alpha blending)
+        final existingCell = buffer.getCell(cellX, cellY);
+        final finalStyle = _blendStyle(effectiveStyle, existingCell);
+
         buffer.setCell(
-          area.left.round() + x,
-          area.top.round() + y,
+          cellX,
+          cellY,
           Cell(
             char: char,
-            style: style ?? const TextStyle(),
+            style: finalStyle,
           ),
         );
       }
@@ -150,12 +188,20 @@ class TerminalCanvas {
       return;
     }
 
+    final cellX = area.left.round() + x;
+    final cellY = area.top.round() + y;
+
+    // Get existing cell and blend style (handles alpha blending)
+    final existingCell = buffer.getCell(cellX, cellY);
+    final effectiveStyle = style ?? const TextStyle();
+    final finalStyle = _blendStyle(effectiveStyle, existingCell);
+
     buffer.setCell(
-      area.left.round() + x,
-      area.top.round() + y,
+      cellX,
+      cellY,
       Cell(
         char: char,
-        style: style ?? const TextStyle(),
+        style: finalStyle,
       ),
     );
   }

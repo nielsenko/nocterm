@@ -66,10 +66,18 @@ abstract class Colors {
 /// An immutable 32 bit color value in ARGB format.
 ///
 /// This is a simplified version of Flutter's Color class for terminal use.
-/// We only use RGB values since terminals don't support true alpha blending.
+/// While terminals don't support true alpha blending, we can pre-blend colors
+/// knowing what's behind them in the buffer.
 class Color {
   /// The terminal's default color (resets to terminal default)
   static const Color defaultColor = Color._default();
+
+  /// The alpha channel of this color in an 8 bit value, 0 to 255.
+  ///
+  /// A value of 0 means fully transparent, 255 means fully opaque.
+  /// Colors with alpha < 255 will be blended with the background during rendering.
+  final int alpha;
+
   /// The red component of this color, 0 to 255.
   final int red;
 
@@ -88,15 +96,19 @@ class Color {
   /// - RR is the red component (0-255)
   /// - GG is the green component (0-255)
   /// - BB is the blue component (0-255)
+  ///
+  /// The alpha channel defaults to 255 (fully opaque).
   const Color(int value)
-      : red = (value >> 16) & 0xFF,
+      : alpha = 255,
+        red = (value >> 16) & 0xFF,
         green = (value >> 8) & 0xFF,
         blue = value & 0xFF,
         isDefault = false;
 
   /// Creates the default terminal color
   const Color._default()
-      : red = 0,
+      : alpha = 255,
+        red = 0,
         green = 0,
         blue = 0,
         isDefault = true;
@@ -104,8 +116,24 @@ class Color {
   /// Creates a color from red, green, and blue components.
   ///
   /// The values must be between 0 and 255 inclusive.
+  /// The alpha channel defaults to 255 (fully opaque).
   const Color.fromRGB(this.red, this.green, this.blue)
-      : assert(red >= 0 && red <= 255),
+      : alpha = 255,
+        assert(red >= 0 && red <= 255),
+        assert(green >= 0 && green <= 255),
+        assert(blue >= 0 && blue <= 255),
+        isDefault = false;
+
+  /// Creates a color from alpha, red, green, and blue components.
+  ///
+  /// All values must be between 0 and 255 inclusive.
+  /// - [alpha]: 0 (fully transparent) to 255 (fully opaque)
+  /// - [red]: Red component
+  /// - [green]: Green component
+  /// - [blue]: Blue component
+  const Color.fromARGB(this.alpha, this.red, this.green, this.blue)
+      : assert(alpha >= 0 && alpha <= 255),
+        assert(red >= 0 && red <= 255),
         assert(green >= 0 && green <= 255),
         assert(blue >= 0 && blue <= 255),
         isDefault = false;
@@ -128,22 +156,88 @@ class Color {
     return '\x1b[38;2;$red;$green;${blue}m';
   }
 
+  /// The alpha channel, as a double from 0.0 (fully transparent) to 1.0 (fully opaque).
+  double get a => alpha / 255.0;
+
+  /// The red channel, as a double from 0.0 to 1.0.
+  double get r => red / 255.0;
+
+  /// The green channel, as a double from 0.0 to 1.0.
+  double get g => green / 255.0;
+
+  /// The blue channel, as a double from 0.0 to 1.0.
+  double get b => blue / 255.0;
+
+  /// Returns a new color with the given opacity.
+  ///
+  /// The [opacity] must be between 0.0 (fully transparent) and 1.0 (fully opaque).
+  Color withOpacity(double opacity) {
+    assert(opacity >= 0.0 && opacity <= 1.0);
+    return Color.fromARGB((255.0 * opacity).round(), red, green, blue);
+  }
+
+  /// Returns a new color with the given alpha value.
+  ///
+  /// The [alpha] must be between 0 and 255.
+  Color withAlpha(int alpha) {
+    assert(alpha >= 0 && alpha <= 255);
+    return Color.fromARGB(alpha, red, green, blue);
+  }
+
+  /// Blends the [foreground] color over the [background] color using alpha compositing.
+  ///
+  /// Uses the "source over" blending mode. If the foreground is fully opaque,
+  /// returns the foreground color. If fully transparent, returns the background.
+  ///
+  /// This implements Flutter's alpha blending formula:
+  /// ```
+  /// result = foreground * alpha + background * (1 - alpha)
+  /// ```
+  static Color alphaBlend(Color foreground, Color background) {
+    final double alpha = foreground.a;
+
+    // Optimization: fully opaque foreground
+    if (alpha == 1.0) {
+      return foreground;
+    }
+
+    // Optimization: fully transparent foreground
+    if (alpha == 0.0) {
+      return background;
+    }
+
+    final double invAlpha = 1.0 - alpha;
+
+    // Blend formula: result = fg * alpha + bg * (1 - alpha)
+    // We normalize to 0-1 range for calculation, then convert back to 0-255
+    return Color.fromRGB(
+      (foreground.r * 255 * alpha + background.r * 255 * invAlpha).round().clamp(0, 255),
+      (foreground.g * 255 * alpha + background.g * 255 * invAlpha).round().clamp(0, 255),
+      (foreground.b * 255 * alpha + background.b * 255 * invAlpha).round().clamp(0, 255),
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other.runtimeType != runtimeType) return false;
     return other is Color &&
            other.isDefault == isDefault &&
+           other.alpha == alpha &&
            other.red == red &&
            other.green == green &&
            other.blue == blue;
   }
 
   @override
-  int get hashCode => Object.hash(red, green, blue, isDefault);
+  int get hashCode => Object.hash(alpha, red, green, blue, isDefault);
 
   @override
-  String toString() => isDefault ? 'Color.defaultColor' : 'Color(r: $red, g: $green, b: $blue)';
+  String toString() => isDefault
+      ? 'Color.defaultColor'
+      : alpha == 255
+          ? 'Color(r: $red, g: $green, b: $blue)'
+          : 'Color(a: $alpha, r: $red, g: $green, b: $blue)';
 }
 
 /// The thickness of the glyphs used to draw the text.
