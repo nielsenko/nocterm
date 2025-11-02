@@ -56,3 +56,4 @@ export 'src/gestures/long_press.dart';
 export 'src/utils/clipboard.dart';
 export 'src/utils/log_server.dart';
 export 'src/utils/logger.dart';
+export 'src/utils/nocterm_paths.dart';

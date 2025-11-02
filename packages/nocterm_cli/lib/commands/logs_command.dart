@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import 'package:nocterm/nocterm.dart';
 
 /// Run the logs command to stream logs from a running nocterm app
 Future<void> runLogsCommand() async {
   try {
-    // Read port from .nocterm/log_port file
-    final portFile = File(p.join('.nocterm', 'log_port'));
+    // Read port from global log_port file
+    final portFile = File(getLogPortPath());
 
     if (!await portFile.exists()) {
       stderr.writeln('Error: No nocterm app is running (log_port file not found)');

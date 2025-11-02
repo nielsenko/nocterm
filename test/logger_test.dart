@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:nocterm/src/utils/log_server.dart';
 import 'package:nocterm/src/utils/logger.dart';
+import 'package:nocterm/src/utils/nocterm_paths.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,6 +17,16 @@ void main() {
 
     tearDown(() async {
       await logServer.close();
+
+      // Clean up the global nocterm directory after tests
+      try {
+        final noctermDir = Directory(getNoctermDirectory());
+        if (await noctermDir.exists()) {
+          await noctermDir.delete(recursive: true);
+        }
+      } catch (_) {
+        // Ignore cleanup errors
+      }
     });
 
     test('starts server and assigns port', () {
@@ -87,8 +98,8 @@ void main() {
       await ws.close();
     });
 
-    test('creates log_port file', () async {
-      final portFile = File('.nocterm/log_port');
+    test('creates log_port file in global directory', () async {
+      final portFile = File(getLogPortPath());
       expect(await portFile.exists(), isTrue);
 
       final portString = await portFile.readAsString();
@@ -96,7 +107,7 @@ void main() {
     });
 
     test('cleans up log_port file on close', () async {
-      final portFile = File('.nocterm/log_port');
+      final portFile = File(getLogPortPath());
       expect(await portFile.exists(), isTrue);
 
       await logServer.close();

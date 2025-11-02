@@ -18,6 +18,7 @@ import '../rendering/mouse_tracker.dart';
 import '../rendering/mouse_hit_test.dart';
 import '../utils/log_server.dart';
 import '../utils/logger.dart';
+import '../utils/nocterm_paths.dart';
 import 'hot_reload_mixin.dart';
 
 /// Terminal UI binding that handles terminal input/output and event loop
@@ -787,15 +788,16 @@ class TerminalBinding extends NoctermBinding with HotReloadBinding {
 /// Run a TUI application
 ///
 /// Automatically detects if a nocterm shell is running by checking for
-/// `.nocterm/shell_handle` file. If found, the app will render into the
-/// shell instead of directly to stdout, allowing IDE debugger support.
+/// the shell_handle file in the global nocterm directory. If found, the app
+/// will render into the shell instead of directly to stdout, allowing IDE
+/// debugger support.
 ///
 /// Logs are streamed via WebSocket and can be viewed with `nocterm logs`.
 /// In shell mode, print() statements also appear in the host's stdout.
 /// In normal mode, only WebSocket logs are available.
 Future<void> runApp(Component app, {bool enableHotReload = true}) async {
   // Check for shell mode
-  final shellHandleFile = File('.nocterm/shell_handle');
+  final shellHandleFile = File(getShellHandlePath());
   final useShellMode = await shellHandleFile.exists();
 
   if (useShellMode) {

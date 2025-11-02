@@ -8,8 +8,6 @@ pubspec.lock
 
 /third_party/
 
-.nocterm/
-
 CLAUDE.md
 .claude/
 

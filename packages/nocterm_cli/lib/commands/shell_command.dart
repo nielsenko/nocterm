@@ -1,19 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import 'package:nocterm/nocterm.dart';
 
 Future<void> runShellCommand() async {
   print('Starting nocterm shell server...');
 
-  // Create .nocterm directory in current working directory
-  final noctermDir = Directory('.nocterm');
-  if (!await noctermDir.exists()) {
-    await noctermDir.create();
-  }
+  // Create global nocterm directory for this project
+  await ensureNoctermDirectoryExists();
 
   // Create a Unix domain socket
-  final socketPath = p.join(noctermDir.path, 'shell.sock');
+  final socketPath = getShellSocketPath();
   final socketFile = File(socketPath);
   if (await socketFile.exists()) {
     await socketFile.delete(); // Remove stale socket
@@ -25,7 +22,7 @@ Future<void> runShellCommand() async {
   );
 
   // Write socket path to handle file
-  final handleFile = File(p.join(noctermDir.path, 'shell_handle'));
+  final handleFile = File(getShellHandlePath());
   await handleFile.writeAsString(socketPath);
 
   print('Shell server ready at: $socketPath');
