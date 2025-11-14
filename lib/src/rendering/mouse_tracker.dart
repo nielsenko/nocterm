@@ -26,6 +26,13 @@ class MouseTrackerAnnotation {
   /// The render object this annotation is attached to.
   final RenderObject renderObject;
 
+  /// Whether this annotation is valid for mouse tracking.
+  ///
+  /// This is set to false when the render object is detached to prevent
+  /// callbacks from being called on disposed objects during mouse event
+  /// dispatching.
+  bool validForMouseTracker = true;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -46,13 +53,11 @@ class MouseTracker {
     MouseHitTestResult hitTestResult,
     MouseEvent event,
   ) {
-
     // Collect all annotations from the hit test result
     final Set<MouseTrackerAnnotation> newAnnotations = {};
     for (final entry in hitTestResult.mouseEntries) {
       if (entry.target is MouseTrackerAnnotationProvider) {
-        final annotation =
-            (entry.target as MouseTrackerAnnotationProvider).annotation;
+        final annotation = (entry.target as MouseTrackerAnnotationProvider).annotation;
         if (annotation != null) {
           newAnnotations.add(annotation);
         }
@@ -62,18 +67,24 @@ class MouseTracker {
     // Find annotations that were exited
     final exitedAnnotations = _hoveredAnnotations.difference(newAnnotations);
     for (final annotation in exitedAnnotations) {
-      annotation.onExit?.call(event);
+      if (annotation.validForMouseTracker) {
+        annotation.onExit?.call(event);
+      }
     }
 
     // Find annotations that were entered
     final enteredAnnotations = newAnnotations.difference(_hoveredAnnotations);
     for (final annotation in enteredAnnotations) {
-      annotation.onEnter?.call(event);
+      if (annotation.validForMouseTracker) {
+        annotation.onEnter?.call(event);
+      }
     }
 
     // Dispatch hover events to all currently hovered annotations
     for (final annotation in newAnnotations) {
-      annotation.onHover?.call(event);
+      if (annotation.validForMouseTracker) {
+        annotation.onHover?.call(event);
+      }
     }
 
     // Update the set of hovered annotations

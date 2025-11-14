@@ -71,6 +71,22 @@ class RenderMouseRegion extends RenderObject
   }
 
   @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    // Mark annotation as valid when attached
+    _annotation?.validForMouseTracker = true;
+  }
+
+  @override
+  void detach() {
+    // It's possible that the renderObject be detached during mouse events
+    // dispatching, set the validForMouseTracker false to prevent
+    // the callbacks from being called.
+    _annotation?.validForMouseTracker = false;
+    super.detach();
+  }
+
+  @override
   void setupParentData(RenderObject child) {
     if (child.parentData is! BoxParentData) {
       child.parentData = BoxParentData();
