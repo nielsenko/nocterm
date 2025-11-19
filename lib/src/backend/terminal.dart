@@ -106,7 +106,7 @@ class Terminal {
       stdout.write(bufferContent);
       _writeBuffer.clear();
     }
-    stdout.flush();
+    //stdout.flush();
   }
 
   void reset() {
