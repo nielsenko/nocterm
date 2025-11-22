@@ -46,6 +46,13 @@ class Frame {
       // Render the line content
       for (int x = 0; x < buffer.width; x++) {
         final cell = buffer.getCell(x, y);
+
+        // For zero-width space markers (used for wide character tracking),
+        // skip them entirely - they're placeholders for the second cell of wide chars
+        if (cell.char == '\u200B') {
+          continue;
+        }
+
         if (cell.style.color != null ||
             cell.style.backgroundColor != null ||
             cell.style.fontWeight == FontWeight.bold ||

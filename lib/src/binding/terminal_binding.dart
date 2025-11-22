@@ -722,6 +722,7 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
         final cell = buffer.getCell(x, y);
 
         // Skip zero-width space markers (used for emoji second column)
+        // Don't write anything - just skip to next cell
         if (cell.char == '\u200B') {
           continue;
         }

@@ -143,11 +143,11 @@ class TerminalState {
 
       for (int x = 0; x < size.width; x++) {
         final cell = buffer.getCell(x, y);
+        // Don't render zero-width space markers (used for wide char tracking)
         if (cell.char != '\u200B') {
           output.write(cell.char);
-        } else {
-          output.write(' ');
         }
+        // Skip the marker entirely - don't replace with space
       }
 
       if (showBorders) output.write('│');

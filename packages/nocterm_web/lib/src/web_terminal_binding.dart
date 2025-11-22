@@ -198,8 +198,9 @@ class WebTerminalBinding extends NoctermBinding with SchedulerBinding {
       for (int x = 0; x < buffer.width; x++) {
         final cell = buffer.getCell(x, y);
 
+        // Skip zero-width space markers (used for wide character tracking)
+        // Don't write anything - just skip to next cell
         if (cell.char == '\u200B') {
-          terminal.write(' ');
           continue;
         }
 
