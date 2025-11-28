@@ -1,13 +1,25 @@
 import 'package:nocterm/nocterm.dart';
 
-class BorderTitleDemo extends StatelessComponent {
+class BorderTitleDemo extends StatefulComponent {
+  @override
+  State<BorderTitleDemo> createState() => _BorderTitleDemoState();
+}
+
+class _BorderTitleDemoState extends State<BorderTitleDemo> {
+  final scrollController = ScrollController();
+
   @override
   Component build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(1),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Scrollbar(
+        controller: scrollController,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           Text(
             'Border Title Demo',
             style: TextStyle(color: Colors.cyan, decoration: TextDecoration.underline),
@@ -111,11 +123,46 @@ class BorderTitleDemo extends StatelessComponent {
           ),
           SizedBox(height: 2),
 
-          Text(
-            'Press Ctrl+C to exit',
-            style: TextStyle(color: Colors.grey),
+          // Partial borders (no corners when sides don't connect)
+          Text('Partial borders (top only):', style: TextStyle(color: Colors.yellow)),
+          SizedBox(height: 1),
+          Container(
+            width: 40,
+            height: 3,
+            decoration: BoxDecoration(
+              border: BoxBorder(
+                top: BorderSide(color: Colors.magenta, style: BoxBorderStyle.rounded),
+              ),
+              title: BorderTitle(text: 'Section Header'),
+            ),
+            child: Text('No corners - just a line'),
           ),
-        ],
+          SizedBox(height: 2),
+
+          // Top and bottom only
+          Text('Top + Bottom borders:', style: TextStyle(color: Colors.yellow)),
+          SizedBox(height: 1),
+          Container(
+            width: 40,
+            height: 3,
+            decoration: BoxDecoration(
+              border: BoxBorder(
+                top: BorderSide(color: Colors.cyan, style: BoxBorderStyle.solid),
+                bottom: BorderSide(color: Colors.cyan, style: BoxBorderStyle.solid),
+              ),
+              title: BorderTitle(text: 'Divider Style'),
+            ),
+            child: Center(child: Text('Horizontal dividers')),
+          ),
+          SizedBox(height: 2),
+
+              Text(
+                'Press Ctrl+C to exit',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
