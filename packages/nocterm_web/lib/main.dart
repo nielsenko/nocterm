@@ -59,6 +59,10 @@ class _TerminalPageState extends State<TerminalPage> {
       terminal.viewHeight.toDouble(),
     ));
 
+    // Clear terminal and scroll to top before loading app
+    terminal.write('\x1b[2J'); // Clear entire screen
+    terminal.write('\x1b[H'); // Move cursor to home (top-left)
+
     // Connect WebBackend output to xterm
     _outputSubscription = WebBackend.outputStream.listen((data) {
       terminal.write(data);
@@ -85,6 +89,17 @@ class _TerminalPageState extends State<TerminalPage> {
       final appUrl = _getAppUrl();
 
       await _injectScript(appUrl);
+
+      // Give the guest app a moment to initialize, then force size update
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Force a size update now that app is connected and xterm is rendered
+      if (WebBackend.isAppConnected) {
+        WebBackend.setSize(nocterm.Size(
+          terminal.viewWidth.toDouble(),
+          terminal.viewHeight.toDouble(),
+        ));
+      }
     } catch (e) {
       // Show error in terminal
       terminal.write('\x1b[31mError: Failed to load app: $e\x1b[0m\r\n');
