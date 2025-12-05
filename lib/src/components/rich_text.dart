@@ -8,17 +8,17 @@ export 'package:nocterm/src/painting/inline_span.dart';
 export 'package:nocterm/src/painting/text_span.dart';
 
 /// A widget that displays rich text.
-/// 
+///
 /// The [RichText] widget displays text that uses multiple different styles. The
 /// text to display is described using a tree of [TextSpan] objects, each of
 /// which has an associated style that is used for that subtree.
-/// 
+///
 /// This is a simplified version of Flutter's RichText adapted for terminal
 /// rendering, without support for text direction, text scaling, or gesture
 /// recognition.
 class RichText extends SingleChildRenderObjectComponent {
   /// Creates a rich text widget.
-  /// 
+  ///
   /// The [text] parameter must not be null.
   const RichText({
     super.key,

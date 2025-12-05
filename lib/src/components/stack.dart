@@ -295,7 +295,8 @@ class AlignmentDirectional extends AlignmentGeometry {
   static const AlignmentDirectional topEnd = AlignmentDirectional(1.0, -1.0);
 
   /// The center point along the "start" edge.
-  static const AlignmentDirectional centerStart = AlignmentDirectional(-1.0, 0.0);
+  static const AlignmentDirectional centerStart =
+      AlignmentDirectional(-1.0, 0.0);
 
   /// The center point, both horizontally and vertically.
   static const AlignmentDirectional center = AlignmentDirectional(0.0, 0.0);
@@ -304,10 +305,12 @@ class AlignmentDirectional extends AlignmentGeometry {
   static const AlignmentDirectional centerEnd = AlignmentDirectional(1.0, 0.0);
 
   /// The bottom corner on the "start" side.
-  static const AlignmentDirectional bottomStart = AlignmentDirectional(-1.0, 1.0);
+  static const AlignmentDirectional bottomStart =
+      AlignmentDirectional(-1.0, 1.0);
 
   /// The center point along the bottom edge.
-  static const AlignmentDirectional bottomCenter = AlignmentDirectional(0.0, 1.0);
+  static const AlignmentDirectional bottomCenter =
+      AlignmentDirectional(0.0, 1.0);
 
   /// The bottom corner on the "end" side.
   static const AlignmentDirectional bottomEnd = AlignmentDirectional(1.0, 1.0);
@@ -341,7 +344,9 @@ class AlignmentDirectional extends AlignmentGeometry {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is AlignmentDirectional && other.start == start && other.y == y;
+    return other is AlignmentDirectional &&
+        other.start == start &&
+        other.y == y;
   }
 
   @override

@@ -4,7 +4,8 @@ import 'package:nocterm/src/framework/terminal_canvas.dart';
 import 'package:nocterm/src/rectangle.dart';
 
 /// Render object for flex layouts (Row/Column)
-class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObject> {
+class RenderFlex extends RenderObject
+    with ContainerRenderObjectMixin<RenderObject> {
   /// Whether to show overflow indicators in debug mode
   static bool debugShowOverflowIndicator = true;
 
@@ -28,7 +29,8 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
   double _overflow = 0;
 
   /// Check whether any meaningful overflow is present.
-  bool get hasOverflow => _overflow > 0.01; // Small epsilon for floating point errors
+  bool get hasOverflow =>
+      _overflow > 0.01; // Small epsilon for floating point errors
 
   @override
   void setupParentData(RenderObject child) {
@@ -102,7 +104,9 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
   }
 
   Size _getSize(double mainAxisExtent, double crossAxisExtent) {
-    return direction == Axis.horizontal ? Size(mainAxisExtent, crossAxisExtent) : Size(crossAxisExtent, mainAxisExtent);
+    return direction == Axis.horizontal
+        ? Size(mainAxisExtent, crossAxisExtent)
+        : Size(crossAxisExtent, mainAxisExtent);
   }
 
   int _getFlex(RenderObject child) {
@@ -124,19 +128,21 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     return false;
   }
 
-  BoxConstraints _getChildConstraints(BoxConstraints constraints, double? maxMainAxisExtent) {
+  BoxConstraints _getChildConstraints(
+      BoxConstraints constraints, double? maxMainAxisExtent) {
     // For non-flex children (when maxMainAxisExtent is null), pass infinite constraint along the main axis
     // This matches Flutter's behavior in _constraintsForNonFlexChild
-    
+
     // When CrossAxisAlignment.stretch is used, children should get tight constraints on the cross axis
     final bool shouldStretch = crossAxisAlignment == CrossAxisAlignment.stretch;
-    
+
     BoxConstraints result;
     if (direction == Axis.horizontal) {
       // For Row: width is main axis, height is cross axis
       result = BoxConstraints(
         minWidth: 0,
-        maxWidth: maxMainAxisExtent ?? double.infinity, // Pass infinity for non-flex children
+        maxWidth: maxMainAxisExtent ??
+            double.infinity, // Pass infinity for non-flex children
         minHeight: shouldStretch ? constraints.maxHeight : 0,
         maxHeight: constraints.maxHeight,
       );
@@ -146,16 +152,17 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
         minWidth: shouldStretch ? constraints.maxWidth : 0,
         maxWidth: constraints.maxWidth,
         minHeight: 0,
-        maxHeight: maxMainAxisExtent ?? double.infinity, // Pass infinity for non-flex children
+        maxHeight: maxMainAxisExtent ??
+            double.infinity, // Pass infinity for non-flex children
       );
     }
-    
+
     // Debug: log constraints for stretch
     // if (shouldStretch && direction == Axis.vertical) {
     //   print('Column stretch: incoming=$constraints');
     //   print('  Child constraints: minW=${result.minWidth}, maxW=${result.maxWidth}, minH=${result.minHeight}, maxH=${result.maxHeight}');
     // }
-    
+
     return result;
   }
 
@@ -165,7 +172,9 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     int totalFlex = 0;
     double allocatedSize = 0;
     double maxCrossAxisExtent = 0;
-    final double maxMainAxisExtent = direction == Axis.horizontal ? constraints.maxWidth : constraints.maxHeight;
+    final double maxMainAxisExtent = direction == Axis.horizontal
+        ? constraints.maxWidth
+        : constraints.maxHeight;
     final bool canFlex = maxMainAxisExtent.isFinite;
 
     // Check for invalid flex usage with unbounded constraints
@@ -175,33 +184,36 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
       bool hasProblematicFlexChild = false;
       for (final child in children) {
         final int flex = _getFlex(child);
-        if (flex > 0 && (mainAxisSize == MainAxisSize.max || _getFlexFit(child) == FlexFit.tight)) {
+        if (flex > 0 &&
+            (mainAxisSize == MainAxisSize.max ||
+                _getFlexFit(child) == FlexFit.tight)) {
           hasProblematicFlexChild = true;
           break;
         }
       }
-      
+
       if (hasProblematicFlexChild) {
         final String identity = direction == Axis.horizontal ? 'Row' : 'Column';
-        final String axis = direction == Axis.horizontal ? 'horizontal' : 'vertical';
-        final String dimension = direction == Axis.horizontal ? 'width' : 'height';
-        
+        final String axis =
+            direction == Axis.horizontal ? 'horizontal' : 'vertical';
+        final String dimension =
+            direction == Axis.horizontal ? 'width' : 'height';
+
         throw FlutterError(
-          'RenderFlex children have non-zero flex but incoming $dimension constraints are unbounded.\n'
-          'When a $identity is in a parent that does not provide a finite $dimension constraint, for example '
-          'if it is in a $axis scrollable or another $identity, it will try to shrink-wrap its children along the $axis '
-          'axis. Setting a flex on a child (e.g. using Expanded) indicates that the child is to '
-          'expand to fill the remaining space in the $axis direction.\n'
-          'These two directives are mutually exclusive. If a parent is to shrink-wrap its child, the child '
-          'cannot simultaneously expand to fit its parent.\n'
-          'Consider setting mainAxisSize to MainAxisSize.min and using FlexFit.loose fits for the flexible '
-          'children (using Flexible rather than Expanded). This will allow the flexible children '
-          'to size themselves to less than the infinite remaining space they would otherwise be '
-          'forced to take, and then will cause the RenderFlex to shrink-wrap the children '
-          'rather than expanding to fit the maximum constraints provided by the parent.\n'
-          'The affected RenderFlex is: $this\n'
-          'See also: https://flutter.dev/unbounded-constraints'
-        );
+            'RenderFlex children have non-zero flex but incoming $dimension constraints are unbounded.\n'
+            'When a $identity is in a parent that does not provide a finite $dimension constraint, for example '
+            'if it is in a $axis scrollable or another $identity, it will try to shrink-wrap its children along the $axis '
+            'axis. Setting a flex on a child (e.g. using Expanded) indicates that the child is to '
+            'expand to fill the remaining space in the $axis direction.\n'
+            'These two directives are mutually exclusive. If a parent is to shrink-wrap its child, the child '
+            'cannot simultaneously expand to fit its parent.\n'
+            'Consider setting mainAxisSize to MainAxisSize.min and using FlexFit.loose fits for the flexible '
+            'children (using Flexible rather than Expanded). This will allow the flexible children '
+            'to size themselves to less than the infinite remaining space they would otherwise be '
+            'forced to take, and then will cause the RenderFlex to shrink-wrap the children '
+            'rather than expanding to fit the maximum constraints provided by the parent.\n'
+            'The affected RenderFlex is: $this\n'
+            'See also: https://flutter.dev/unbounded-constraints');
       }
     }
 
@@ -216,7 +228,8 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
         child.layout(childConstraints, parentUsesSize: true);
         final childSize = child.size;
         allocatedSize += _getMainAxisExtent(childSize);
-        maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
+        maxCrossAxisExtent =
+            math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
       }
     }
 
@@ -233,11 +246,13 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
             child.layout(childConstraints, parentUsesSize: true);
             final childSize = child.size;
             allocatedSize += _getMainAxisExtent(childSize);
-            maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
+            maxCrossAxisExtent =
+                math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
           }
         }
       } else {
-        final double freeSpace = math.max(0.0, maxMainAxisExtent - allocatedSize);
+        final double freeSpace =
+            math.max(0.0, maxMainAxisExtent - allocatedSize);
         final double spacePerFlex = freeSpace / totalFlex;
 
         for (final child in children) {
@@ -266,7 +281,8 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
 
             child.layout(childConstraints, parentUsesSize: true);
             final childSize = child.size;
-            maxCrossAxisExtent = math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
+            maxCrossAxisExtent =
+                math.max(maxCrossAxisExtent, _getCrossAxisExtent(childSize));
           }
         }
       }
@@ -290,7 +306,9 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
     }
 
     if (crossAxisAlignment == CrossAxisAlignment.stretch) {
-      crossAxisExtent = direction == Axis.horizontal ? constraints.maxHeight : constraints.maxWidth;
+      crossAxisExtent = direction == Axis.horizontal
+          ? constraints.maxHeight
+          : constraints.maxWidth;
     } else {
       crossAxisExtent = maxCrossAxisExtent;
     }
@@ -303,14 +321,17 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
       // Log overflow warning with more details
       final axis = direction == Axis.horizontal ? "horizontal" : "vertical";
       final timestamp = DateTime.now().toIso8601String();
-      print('[$timestamp] ⚠️  RenderFlex overflowed by ${_overflow.toStringAsFixed(1)} pixels on the $axis axis.');
+      print(
+          '[$timestamp] ⚠️  RenderFlex overflowed by ${_overflow.toStringAsFixed(1)} pixels on the $axis axis.');
       print('  Available space: ${mainAxisExtent.toStringAsFixed(1)} pixels');
-      print('  Required space: ${actualAllocatedSize.toStringAsFixed(1)} pixels');
+      print(
+          '  Required space: ${actualAllocatedSize.toStringAsFixed(1)} pixels');
       print('  Number of children: ${children.length}');
     }
 
     // Position children and store in parent data
-    final double freeSpace = math.max(0.0, mainAxisExtent - actualAllocatedSize);
+    final double freeSpace =
+        math.max(0.0, mainAxisExtent - actualAllocatedSize);
 
     // Calculate starting position based on alignment
     double mainAxisOffset = 0;
@@ -440,9 +461,11 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
 
       // Draw overflow amount text in the center of the indicator
       final overflowText = '${_overflow.toStringAsFixed(0)}px';
-      if (indicatorRect.height >= 1 && indicatorRect.width >= overflowText.length) {
+      if (indicatorRect.height >= 1 &&
+          indicatorRect.width >= overflowText.length) {
         final textY = (indicatorRect.height / 2).floor().toDouble();
-        final textX = indicatorRect.left + (indicatorRect.width - overflowText.length) / 2;
+        final textX = indicatorRect.left +
+            (indicatorRect.width - overflowText.length) / 2;
         canvas.drawText(
           offset + Offset(textX, textY),
           overflowText,
@@ -477,7 +500,8 @@ class RenderFlex extends RenderObject with ContainerRenderObjectMixin<RenderObje
 
       // Draw overflow amount text in the center of the indicator
       final overflowText = '↓${_overflow.toStringAsFixed(0)}px';
-      if (indicatorRect.width >= overflowText.length && indicatorRect.height >= 1) {
+      if (indicatorRect.width >= overflowText.length &&
+          indicatorRect.height >= 1) {
         final textX = (indicatorRect.width - overflowText.length) / 2;
         final textY = indicatorRect.top + (indicatorRect.height / 2).floor();
         canvas.drawText(

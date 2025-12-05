@@ -965,7 +965,9 @@ class EscapeParser {
       case 7:
         return handler.setAutoWrapMode(enabled);
       case 9:
-        return enabled ? handler.setMouseMode(MouseMode.clickOnly) : handler.setMouseMode(MouseMode.none);
+        return enabled
+            ? handler.setMouseMode(MouseMode.clickOnly)
+            : handler.setMouseMode(MouseMode.none);
       case 12:
       case 13:
         return handler.setCursorBlinkMode(enabled);
@@ -981,13 +983,21 @@ class EscapeParser {
         return handler.setAppKeypadMode(enabled);
       case 1000:
       case 10061000:
-        return enabled ? handler.setMouseMode(MouseMode.upDownScroll) : handler.setMouseMode(MouseMode.none);
+        return enabled
+            ? handler.setMouseMode(MouseMode.upDownScroll)
+            : handler.setMouseMode(MouseMode.none);
       case 1001:
-        return enabled ? handler.setMouseMode(MouseMode.upDownScroll) : handler.setMouseMode(MouseMode.none);
+        return enabled
+            ? handler.setMouseMode(MouseMode.upDownScroll)
+            : handler.setMouseMode(MouseMode.none);
       case 1002:
-        return enabled ? handler.setMouseMode(MouseMode.upDownScrollDrag) : handler.setMouseMode(MouseMode.none);
+        return enabled
+            ? handler.setMouseMode(MouseMode.upDownScrollDrag)
+            : handler.setMouseMode(MouseMode.none);
       case 1003:
-        return enabled ? handler.setMouseMode(MouseMode.upDownScrollMove) : handler.setMouseMode(MouseMode.none);
+        return enabled
+            ? handler.setMouseMode(MouseMode.upDownScrollMove)
+            : handler.setMouseMode(MouseMode.none);
       case 1004:
         return handler.setReportFocusMode(enabled);
       case 1005:

@@ -10,7 +10,8 @@ import 'terminal_backend.dart';
 class SocketBackend implements TerminalBackend {
   final Socket _socket;
   Size _size;
-  final StreamController<Size> _resizeController = StreamController<Size>.broadcast();
+  final StreamController<Size> _resizeController =
+      StreamController<Size>.broadcast();
   bool _disposed = false;
 
   SocketBackend(this._socket, {Size? initialSize})
@@ -44,7 +45,8 @@ class SocketBackend implements TerminalBackend {
   Stream<Size>? get resizeStream => _resizeController.stream;
 
   @override
-  Stream<void>? get shutdownStream => null; // Socket closure handled differently
+  Stream<void>? get shutdownStream =>
+      null; // Socket closure handled differently
 
   @override
   void enableRawMode() {

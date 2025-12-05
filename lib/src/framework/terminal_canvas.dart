@@ -28,13 +28,15 @@ class TerminalCanvas {
 
     // Blend foreground color if it has transparency
     if (style.color != null && style.color!.alpha < 255) {
-      final existingBg = existingCell.style.backgroundColor ?? Color.defaultColor;
+      final existingBg =
+          existingCell.style.backgroundColor ?? Color.defaultColor;
       blendedColor = Color.alphaBlend(style.color!, existingBg);
     }
 
     // Blend background color if it has transparency
     if (style.backgroundColor != null && style.backgroundColor!.alpha < 255) {
-      final existingBg = existingCell.style.backgroundColor ?? Color.defaultColor;
+      final existingBg =
+          existingCell.style.backgroundColor ?? Color.defaultColor;
       blendedBgColor = Color.alphaBlend(style.backgroundColor!, existingBg);
     }
 
@@ -112,7 +114,8 @@ class TerminalCanvas {
         // Get existing cell and blend style (handles alpha + background preservation)
         final nextExistingCell = buffer.getCell(nextCellX, nextCellY);
         final nextEffectiveStyle = style ?? const TextStyle();
-        final nextFinalStyle = _blendStyle(nextEffectiveStyle, nextExistingCell);
+        final nextFinalStyle =
+            _blendStyle(nextEffectiveStyle, nextExistingCell);
 
         buffer.setCell(
           nextCellX,

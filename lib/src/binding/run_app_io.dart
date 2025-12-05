@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:nocterm/nocterm.dart' hide StdioBackend, SocketBackend, WebBackend;
+import 'package:nocterm/nocterm.dart'
+    hide StdioBackend, SocketBackend, WebBackend;
 import 'package:nocterm/src/backend/stdio_backend.dart';
 import 'package:nocterm/src/backend/socket_backend.dart';
 import 'package:nocterm/src/backend/terminal.dart' as term;
@@ -57,7 +58,8 @@ Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
           print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
             logger?.log(message);
           },
-          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace) {
+          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
+              Object error, StackTrace stackTrace) {
             logger?.log('ERROR: $error\n$stackTrace');
           },
         ));
@@ -74,7 +76,8 @@ Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
   }
 }
 
-Future<void> _runAppInShellMode(Component app, File shellHandleFile, bool enableHotReload) async {
+Future<void> _runAppInShellMode(
+    Component app, File shellHandleFile, bool enableHotReload) async {
   TerminalBinding? binding;
   LogServer? logServer;
   Logger? logger;
@@ -113,7 +116,8 @@ Future<void> _runAppInShellMode(Component app, File shellHandleFile, bool enable
             logger?.log(message);
             parent.print(zone, message);
           },
-          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace) {
+          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
+              Object error, StackTrace stackTrace) {
             final errorMessage = 'ERROR: $error\n$stackTrace';
             logger?.log(errorMessage);
             stderr.writeln(errorMessage);

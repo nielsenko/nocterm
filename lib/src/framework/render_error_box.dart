@@ -5,7 +5,8 @@ part of 'framework.dart';
 /// Similar to Flutter's RenderErrorBox, this provides a visual representation
 /// of errors that occur during rendering. It displays a red bordered box with
 /// the error message inside.
-class RenderTUIErrorBox extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderTUIErrorBox extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   /// Creates a RenderTUIErrorBox render object.
   ///
   /// A message can optionally be provided. If a message is provided,
@@ -34,8 +35,9 @@ class RenderTUIErrorBox extends RenderObject with RenderObjectWithChildMixin<Ren
     // Be defensive - ensure we don't throw during error handling
     try {
       // Try to fit within constraints, but use a reasonable default if unbounded
-      final width =
-          constraints.maxWidth.isFinite ? constraints.maxWidth.clamp(10.0, _kMaxSize) : 80.0; // Default terminal width
+      final width = constraints.maxWidth.isFinite
+          ? constraints.maxWidth.clamp(10.0, _kMaxSize)
+          : 80.0; // Default terminal width
       final height = constraints.maxHeight.isFinite
           ? constraints.maxHeight.clamp(5.0, _kMaxSize)
           : 10.0; // Reasonable height for error display
@@ -64,7 +66,8 @@ class RenderTUIErrorBox extends RenderObject with RenderObjectWithChildMixin<Ren
     } catch (e) {
       // If painting fails, at least try to output something
       try {
-        canvas.drawText(offset, 'ERROR', style: TextStyle(color: Color.fromRGB(255, 0, 0)));
+        canvas.drawText(offset, 'ERROR',
+            style: TextStyle(color: Color.fromRGB(255, 0, 0)));
       } catch (_) {
         // Give up silently
       }
@@ -80,24 +83,32 @@ class RenderTUIErrorBox extends RenderObject with RenderObjectWithChildMixin<Ren
     final borderStyle = TextStyle(color: Color.fromRGB(255, 0, 0));
 
     // Top border
-    canvas.drawText(Offset(left.toDouble(), top.toDouble()), '┌', style: borderStyle);
+    canvas.drawText(Offset(left.toDouble(), top.toDouble()), '┌',
+        style: borderStyle);
     for (int x = left + 1; x < right; x++) {
-      canvas.drawText(Offset(x.toDouble(), top.toDouble()), '─', style: borderStyle);
+      canvas.drawText(Offset(x.toDouble(), top.toDouble()), '─',
+          style: borderStyle);
     }
-    canvas.drawText(Offset(right.toDouble(), top.toDouble()), '┐', style: borderStyle);
+    canvas.drawText(Offset(right.toDouble(), top.toDouble()), '┐',
+        style: borderStyle);
 
     // Side borders
     for (int y = top + 1; y < bottom; y++) {
-      canvas.drawText(Offset(left.toDouble(), y.toDouble()), '│', style: borderStyle);
-      canvas.drawText(Offset(right.toDouble(), y.toDouble()), '│', style: borderStyle);
+      canvas.drawText(Offset(left.toDouble(), y.toDouble()), '│',
+          style: borderStyle);
+      canvas.drawText(Offset(right.toDouble(), y.toDouble()), '│',
+          style: borderStyle);
     }
 
     // Bottom border
-    canvas.drawText(Offset(left.toDouble(), bottom.toDouble()), '└', style: borderStyle);
+    canvas.drawText(Offset(left.toDouble(), bottom.toDouble()), '└',
+        style: borderStyle);
     for (int x = left + 1; x < right; x++) {
-      canvas.drawText(Offset(x.toDouble(), bottom.toDouble()), '─', style: borderStyle);
+      canvas.drawText(Offset(x.toDouble(), bottom.toDouble()), '─',
+          style: borderStyle);
     }
-    canvas.drawText(Offset(right.toDouble(), bottom.toDouble()), '┘', style: borderStyle);
+    canvas.drawText(Offset(right.toDouble(), bottom.toDouble()), '┘',
+        style: borderStyle);
   }
 
   void _drawErrorText(TerminalCanvas canvas, Rect rect) {
@@ -129,8 +140,9 @@ class RenderTUIErrorBox extends RenderObject with RenderObjectWithChildMixin<Ren
         final stackLine = stackLines[i];
         if (stackLine.isNotEmpty) {
           // Truncate long stack lines
-          final truncated =
-              stackLine.length > availableWidth ? stackLine.substring(0, availableWidth - 3) + '...' : stackLine;
+          final truncated = stackLine.length > availableWidth
+              ? stackLine.substring(0, availableWidth - 3) + '...'
+              : stackLine;
           lines.add(truncated);
         }
       }

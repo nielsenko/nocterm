@@ -97,14 +97,27 @@ class _PerformanceOverlayState extends State<PerformanceOverlay> {
 
     final stats = _buildStatsText();
     final lines = stats.split('\n');
-    final maxWidth = lines.map((l) => l.length).reduce((a, b) => a > b ? a : b) + 2;
+    final maxWidth =
+        lines.map((l) => l.length).reduce((a, b) => a > b ? a : b) + 2;
     final totalHeight = lines.length + 2;
 
     return Positioned(
-      top: component.position == OverlayPosition.topLeft || component.position == OverlayPosition.topRight ? 0.0 : null,
-      bottom: component.position == OverlayPosition.bottomLeft || component.position == OverlayPosition.bottomRight ? 0.0 : null,
-      left: component.position == OverlayPosition.topLeft || component.position == OverlayPosition.bottomLeft ? 0.0 : null,
-      right: component.position == OverlayPosition.topRight || component.position == OverlayPosition.bottomRight ? 0.0 : null,
+      top: component.position == OverlayPosition.topLeft ||
+              component.position == OverlayPosition.topRight
+          ? 0.0
+          : null,
+      bottom: component.position == OverlayPosition.bottomLeft ||
+              component.position == OverlayPosition.bottomRight
+          ? 0.0
+          : null,
+      left: component.position == OverlayPosition.topLeft ||
+              component.position == OverlayPosition.bottomLeft
+          ? 0.0
+          : null,
+      right: component.position == OverlayPosition.topRight ||
+              component.position == OverlayPosition.bottomRight
+          ? 0.0
+          : null,
       child: Container(
         width: maxWidth.toDouble(),
         height: totalHeight.toDouble(),
@@ -128,10 +141,12 @@ class _PerformanceOverlayState extends State<PerformanceOverlay> {
     // Current frame
     final lastFrameMs = _lastFrame!.totalDuration.inMicroseconds / 1000.0;
     final frameColor = _lastFrame!.isSlowFrame ? '🔴' : '🟢';
-    buffer.writeln('$frameColor Frame #${_lastFrame!.frameNumber}: ${lastFrameMs.toStringAsFixed(2)}ms');
+    buffer.writeln(
+        '$frameColor Frame #${_lastFrame!.frameNumber}: ${lastFrameMs.toStringAsFixed(2)}ms');
 
     // FPS and average
-    buffer.writeln('FPS: ${_fps.toStringAsFixed(1)} (avg: ${_averageFrameTime.toStringAsFixed(2)}ms)');
+    buffer.writeln(
+        'FPS: ${_fps.toStringAsFixed(1)} (avg: ${_averageFrameTime.toStringAsFixed(2)}ms)');
 
     // Slow frame count
     if (_slowFrameCount > 0) {

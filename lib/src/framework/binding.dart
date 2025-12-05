@@ -35,7 +35,9 @@ abstract class NoctermBinding {
   @protected
   void registerServiceExtension({
     required String name,
-    required Future<Map<String, dynamic>> Function(Map<String, String> parameters) callback,
+    required Future<Map<String, dynamic>> Function(
+            Map<String, String> parameters)
+        callback,
   }) {
     developer.registerExtension(
       'ext.nocterm.$name',
@@ -176,9 +178,11 @@ class InheritedElement extends BuildableElement {
   }
 
   void _updateInheritance() {
-    final Map<Type, InheritedElement>? parentInheritedElements = parent?._inheritedElements;
+    final Map<Type, InheritedElement>? parentInheritedElements =
+        parent?._inheritedElements;
     if (parentInheritedElements != null) {
-      _inheritedElements = HashMap<Type, InheritedElement>.from(parentInheritedElements);
+      _inheritedElements =
+          HashMap<Type, InheritedElement>.from(parentInheritedElements);
     } else {
       _inheritedElements = HashMap<Type, InheritedElement>();
     }

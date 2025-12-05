@@ -72,7 +72,8 @@ class BoxBorder {
   final BorderSide bottom;
   final BorderSide left;
 
-  bool get hasNoBorder => top.isNone && right.isNone && bottom.isNone && left.isNone;
+  bool get hasNoBorder =>
+      top.isNone && right.isNone && bottom.isNone && left.isNone;
 }
 
 /// Box shadow configuration
@@ -119,7 +120,10 @@ class BorderRadius {
   static const BorderRadius zero = BorderRadius.all(Radius.zero);
 
   bool get isZero =>
-      topLeft == Radius.zero && topRight == Radius.zero && bottomLeft == Radius.zero && bottomRight == Radius.zero;
+      topLeft == Radius.zero &&
+      topRight == Radius.zero &&
+      bottomLeft == Radius.zero &&
+      bottomRight == Radius.zero;
 }
 
 /// Radius configuration
@@ -135,7 +139,8 @@ class Radius {
   static const Radius zero = Radius.circular(0);
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Radius && x == other.x && y == other.y;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Radius && x == other.x && y == other.y;
 
   @override
   int get hashCode => Object.hash(x, y);
@@ -207,7 +212,8 @@ enum BlendMode {
 }
 
 /// RenderObject that applies decoration to its child
-class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderDecoratedBox extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   RenderDecoratedBox({
     required BoxDecoration decoration,
     DecorationPosition position = DecorationPosition.background,
@@ -275,7 +281,8 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
 
   void _paintDecoration(TerminalCanvas canvas, Offset offset) {
     // Create rect in absolute canvas coordinates for background
-    final absoluteRect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
+    final absoluteRect =
+        Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
 
     // Paint background color
     if (_decoration.color != null) {
@@ -294,7 +301,8 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
     canvas.fillRect(rect, ' ', style: style);
   }
 
-  void _setCell(TerminalCanvas canvas, int x, int y, String char, TextStyle style) {
+  void _setCell(
+      TerminalCanvas canvas, int x, int y, String char, TextStyle style) {
     // x and y are already in absolute canvas coordinates
     // Check bounds against the absolute buffer area
     final bufferX = canvas.area.left.round() + x;
@@ -337,7 +345,8 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
         String charToUse;
         if (!border.left.isNone && !border.right.isNone) {
           // Has left and right borders, use appropriate corner
-          charToUse = chars.topLeft; // Since it's a 1-wide box, topLeft represents the entire top
+          charToUse = chars
+              .topLeft; // Since it's a 1-wide box, topLeft represents the entire top
         } else if (!border.left.isNone) {
           charToUse = chars.topLeft;
         } else if (!border.right.isNone) {
@@ -348,12 +357,14 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
         _setCell(canvas, left, top, charToUse, borderStyle);
       } else {
         // Use corner only if left border connects, otherwise use horizontal
-        final leftTopChar = !border.left.isNone ? chars.topLeft : chars.horizontal;
+        final leftTopChar =
+            !border.left.isNone ? chars.topLeft : chars.horizontal;
         _setCell(canvas, left, top, leftTopChar, borderStyle);
 
         // Check if we have a title to render
         final title = _decoration.title;
-        final horizontalWidth = right - left - 1; // Available width between corners
+        final horizontalWidth =
+            right - left - 1; // Available width between corners
 
         if (title != null && horizontalWidth >= 5) {
           // Minimum width: space + 1 char title + space + some border chars
@@ -363,11 +374,13 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
 
           // Calculate title display with " Title " format (space padding)
           // We need at least 2 horizontal chars for aesthetics
-          final maxTitleWidth = horizontalWidth - 2; // Reserve 2 chars for border lines
+          final maxTitleWidth =
+              horizontalWidth - 2; // Reserve 2 chars for border lines
           String displayTitle;
           if (titleText.length + 2 > maxTitleWidth) {
             // Truncate with ellipsis
-            final truncateLen = maxTitleWidth - 3; // -3 for "..." and space padding
+            final truncateLen =
+                maxTitleWidth - 3; // -3 for "..." and space padding
             if (truncateLen > 0) {
               displayTitle = ' ${titleText.substring(0, truncateLen)}… ';
             } else {
@@ -406,18 +419,21 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
 
             // Paint left horizontal chars
             for (int i = 0; i < leftBorderLen; i++) {
-              _setCell(canvas, left + 1 + i, top, chars.horizontal, borderStyle);
+              _setCell(
+                  canvas, left + 1 + i, top, chars.horizontal, borderStyle);
             }
 
             // Paint title
             for (int i = 0; i < displayTitle.length; i++) {
-              _setCell(canvas, titleStartX + i, top, displayTitle[i], titleStyle);
+              _setCell(
+                  canvas, titleStartX + i, top, displayTitle[i], titleStyle);
             }
 
             // Paint right horizontal chars
             final rightStartX = titleStartX + titleWidth;
             for (int i = 0; i < rightBorderLen; i++) {
-              _setCell(canvas, rightStartX + i, top, chars.horizontal, borderStyle);
+              _setCell(
+                  canvas, rightStartX + i, top, chars.horizontal, borderStyle);
             }
           } else {
             // Title too short, render normal border
@@ -433,7 +449,8 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
         }
 
         // Use corner only if right border connects, otherwise use horizontal
-        final rightTopChar = !border.right.isNone ? chars.topRight : chars.horizontal;
+        final rightTopChar =
+            !border.right.isNone ? chars.topRight : chars.horizontal;
         _setCell(canvas, right, top, rightTopChar, borderStyle);
       }
     }
@@ -447,7 +464,8 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
         String charToUse;
         if (!border.left.isNone && !border.right.isNone) {
           // Has left and right borders, use appropriate corner
-          charToUse = chars.bottomLeft; // Since it's a 1-wide box, bottomLeft represents the entire bottom
+          charToUse = chars
+              .bottomLeft; // Since it's a 1-wide box, bottomLeft represents the entire bottom
         } else if (!border.left.isNone) {
           charToUse = chars.bottomLeft;
         } else if (!border.right.isNone) {
@@ -458,13 +476,15 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
         _setCell(canvas, left, bottom, charToUse, style);
       } else {
         // Use corner only if left border connects, otherwise use horizontal
-        final leftBottomChar = !border.left.isNone ? chars.bottomLeft : chars.horizontal;
+        final leftBottomChar =
+            !border.left.isNone ? chars.bottomLeft : chars.horizontal;
         _setCell(canvas, left, bottom, leftBottomChar, style);
         for (int x = left + 1; x < right; x++) {
           _setCell(canvas, x, bottom, chars.horizontal, style);
         }
         // Use corner only if right border connects, otherwise use horizontal
-        final rightBottomChar = !border.right.isNone ? chars.bottomRight : chars.horizontal;
+        final rightBottomChar =
+            !border.right.isNone ? chars.bottomRight : chars.horizontal;
         _setCell(canvas, right, bottom, rightBottomChar, style);
       }
     }
@@ -524,12 +544,14 @@ class RenderDecoratedBox extends RenderObject with RenderObjectWithChildMixin<Re
     if (_position == DecorationPosition.background) {
       _paintDecoration(canvas, offset);
       if (child != null) {
-        final BoxParentData childParentData = child!.parentData as BoxParentData;
+        final BoxParentData childParentData =
+            child!.parentData as BoxParentData;
         child!.paintWithContext(canvas, offset + childParentData.offset);
       }
     } else {
       if (child != null) {
-        final BoxParentData childParentData = child!.parentData as BoxParentData;
+        final BoxParentData childParentData =
+            child!.parentData as BoxParentData;
         child!.paintWithContext(canvas, offset + childParentData.offset);
       }
       _paintDecoration(canvas, offset);
@@ -638,7 +660,8 @@ class DecoratedBox extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderDecoratedBox renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderDecoratedBox renderObject) {
     renderObject
       ..decoration = decoration
       ..position = position;
@@ -678,7 +701,10 @@ class Container extends StatelessComponent {
   Component build(BuildContext context) {
     Component? current = child;
 
-    if (child == null && (constraints == null || !constraints!.hasBoundedWidth || !constraints!.hasBoundedHeight)) {
+    if (child == null &&
+        (constraints == null ||
+            !constraints!.hasBoundedWidth ||
+            !constraints!.hasBoundedHeight)) {
       current = const LimitedBox(
         maxWidth: 0.0,
         maxHeight: 0.0,

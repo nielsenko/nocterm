@@ -111,12 +111,14 @@ class NavigatorState extends State<Navigator> {
   }
 
   void _buildInitialRouteStack(String initialRoute) {
-    final segments = initialRoute.split('/').where((s) => s.isNotEmpty).toList();
+    final segments =
+        initialRoute.split('/').where((s) => s.isNotEmpty).toList();
 
     // Always start with home route if available
-    if (component.home != null || (component.routes?.containsKey('/') ?? false)) {
+    if (component.home != null ||
+        (component.routes?.containsKey('/') ?? false)) {
       final homeRoute = PageRoute(
-        builder: component.home != null 
+        builder: component.home != null
             ? (context) => component.home!
             : component.routes!['/']!,
         settings: const RouteSettings(name: '/'),
@@ -170,7 +172,7 @@ class NavigatorState extends State<Navigator> {
   /// Push a new route onto the stack
   Future<T?> push<T>(Route<T> route) {
     _installRoute(route);
-    
+
     // Add overlay entries to the overlay
     if (_overlay != null) {
       _overlay!.insertAll(route.overlayEntries);
@@ -178,7 +180,8 @@ class NavigatorState extends State<Navigator> {
 
     // Notify observers
     for (final observer in component.observers) {
-      observer.didPush(route, _routes.length > 1 ? _routes[_routes.length - 2] : null);
+      observer.didPush(
+          route, _routes.length > 1 ? _routes[_routes.length - 2] : null);
     }
 
     final completer = Completer<T?>();
@@ -253,7 +256,8 @@ class NavigatorState extends State<Navigator> {
   }
 
   /// Push a named route and replace the current top route
-  Future<T?> pushReplacementNamed<T, TO>(String name, {Object? arguments, TO? result}) {
+  Future<T?> pushReplacementNamed<T, TO>(String name,
+      {Object? arguments, TO? result}) {
     final settings = RouteSettings(name: name, arguments: arguments);
     final route = _createRoute(settings);
 
@@ -265,7 +269,8 @@ class NavigatorState extends State<Navigator> {
   }
 
   /// Push a component and replace the current top route
-  Future<T?> pushReplacementComponent<T, TO>(Component component, {String? name, TO? result}) {
+  Future<T?> pushReplacementComponent<T, TO>(Component component,
+      {String? name, TO? result}) {
     final route = PageRoute<T>(
       builder: (context) => component,
       settings: RouteSettings(name: name),

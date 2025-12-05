@@ -1,5 +1,5 @@
 /// Represents a logical keyboard key.
-/// 
+///
 /// This includes regular characters, special keys (arrows, function keys),
 /// and modifier keys. Modifier combinations are now handled separately
 /// through the ModifierKeys class in KeyboardEvent.
@@ -11,8 +11,7 @@ class LogicalKey {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is LogicalKey && other.keyId == keyId;
+      identical(this, other) || other is LogicalKey && other.keyId == keyId;
 
   @override
   int get hashCode => keyId.hashCode;
@@ -30,7 +29,8 @@ class LogicalKey {
   static const LogicalKey ampersand = LogicalKey(0x26, 'ampersand');
   static const LogicalKey quoteSingle = LogicalKey(0x27, 'quoteSingle');
   static const LogicalKey parenthesisLeft = LogicalKey(0x28, 'parenthesisLeft');
-  static const LogicalKey parenthesisRight = LogicalKey(0x29, 'parenthesisRight');
+  static const LogicalKey parenthesisRight =
+      LogicalKey(0x29, 'parenthesisRight');
   static const LogicalKey asterisk = LogicalKey(0x2A, 'asterisk');
   static const LogicalKey add = LogicalKey(0x2B, 'add');
   static const LogicalKey comma = LogicalKey(0x2C, 'comma');
@@ -103,10 +103,11 @@ class LogicalKey {
   static const LogicalKey backspace = LogicalKey(0x7F, 'backspace');
   static const LogicalKey escape = LogicalKey(0x1B, 'escape');
   static const LogicalKey delete = LogicalKey(0x2E00, 'delete');
-  
+
   // Modifier keys (for tracking state)
   static const LogicalKey controlLeft = LogicalKey(0x100000100, 'controlLeft');
-  static const LogicalKey controlRight = LogicalKey(0x100000101, 'controlRight');
+  static const LogicalKey controlRight =
+      LogicalKey(0x100000101, 'controlRight');
   static const LogicalKey shiftLeft = LogicalKey(0x100000102, 'shiftLeft');
   static const LogicalKey shiftRight = LogicalKey(0x100000103, 'shiftRight');
   static const LogicalKey altLeft = LogicalKey(0x100000104, 'altLeft');
@@ -141,90 +142,186 @@ class LogicalKey {
   static const LogicalKey f11 = LogicalKey(0x1B5B32337E, 'f11');
   static const LogicalKey f12 = LogicalKey(0x1B5B32347E, 'f12');
 
-
-
-
   /// Create a LogicalKey from a character
   static LogicalKey? fromCharacter(String char) {
     if (char.isEmpty) return null;
     final code = char.codeUnitAt(0);
-    
+
     // Map to existing constants
     switch (code) {
-      case 0x20: return space;
-      case 0x21: return exclamation;
-      case 0x22: return quoteDbl;
-      case 0x23: return numberSign;
-      case 0x24: return dollar;
-      case 0x25: return percent;
-      case 0x26: return ampersand;
-      case 0x27: return quoteSingle;
-      case 0x28: return parenthesisLeft;
-      case 0x29: return parenthesisRight;
-      case 0x2A: return asterisk;
-      case 0x2B: return add;
-      case 0x2C: return comma;
-      case 0x2D: return minus;
-      case 0x2E: return period;
-      case 0x2F: return slash;
-      case 0x30: return digit0;
-      case 0x31: return digit1;
-      case 0x32: return digit2;
-      case 0x33: return digit3;
-      case 0x34: return digit4;
-      case 0x35: return digit5;
-      case 0x36: return digit6;
-      case 0x37: return digit7;
-      case 0x38: return digit8;
-      case 0x39: return digit9;
-      case 0x3A: return colon;
-      case 0x3B: return semicolon;
-      case 0x3C: return less;
-      case 0x3D: return equal;
-      case 0x3E: return greater;
-      case 0x3F: return question;
-      case 0x40: return at;
+      case 0x20:
+        return space;
+      case 0x21:
+        return exclamation;
+      case 0x22:
+        return quoteDbl;
+      case 0x23:
+        return numberSign;
+      case 0x24:
+        return dollar;
+      case 0x25:
+        return percent;
+      case 0x26:
+        return ampersand;
+      case 0x27:
+        return quoteSingle;
+      case 0x28:
+        return parenthesisLeft;
+      case 0x29:
+        return parenthesisRight;
+      case 0x2A:
+        return asterisk;
+      case 0x2B:
+        return add;
+      case 0x2C:
+        return comma;
+      case 0x2D:
+        return minus;
+      case 0x2E:
+        return period;
+      case 0x2F:
+        return slash;
+      case 0x30:
+        return digit0;
+      case 0x31:
+        return digit1;
+      case 0x32:
+        return digit2;
+      case 0x33:
+        return digit3;
+      case 0x34:
+        return digit4;
+      case 0x35:
+        return digit5;
+      case 0x36:
+        return digit6;
+      case 0x37:
+        return digit7;
+      case 0x38:
+        return digit8;
+      case 0x39:
+        return digit9;
+      case 0x3A:
+        return colon;
+      case 0x3B:
+        return semicolon;
+      case 0x3C:
+        return less;
+      case 0x3D:
+        return equal;
+      case 0x3E:
+        return greater;
+      case 0x3F:
+        return question;
+      case 0x40:
+        return at;
       // Map both uppercase and lowercase to the same key
-      case 0x41: case 0x61: return keyA;
-      case 0x42: case 0x62: return keyB;
-      case 0x43: case 0x63: return keyC;
-      case 0x44: case 0x64: return keyD;
-      case 0x45: case 0x65: return keyE;
-      case 0x46: case 0x66: return keyF;
-      case 0x47: case 0x67: return keyG;
-      case 0x48: case 0x68: return keyH;
-      case 0x49: case 0x69: return keyI;
-      case 0x4A: case 0x6A: return keyJ;
-      case 0x4B: case 0x6B: return keyK;
-      case 0x4C: case 0x6C: return keyL;
-      case 0x4D: case 0x6D: return keyM;
-      case 0x4E: case 0x6E: return keyN;
-      case 0x4F: case 0x6F: return keyO;
-      case 0x50: case 0x70: return keyP;
-      case 0x51: case 0x71: return keyQ;
-      case 0x52: case 0x72: return keyR;
-      case 0x53: case 0x73: return keyS;
-      case 0x54: case 0x74: return keyT;
-      case 0x55: case 0x75: return keyU;
-      case 0x56: case 0x76: return keyV;
-      case 0x57: case 0x77: return keyW;
-      case 0x58: case 0x78: return keyX;
-      case 0x59: case 0x79: return keyY;
-      case 0x5A: case 0x7A: return keyZ;
-      case 0x5B: return bracketLeft;
-      case 0x5C: return backslash;
-      case 0x5D: return bracketRight;
-      case 0x5E: return caret;
-      case 0x5F: return underscore;
-      case 0x60: return backquote;
-      case 0x7B: return braceLeft;
-      case 0x7C: return bar;
-      case 0x7D: return braceRight;
-      case 0x7E: return tilde;
-      case 0x09: return tab;
-      case 0x0D: return enter;
-      case 0x1B: return escape;
-      case 0x7F: return backspace;
+      case 0x41:
+      case 0x61:
+        return keyA;
+      case 0x42:
+      case 0x62:
+        return keyB;
+      case 0x43:
+      case 0x63:
+        return keyC;
+      case 0x44:
+      case 0x64:
+        return keyD;
+      case 0x45:
+      case 0x65:
+        return keyE;
+      case 0x46:
+      case 0x66:
+        return keyF;
+      case 0x47:
+      case 0x67:
+        return keyG;
+      case 0x48:
+      case 0x68:
+        return keyH;
+      case 0x49:
+      case 0x69:
+        return keyI;
+      case 0x4A:
+      case 0x6A:
+        return keyJ;
+      case 0x4B:
+      case 0x6B:
+        return keyK;
+      case 0x4C:
+      case 0x6C:
+        return keyL;
+      case 0x4D:
+      case 0x6D:
+        return keyM;
+      case 0x4E:
+      case 0x6E:
+        return keyN;
+      case 0x4F:
+      case 0x6F:
+        return keyO;
+      case 0x50:
+      case 0x70:
+        return keyP;
+      case 0x51:
+      case 0x71:
+        return keyQ;
+      case 0x52:
+      case 0x72:
+        return keyR;
+      case 0x53:
+      case 0x73:
+        return keyS;
+      case 0x54:
+      case 0x74:
+        return keyT;
+      case 0x55:
+      case 0x75:
+        return keyU;
+      case 0x56:
+      case 0x76:
+        return keyV;
+      case 0x57:
+      case 0x77:
+        return keyW;
+      case 0x58:
+      case 0x78:
+        return keyX;
+      case 0x59:
+      case 0x79:
+        return keyY;
+      case 0x5A:
+      case 0x7A:
+        return keyZ;
+      case 0x5B:
+        return bracketLeft;
+      case 0x5C:
+        return backslash;
+      case 0x5D:
+        return bracketRight;
+      case 0x5E:
+        return caret;
+      case 0x5F:
+        return underscore;
+      case 0x60:
+        return backquote;
+      case 0x7B:
+        return braceLeft;
+      case 0x7C:
+        return bar;
+      case 0x7D:
+        return braceRight;
+      case 0x7E:
+        return tilde;
+      case 0x09:
+        return tab;
+      case 0x0D:
+        return enter;
+      case 0x1B:
+        return escape;
+      case 0x7F:
+        return backspace;
       default:
         // For any other character, create a dynamic key
         return LogicalKey(code, 'char($char)');

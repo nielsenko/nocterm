@@ -15,7 +15,8 @@ import '../rendering/mouse_hit_test.dart';
 import 'hot_reload_mixin.dart';
 
 /// Terminal UI binding that handles terminal input/output and event loop
-class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBinding {
+class TerminalBinding extends NoctermBinding
+    with SchedulerBinding, HotReloadBinding {
   TerminalBinding(this.terminal) {
     _instance = this;
     _initializePipelineOwner();
@@ -216,7 +217,9 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
             foundTerminator = true;
             break;
           }
-          if (end + 1 < bytes.length && bytes[end] == 0x1b && bytes[end + 1] == 0x5c) {
+          if (end + 1 < bytes.length &&
+              bytes[end] == 0x1b &&
+              bytes[end + 1] == 0x5c) {
             // Found ST terminator
             foundTerminator = true;
             end++;
@@ -227,7 +230,8 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
 
         if (foundTerminator && end < bytes.length) {
           // Extract OSC content
-          final oscContent = utf8.decode(bytes.sublist(i + 2, end), allowMalformed: true);
+          final oscContent =
+              utf8.decode(bytes.sublist(i + 2, end), allowMalformed: true);
 
           // Handle OSC sequence based on command number
           _handleOscSequence(oscContent);
@@ -479,11 +483,13 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
     }
 
     // Handle wheel events for scrollable widgets
-    if (event.button == MouseButton.wheelUp || event.button == MouseButton.wheelDown) {
+    if (event.button == MouseButton.wheelUp ||
+        event.button == MouseButton.wheelDown) {
       // Find the render object at the mouse position
       final renderObject = _findRenderObjectInTree(rootElement!);
       if (renderObject != null) {
-        _dispatchMouseWheelAtPosition(rootElement!, event, Offset(event.x.toDouble(), event.y.toDouble()), Offset.zero);
+        _dispatchMouseWheelAtPosition(rootElement!, event,
+            Offset(event.x.toDouble(), event.y.toDouble()), Offset.zero);
       }
     }
 
@@ -549,14 +555,16 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
   }
 
   /// Dispatch a mouse wheel event to scrollable RenderObjects at a specific position
-  bool _dispatchMouseWheelAtPosition(Element element, MouseEvent event, Offset mousePos, Offset currentOffset) {
+  bool _dispatchMouseWheelAtPosition(Element element, MouseEvent event,
+      Offset mousePos, Offset currentOffset) {
     // TODO: This is a hack to handle RenderTheater specially for Navigator
     // Should be properly integrated into the render object hierarchy
     if (element.renderObject is RenderTheater) {
       final multiChildRenderObject = element as MultiChildRenderObjectElement;
       if (multiChildRenderObject.children.length > 0) {
         final child = multiChildRenderObject.children.last;
-        return _dispatchMouseWheelAtPosition(child, event, mousePos, currentOffset);
+        return _dispatchMouseWheelAtPosition(
+            child, event, mousePos, currentOffset);
       }
     }
 
@@ -602,13 +610,17 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
 
     element.visitChildren((child) {
       if (!handled) {
-        handled = _dispatchMouseWheelAtPosition(child, event, mousePos, childrenOffset);
+        handled = _dispatchMouseWheelAtPosition(
+            child, event, mousePos, childrenOffset);
       }
     });
 
     // If no child handled it and this element's render object is scrollable, handle it here
-    if (!handled && renderObject != null && renderObject is ScrollableRenderObjectMixin) {
-      final scrollableRenderObject = renderObject as ScrollableRenderObjectMixin;
+    if (!handled &&
+        renderObject != null &&
+        renderObject is ScrollableRenderObjectMixin) {
+      final scrollableRenderObject =
+          renderObject as ScrollableRenderObjectMixin;
       // Check if the render object implements scrolling through duck typing
       // This allows the RenderObject to handle scrolling without importing the mixin
       handled = scrollableRenderObject.handleMouseWheel(event);
@@ -682,10 +694,12 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
     try {
       // IMPORTANT: Disable mouse tracking and bracketed paste BEFORE leaving alternate screen
       // This ensures the terminal properly processes the disable commands
-      terminal.backend.writeRaw('\x1B[?1003l'); // Disable all motion tracking FIRST
+      terminal.backend
+          .writeRaw('\x1B[?1003l'); // Disable all motion tracking FIRST
       terminal.backend.writeRaw('\x1B[?1006l'); // Disable SGR mouse mode
       terminal.backend.writeRaw('\x1B[?1002l'); // Disable button event tracking
-      terminal.backend.writeRaw('\x1B[?1000l'); // Disable basic mouse tracking LAST
+      terminal.backend
+          .writeRaw('\x1B[?1000l'); // Disable basic mouse tracking LAST
       terminal.backend.writeRaw('\x1B[?2004l'); // Disable bracketed paste mode
 
       // Restore terminal (this includes leaving alternate screen)
@@ -701,7 +715,8 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
 
       // Send a terminal reset sequence as a final safety measure
       // This helps ensure the terminal is in a clean state
-      terminal.backend.writeRaw('\x1B[c'); // Reset Device Attributes (soft reset)
+      terminal.backend
+          .writeRaw('\x1B[c'); // Reset Device Attributes (soft reset)
 
       terminal.clear();
 
@@ -894,7 +909,8 @@ class TerminalBinding extends NoctermBinding with SchedulerBinding, HotReloadBin
       }
 
       // Layout phase
-      renderObject.layout(BoxConstraints.tight(Size(size.width.toDouble(), size.height.toDouble())));
+      renderObject.layout(BoxConstraints.tight(
+          Size(size.width.toDouble(), size.height.toDouble())));
 
       // Flush layout pipeline
       pipelineOwner.flushLayout();

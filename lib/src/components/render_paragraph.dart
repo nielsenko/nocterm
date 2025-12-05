@@ -7,7 +7,7 @@ import '../utils/unicode_width.dart';
 export '../text/text_layout_engine.dart' show TextOverflow, TextAlign;
 
 /// Render object for displaying rich text (text with multiple styles).
-/// 
+///
 /// This is similar to RenderText but supports TextSpan with mixed styles.
 class RenderParagraph extends RenderObject {
   RenderParagraph({
@@ -65,7 +65,7 @@ class RenderParagraph extends RenderObject {
 
   // Cache the styled segments to avoid recomputing them
   List<StyledTextSegment>? _cachedSegments;
-  
+
   // Store the layout result and the styled lines
   TextLayoutResult? _layoutResult;
   List<List<StyledTextSegment>>? _styledLines;
@@ -86,7 +86,7 @@ class RenderParagraph extends RenderObject {
 
     // Get the plain text for layout calculation
     final plainText = _text.toPlainText();
-    
+
     final config = TextLayoutConfig(
       softWrap: _softWrap,
       overflow: _overflow,
@@ -96,10 +96,10 @@ class RenderParagraph extends RenderObject {
     );
 
     _layoutResult = TextLayoutEngine.layout(plainText, config);
-    
+
     // Now map the styled segments to the laid out lines
     _styledLines = _mapSegmentsToLines(_segments, _layoutResult!.lines);
-    
+
     size = constraints.constrain(Size(
       _layoutResult!.actualWidth.toDouble(),
       _layoutResult!.actualHeight.toDouble(),
@@ -138,7 +138,8 @@ class RenderParagraph extends RenderObject {
       final List<StyledTextSegment> lineSegments = [];
 
       // Skip any newlines at current position (paragraph breaks)
-      while (charIndex < charStyles.length && charStyles[charIndex].$1 == '\n') {
+      while (
+          charIndex < charStyles.length && charStyles[charIndex].$1 == '\n') {
         charIndex++;
       }
 
@@ -158,9 +159,9 @@ class RenderParagraph extends RenderObject {
         final buffer = StringBuffer();
 
         while (charIndex < charStyles.length &&
-               linePos < line.length &&
-               charStyles[charIndex].$2 == currentStyle &&
-               charStyles[charIndex].$1 != '\n') {
+            linePos < line.length &&
+            charStyles[charIndex].$2 == currentStyle &&
+            charStyles[charIndex].$1 != '\n') {
           buffer.write(charStyles[charIndex].$1);
           charIndex++;
           linePos++;
@@ -182,35 +183,37 @@ class RenderParagraph extends RenderObject {
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     if (_layoutResult == null || _styledLines == null) return;
-    
+
     final alignmentWidth = size.width.toInt();
-    
+
     for (int i = 0; i < _styledLines!.length; i++) {
       final lineSegments = _styledLines![i];
-      
+
       // Calculate the full line text for alignment
       final StringBuffer lineBuffer = StringBuffer();
       for (final segment in lineSegments) {
         lineBuffer.write(segment.text);
       }
       final lineText = lineBuffer.toString();
-      
+
       // Apply justification if needed
       String displayLine = lineText;
       bool isLastLine = i == _styledLines!.length - 1;
       if (_textAlign == TextAlign.justify && !isLastLine) {
-        displayLine = TextLayoutEngine.justifyLine(lineText, alignmentWidth, isLastLine: isLastLine);
+        displayLine = TextLayoutEngine.justifyLine(lineText, alignmentWidth,
+            isLastLine: isLastLine);
       }
-      
+
       // Calculate horizontal offset based on text alignment
-      final xOffset = offset.dx + TextLayoutEngine.calculateAlignmentOffset(
-        displayLine,
-        alignmentWidth,
-        _textAlign,
-      );
-      
+      final xOffset = offset.dx +
+          TextLayoutEngine.calculateAlignmentOffset(
+            displayLine,
+            alignmentWidth,
+            _textAlign,
+          );
+
       // Paint each segment with its style
       double currentX = xOffset;
       for (final segment in lineSegments) {

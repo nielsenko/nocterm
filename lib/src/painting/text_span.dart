@@ -2,10 +2,10 @@ import 'package:nocterm/nocterm.dart';
 import 'inline_span.dart';
 
 /// An immutable span of text with optional children.
-/// 
+///
 /// A [TextSpan] object can be styled using its [style] property. The style will
 /// be applied to the [text] and the [children].
-/// 
+///
 /// A [TextSpan] object can just have plain text, or it can have children
 /// [TextSpan] objects with their own styles that (possibly only partially)
 /// override the [style] of this object. If a [TextSpan] has both [text] and
@@ -75,17 +75,17 @@ class TextSpan extends InlineSpan {
   List<StyledTextSegment> toStyledSegments([TextStyle? parentStyle]) {
     final List<StyledTextSegment> segments = [];
     final TextStyle? mergedStyle = mergeStyle(parentStyle, style);
-    
+
     if (text != null && text!.isNotEmpty) {
       segments.add(StyledTextSegment(text!, mergedStyle));
     }
-    
+
     if (children != null) {
       for (final InlineSpan child in children!) {
         segments.addAll(child.toStyledSegments(mergedStyle));
       }
     }
-    
+
     return segments;
   }
 

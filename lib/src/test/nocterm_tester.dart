@@ -57,7 +57,7 @@ class NoctermTester {
     if (element == null) {
       throw StateError('No component tree has been built yet');
     }
-    
+
     T? foundState;
     void visitor(Element element) {
       if (element is StatefulElement && element.state is T) {
@@ -66,18 +66,18 @@ class NoctermTester {
       }
       element.visitChildren(visitor);
     }
-    
+
     // Check the root element itself first
     if (element is StatefulElement && element.state is T) {
       return element.state as T;
     }
-    
+
     element.visitChildren(visitor);
-    
+
     if (foundState == null) {
       throw StateError('No state of type $T found in the component tree');
     }
-    
+
     return foundState!;
   }
 
@@ -271,14 +271,17 @@ class NoctermTester {
   }
 
   void _printDebugOutput() {
-    print('\n╔═ Terminal Output ═══════════════════════════════════════════════════════════╗');
+    print(
+        '\n╔═ Terminal Output ═══════════════════════════════════════════════════════════╗');
     final lines = renderToString(showBorders: false).split('\n');
     for (final line in lines) {
       // Pad or truncate line to fit within 78 chars
-      final displayLine = line.length > 78 ? line.substring(0, 78) : line.padRight(78);
+      final displayLine =
+          line.length > 78 ? line.substring(0, 78) : line.padRight(78);
       print('║$displayLine║');
     }
-    print('╚══════════════════════════════════════════════════════════════════════════════╝');
+    print(
+        '╚══════════════════════════════════════════════════════════════════════════════╝');
   }
 }
 

@@ -40,7 +40,8 @@ class OverlayEntry {
   }
 
   OverlayState? _overlay;
-  final GlobalKey<_OverlayEntryWidgetState> _key = GlobalKey<_OverlayEntryWidgetState>();
+  final GlobalKey<_OverlayEntryWidgetState> _key =
+      GlobalKey<_OverlayEntryWidgetState>();
 
   /// Remove this entry from the overlay.
   void remove() {
@@ -107,7 +108,8 @@ class OverlayState extends State<Overlay> {
   }
 
   /// Insert all the entries in the given iterable.
-  void insertAll(Iterable<OverlayEntry> entries, {OverlayEntry? below, OverlayEntry? above}) {
+  void insertAll(Iterable<OverlayEntry> entries,
+      {OverlayEntry? below, OverlayEntry? above}) {
     assert(above == null || below == null);
     if (entries.isEmpty) {
       return;

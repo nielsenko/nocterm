@@ -13,13 +13,16 @@ class TheaterParentData extends stack_lib.StackParentData {
   LinkedList<OverlayEntryLocation>? sortedTheaterSiblings;
 
   /// Iterator for paint order traversal.
-  Iterator<RenderDeferredLayoutBox>? get paintOrderIterator => overlayEntry?.paintOrderIterable?.iterator;
+  Iterator<RenderDeferredLayoutBox>? get paintOrderIterator =>
+      overlayEntry?.paintOrderIterable?.iterator;
 
   /// Iterator for hit test order traversal.
-  Iterator<RenderDeferredLayoutBox>? get hitTestOrderIterator => overlayEntry?.hitTestOrderIterable?.iterator;
+  Iterator<RenderDeferredLayoutBox>? get hitTestOrderIterator =>
+      overlayEntry?.hitTestOrderIterable?.iterator;
 
   /// Visit overlay portal children on this overlay entry.
-  void visitOverlayPortalChildrenOnOverlayEntry(void Function(RenderObject) visitor) {
+  void visitOverlayPortalChildrenOnOverlayEntry(
+      void Function(RenderObject) visitor) {
     final iterable = overlayEntry?.paintOrderIterable;
     if (iterable != null) {
       for (final child in iterable) {
@@ -35,7 +38,8 @@ class TheaterParentData extends stack_lib.StackParentData {
 /// - Supports skipping offstage children that don't need to be laid out
 /// - Manages paint order efficiently
 /// - Supports deferred layout for overlay portal children
-class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderObject> {
+class RenderTheater extends RenderObject
+    with ContainerRenderObjectMixin<RenderObject> {
   RenderTheater({
     List<RenderObject>? children,
     required TextDirection textDirection,
@@ -59,8 +63,8 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   }
 
   stack_lib.Alignment? _alignmentCache;
-  stack_lib.Alignment get resolvedAlignment =>
-      _alignmentCache ??= stack_lib.AlignmentDirectional.topStart.resolve(textDirection);
+  stack_lib.Alignment get resolvedAlignment => _alignmentCache ??=
+      stack_lib.AlignmentDirectional.topStart.resolve(textDirection);
 
   void _markNeedResolution() {
     _alignmentCache = null;
@@ -106,7 +110,8 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   }
 
   /// Get the last onstage child.
-  RenderObject? get _lastOnstageChild => skipCount >= children.length ? null : children.last;
+  RenderObject? get _lastOnstageChild =>
+      skipCount >= children.length ? null : children.last;
 
   /// Flag to prevent layout loops when adding deferred children.
   bool _skipMarkNeedsLayout = false;
@@ -143,7 +148,8 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   RenderObject? _findSizeDeterminingChild() {
     RenderObject? child = _lastOnstageChild;
     while (child != null) {
-      final TheaterParentData childParentData = child.parentData! as TheaterParentData;
+      final TheaterParentData childParentData =
+          child.parentData! as TheaterParentData;
       if (!childParentData.isPositioned) {
         return child;
       }
@@ -155,8 +161,10 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   }
 
   /// Layout a child with the given constraints.
-  void layoutChild(RenderObject child, BoxConstraints nonPositionedChildConstraints) {
-    final TheaterParentData childParentData = child.parentData! as TheaterParentData;
+  void layoutChild(
+      RenderObject child, BoxConstraints nonPositionedChildConstraints) {
+    final TheaterParentData childParentData =
+        child.parentData! as TheaterParentData;
     final stack_lib.Alignment alignment = resolvedAlignment;
 
     if (!childParentData.isPositioned) {
@@ -239,8 +247,10 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
       yield child;
 
       // Also yield overlay portal children if any
-      final TheaterParentData childParentData = child.parentData! as TheaterParentData;
-      final Iterator<RenderDeferredLayoutBox>? innerIterator = childParentData.paintOrderIterator;
+      final TheaterParentData childParentData =
+          child.parentData! as TheaterParentData;
+      final Iterator<RenderDeferredLayoutBox>? innerIterator =
+          childParentData.paintOrderIterator;
       if (innerIterator != null) {
         while (innerIterator.moveNext()) {
           yield innerIterator.current;
@@ -259,10 +269,12 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
     int childLeft = childrenList.length - skipCount;
 
     while (child != null && childLeft > 0) {
-      final TheaterParentData childParentData = child.parentData! as TheaterParentData;
+      final TheaterParentData childParentData =
+          child.parentData! as TheaterParentData;
 
       // First yield overlay portal children if any
-      final Iterator<RenderDeferredLayoutBox>? innerIterator = childParentData.hitTestOrderIterator;
+      final Iterator<RenderDeferredLayoutBox>? innerIterator =
+          childParentData.hitTestOrderIterator;
       if (innerIterator != null) {
         while (innerIterator.moveNext()) {
           yield innerIterator.current;
@@ -293,7 +305,8 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
       }
     }
 
-    final BoxConstraints nonPositionedChildConstraints = BoxConstraints.tight(size);
+    final BoxConstraints nonPositionedChildConstraints =
+        BoxConstraints.tight(size);
 
     for (final child in childrenInPaintOrder) {
       if (child != sizeDeterminingChild) {
@@ -307,16 +320,21 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
     super.paint(canvas, offset);
 
     for (final child in childrenInPaintOrder) {
-      final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+      final stack_lib.StackParentData childParentData =
+          child.parentData! as stack_lib.StackParentData;
       child.paintWithContext(canvas, offset + childParentData.offset);
     }
   }
 
   @override
   bool hitTest(HitTestResult result, {required Offset position}) {
-    if (position.dx >= 0 && position.dx < size.width && position.dy >= 0 && position.dy < size.height) {
+    if (position.dx >= 0 &&
+        position.dx < size.width &&
+        position.dy >= 0 &&
+        position.dy < size.height) {
       for (final child in childrenInHitTestOrder) {
-        final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+        final stack_lib.StackParentData childParentData =
+            child.parentData! as stack_lib.StackParentData;
         final Offset childPosition = position - childParentData.offset;
 
         if (child.hitTest(result, position: childPosition)) {
@@ -333,7 +351,8 @@ class RenderTheater extends RenderObject with ContainerRenderObjectMixin<RenderO
   void visitChildren(void Function(RenderObject) visitor) {
     for (final child in children) {
       visitor(child);
-      final TheaterParentData childParentData = child.parentData! as TheaterParentData;
+      final TheaterParentData childParentData =
+          child.parentData! as TheaterParentData;
       childParentData.visitOverlayPortalChildrenOnOverlayEntry(visitor);
     }
   }

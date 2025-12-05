@@ -118,7 +118,8 @@ class KeyboardParser {
 
     if (decodedChar != null && bytesConsumed > 0) {
       // Remove consumed bytes from buffer
-      _buffer.removeRange(0, bytesConsumed - 1); // Keep one byte for the main parser to clear
+      _buffer.removeRange(
+          0, bytesConsumed - 1); // Keep one byte for the main parser to clear
 
       // Regular character
       final key = LogicalKey.fromCharacter(decodedChar);
@@ -157,7 +158,8 @@ class KeyboardParser {
       if (second >= 0x61 && second <= 0x7A) {
         // Return the base key with Alt modifier
         final char = String.fromCharCode(second);
-        final baseKey = LogicalKey.fromCharacter(char) ?? LogicalKey(second, 'unknown');
+        final baseKey =
+            LogicalKey.fromCharacter(char) ?? LogicalKey(second, 'unknown');
         return KeyboardEvent(
           logicalKey: baseKey,
           character: char,
@@ -435,7 +437,8 @@ class KeyboardParser {
       // Convert to the base letter (A=0x41, B=0x42, etc.)
       final letterCode = code + 0x40; // 0x01 + 0x40 = 0x41 ('A')
       final letter = String.fromCharCode(letterCode).toLowerCase();
-      final baseKey = LogicalKey.fromCharacter(letter) ?? LogicalKey(letterCode, 'ctrl+$letter');
+      final baseKey = LogicalKey.fromCharacter(letter) ??
+          LogicalKey(letterCode, 'ctrl+$letter');
 
       return KeyboardEvent(
         logicalKey: baseKey,

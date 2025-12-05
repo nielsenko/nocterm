@@ -70,12 +70,20 @@ class NoctermApp extends StatefulComponent {
     this.onUnknownRoute,
     this.navigatorObservers = const [],
     super.key,
-  }) : assert(
-          child != null || home != null || routes != null || onGenerateRoute != null,
+  })  : assert(
+          child != null ||
+              home != null ||
+              routes != null ||
+              onGenerateRoute != null,
           'Either child, home, routes, or onGenerateRoute must be provided',
         ),
         assert(
-          child == null || (home == null && routes == null && initialRoute == null && onGenerateRoute == null && onUnknownRoute == null),
+          child == null ||
+              (home == null &&
+                  routes == null &&
+                  initialRoute == null &&
+                  onGenerateRoute == null &&
+                  onUnknownRoute == null),
           'If child is provided, navigation parameters (home, routes, initialRoute, onGenerateRoute, onUnknownRoute) cannot be used',
         );
 

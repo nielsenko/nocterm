@@ -116,7 +116,8 @@ class StatefulElement extends BuildableElement {
   void mount(Element? parent, dynamic newSlot) {
     // Set up the element tree structure first (from Element.mount)
     assert(_lifecycleState == _ElementLifecycle.initial);
-    assert(parent == null || parent._lifecycleState == _ElementLifecycle.active);
+    assert(
+        parent == null || parent._lifecycleState == _ElementLifecycle.active);
     _parent = parent;
     _slot = newSlot;
     _depth = parent != null ? parent.depth + 1 : 1;

@@ -93,7 +93,8 @@ class SizedBox extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderConstrainedBox renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderConstrainedBox renderObject) {
     renderObject.additionalConstraints = _createConstraints();
   }
 
@@ -153,7 +154,8 @@ class Align extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderPositionedBox renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderPositionedBox renderObject) {
     renderObject
       ..alignment = alignment
       ..widthFactor = widthFactor
@@ -238,7 +240,8 @@ class Flex extends RenderObjectComponent {
   }
 
   @override
-  MultiChildRenderObjectElement createElement() => MultiChildRenderObjectElement(this);
+  MultiChildRenderObjectElement createElement() =>
+      MultiChildRenderObjectElement(this);
 }
 
 /// Take up remaining space in a flex container
@@ -247,7 +250,8 @@ class Expanded extends ParentDataComponent<FlexParentData> {
     super.key,
     int flex = 1,
     required Component child,
-  }) : super(child: child, data: FlexParentData(flex: flex, fit: FlexFit.tight));
+  }) : super(
+            child: child, data: FlexParentData(flex: flex, fit: FlexFit.tight));
 }
 
 /// Flexible widget for flex containers
@@ -328,7 +332,8 @@ class ConstrainedBox extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderConstrainedBox renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderConstrainedBox renderObject) {
     renderObject.additionalConstraints = constraints;
   }
 }
@@ -360,7 +365,14 @@ class Matrix4 {
 // Layout enums
 enum Axis { horizontal, vertical }
 
-enum MainAxisAlignment { start, end, center, spaceBetween, spaceAround, spaceEvenly }
+enum MainAxisAlignment {
+  start,
+  end,
+  center,
+  spaceBetween,
+  spaceAround,
+  spaceEvenly
+}
 
 enum MainAxisSize { min, max }
 
@@ -385,7 +397,8 @@ class FlexParentData extends BoxParentData {
 }
 
 /// RenderObject that constrains its child using additional constraints.
-class RenderConstrainedBox extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderConstrainedBox extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   RenderConstrainedBox({required BoxConstraints additionalConstraints})
       : _additionalConstraints = additionalConstraints;
 
@@ -410,7 +423,8 @@ class RenderConstrainedBox extends RenderObject with RenderObjectWithChildMixin<
   void performLayout() {
     if (child != null) {
       // Apply additional constraints using enforce method
-      child!.layout(_additionalConstraints.enforce(constraints), parentUsesSize: true);
+      child!.layout(_additionalConstraints.enforce(constraints),
+          parentUsesSize: true);
 
       // Position child at origin
       final BoxParentData childParentData = child!.parentData as BoxParentData;
@@ -444,7 +458,8 @@ class RenderConstrainedBox extends RenderObject with RenderObjectWithChildMixin<
   }
 }
 
-class RenderPadding extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderPadding extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   RenderPadding({required this.padding});
 
   EdgeInsets padding;
@@ -490,7 +505,8 @@ class RenderPadding extends RenderObject with RenderObjectWithChildMixin<RenderO
   }
 }
 
-class RenderPositionedBox extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderPositionedBox extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   RenderPositionedBox({
     required this.alignment,
     this.widthFactor,
@@ -517,7 +533,7 @@ class RenderPositionedBox extends RenderObject with RenderObjectWithChildMixin<R
     // This matches Flutter's RenderPositionedBox behavior
     final double width;
     final double height;
-    
+
     if (child == null) {
       // No child - size to constraints
       width = constraints.hasBoundedWidth ? constraints.maxWidth : 0.0;
@@ -526,8 +542,12 @@ class RenderPositionedBox extends RenderObject with RenderObjectWithChildMixin<R
       // With child - use factors to determine size
       if (widthFactor != null || heightFactor != null) {
         // If factors are provided, use child size multiplied by factors
-        width = widthFactor == null ? child!.size.width : widthFactor! * child!.size.width;
-        height = heightFactor == null ? child!.size.height : heightFactor! * child!.size.height;
+        width = widthFactor == null
+            ? child!.size.width
+            : widthFactor! * child!.size.width;
+        height = heightFactor == null
+            ? child!.size.height
+            : heightFactor! * child!.size.height;
       } else {
         // No factors (null) - shrink to child size (Flutter's default behavior)
         // This is the key fix: we shrink to child size instead of expanding
@@ -535,15 +555,16 @@ class RenderPositionedBox extends RenderObject with RenderObjectWithChildMixin<R
         height = child!.size.height;
       }
     }
-    
+
     size = constraints.constrain(Size(width, height));
 
     // Calculate and store the child's position in parent data
     if (child != null) {
-      final Alignment align = alignment is Alignment ? alignment as Alignment : Alignment.center;
+      final Alignment align =
+          alignment is Alignment ? alignment as Alignment : Alignment.center;
       final BoxParentData childParentData = child!.parentData as BoxParentData;
-      childParentData.offset =
-          align.alongOffset(Offset(size.width - child!.size.width, size.height - child!.size.height));
+      childParentData.offset = align.alongOffset(Offset(
+          size.width - child!.size.width, size.height - child!.size.height));
     }
   }
 

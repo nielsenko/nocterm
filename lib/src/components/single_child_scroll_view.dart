@@ -40,7 +40,8 @@ class SingleChildScrollView extends StatefulComponent {
 class _SingleChildScrollViewState extends State<SingleChildScrollView> {
   ScrollController? _controller;
 
-  ScrollController get _effectiveController => component.controller ?? _controller!;
+  ScrollController get _effectiveController =>
+      component.controller ?? _controller!;
 
   @override
   void initState() {
@@ -109,7 +110,8 @@ class _SingleChildViewport extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderSingleChildViewport renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderSingleChildViewport renderObject) {
     renderObject
       ..scrollDirection = scrollDirection
       ..controller = controller;
@@ -215,8 +217,11 @@ class RenderSingleChildViewport extends RenderObject
     ));
 
     // Update scroll controller metrics
-    final double viewportExtent = scrollDirection == Axis.vertical ? size.height : size.width;
-    final double scrollExtent = scrollDirection == Axis.vertical ? child!.size.height : child!.size.width;
+    final double viewportExtent =
+        scrollDirection == Axis.vertical ? size.height : size.width;
+    final double scrollExtent = scrollDirection == Axis.vertical
+        ? child!.size.height
+        : child!.size.width;
 
     _controller.updateMetrics(
       minScrollExtent: 0,
@@ -231,8 +236,9 @@ class RenderSingleChildViewport extends RenderObject
     if (child == null) return;
 
     // Calculate the scroll offset
-    final scrollOffset =
-        scrollDirection == Axis.vertical ? Offset(0, -_controller.offset) : Offset(-_controller.offset, 0);
+    final scrollOffset = scrollDirection == Axis.vertical
+        ? Offset(0, -_controller.offset)
+        : Offset(-_controller.offset, 0);
 
     // Create a clipped canvas for the viewport
     final clippedCanvas = canvas.clip(
@@ -247,8 +253,9 @@ class RenderSingleChildViewport extends RenderObject
   bool hitTestChildren(HitTestResult result, {required Offset position}) {
     if (child != null) {
       // Account for scroll offset when hit testing
-      final scrollOffset =
-          scrollDirection == Axis.vertical ? Offset(0, -_controller.offset) : Offset(-_controller.offset, 0);
+      final scrollOffset = scrollDirection == Axis.vertical
+          ? Offset(0, -_controller.offset)
+          : Offset(-_controller.offset, 0);
       final childPosition = position - scrollOffset;
       return child!.hitTest(result, position: childPosition);
     }

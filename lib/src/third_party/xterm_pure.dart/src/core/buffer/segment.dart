@@ -43,7 +43,8 @@ class BufferSegment {
   }
 
   @override
-  int get hashCode => range.hashCode ^ line.hashCode ^ start.hashCode ^ end.hashCode;
+  int get hashCode =>
+      range.hashCode ^ line.hashCode ^ start.hashCode ^ end.hashCode;
 
   @override
   bool operator ==(Object other) =>

@@ -16,7 +16,8 @@ class Frame {
       : buffer = Buffer(size.width.toInt(), size.height.toInt()),
         _previousBuffer = previousBuffer;
 
-  Rect get area => Rect.fromLTWH(0, 0, size.width.toDouble(), size.height.toDouble());
+  Rect get area =>
+      Rect.fromLTWH(0, 0, size.width.toDouble(), size.height.toDouble());
 
   void render(Terminal terminal) {
     // Move to home position instead of clearing (prevents flicker)
@@ -91,7 +92,8 @@ class Frame {
 
       if (currentCell.char != previousCell.char ||
           currentCell.style.color != previousCell.style.color ||
-          currentCell.style.backgroundColor != previousCell.style.backgroundColor ||
+          currentCell.style.backgroundColor !=
+              previousCell.style.backgroundColor ||
           currentCell.style.fontWeight != previousCell.style.fontWeight ||
           currentCell.style.fontStyle != previousCell.style.fontStyle ||
           currentCell.style.decoration != previousCell.style.decoration) {

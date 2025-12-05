@@ -41,7 +41,8 @@ class PopBehavior {
   /// Check if the given key should trigger a pop
   bool shouldPop(LogicalKey key) {
     if (key == LogicalKey.escape && escapeEnabled) return true; // ESC key
-    if (key == LogicalKey.backspace && backspaceEnabled) return true; // Backspace
+    if (key == LogicalKey.backspace && backspaceEnabled)
+      return true; // Backspace
     if (customPopKey != null && key == customPopKey) return true;
     return false;
   }

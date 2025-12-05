@@ -24,5 +24,6 @@ class MouseEvent {
   });
 
   @override
-  String toString() => 'MouseEvent($button at $x,$y pressed=$pressed${isMotion ? ' (motion)' : ''})';
+  String toString() =>
+      'MouseEvent($button at $x,$y pressed=$pressed${isMotion ? ' (motion)' : ''})';
 }

@@ -12,10 +12,12 @@ import 'stack.dart' as stack_lib;
 /// laid out and initially placed in the upper-left corner of the stack. The
 /// stack is then sized to enclose all of the non-positioned children. If there
 /// are no non-positioned children, the stack becomes as large as possible.
-class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObject> {
+class RenderStack extends RenderObject
+    with ContainerRenderObjectMixin<RenderObject> {
   RenderStack({
     List<RenderObject>? children,
-    stack_lib.AlignmentGeometry alignment = stack_lib.AlignmentDirectional.topStart,
+    stack_lib.AlignmentGeometry alignment =
+        stack_lib.AlignmentDirectional.topStart,
     TextDirection? textDirection,
     stack_lib.StackFit fit = stack_lib.StackFit.loose,
     stack_lib.Clip clipBehavior = stack_lib.Clip.hardEdge,
@@ -96,12 +98,14 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
   RenderObject? get lastChild => children.isNotEmpty ? children.last : null;
 
   /// Compute constraints for non-positioned children.
-  BoxConstraints _computeNonPositionedChildConstraints(BoxConstraints constraints) {
+  BoxConstraints _computeNonPositionedChildConstraints(
+      BoxConstraints constraints) {
     switch (fit) {
       case stack_lib.StackFit.loose:
         return constraints.loosen();
       case stack_lib.StackFit.expand:
-        return BoxConstraints.tight(Size(constraints.maxWidth, constraints.maxHeight));
+        return BoxConstraints.tight(
+            Size(constraints.maxWidth, constraints.maxHeight));
       case stack_lib.StackFit.passthrough:
         return constraints;
     }
@@ -197,10 +201,12 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
     double height = 0.0;
     bool hasNonPositionedChildren = false;
 
-    final BoxConstraints nonPositionedConstraints = _computeNonPositionedChildConstraints(constraints);
+    final BoxConstraints nonPositionedConstraints =
+        _computeNonPositionedChildConstraints(constraints);
 
     for (final child in children) {
-      final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+      final stack_lib.StackParentData childParentData =
+          child.parentData! as stack_lib.StackParentData;
 
       if (!childParentData.isPositioned) {
         hasNonPositionedChildren = true;
@@ -221,17 +227,20 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
 
     // Second pass: position non-positioned children
     for (final child in children) {
-      final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+      final stack_lib.StackParentData childParentData =
+          child.parentData! as stack_lib.StackParentData;
 
       if (!childParentData.isPositioned) {
         final stack_lib.Alignment alignment = resolvedAlignment;
-        childParentData.offset = alignment.alongSize(size) - alignment.alongSize(child.size);
+        childParentData.offset =
+            alignment.alongSize(size) - alignment.alongSize(child.size);
       }
     }
 
     // Third pass: layout and position positioned children
     for (final child in children) {
-      final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+      final stack_lib.StackParentData childParentData =
+          child.parentData! as stack_lib.StackParentData;
 
       if (childParentData.isPositioned) {
         _layoutPositionedChild(child, childParentData, size, resolvedAlignment);
@@ -257,7 +266,8 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
 
     // Paint children in order (later children paint on top)
     for (final child in children) {
-      final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+      final stack_lib.StackParentData childParentData =
+          child.parentData! as stack_lib.StackParentData;
 
       if (_hasVisualOverflow && clipBehavior != stack_lib.Clip.none) {
         // For now, skip clipping implementation as TerminalCanvas doesn't have clip methods
@@ -273,10 +283,14 @@ class RenderStack extends RenderObject with ContainerRenderObjectMixin<RenderObj
   @override
   bool hitTest(HitTestResult result, {required Offset position}) {
     // Check if position is within bounds
-    if (position.dx >= 0 && position.dx < size.width && position.dy >= 0 && position.dy < size.height) {
+    if (position.dx >= 0 &&
+        position.dx < size.width &&
+        position.dy >= 0 &&
+        position.dy < size.height) {
       // Hit test children in reverse order (topmost first)
       for (final child in children.reversed) {
-        final stack_lib.StackParentData childParentData = child.parentData! as stack_lib.StackParentData;
+        final stack_lib.StackParentData childParentData =
+            child.parentData! as stack_lib.StackParentData;
 
         final Offset childPosition = position - childParentData.offset;
         if (child.hitTest(result, position: childPosition)) {

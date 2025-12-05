@@ -73,13 +73,15 @@ class _MarkdownTextState extends State<MarkdownText> {
   @override
   void didUpdateComponent(MarkdownText oldComponent) {
     super.didUpdateComponent(oldComponent);
-    if (oldComponent.data != component.data || oldComponent.styleSheet != component.styleSheet) {
+    if (oldComponent.data != component.data ||
+        oldComponent.styleSheet != component.styleSheet) {
       _parseMarkdown();
     }
   }
 
   void _parseMarkdown() {
-    final effectiveStyleSheet = component.styleSheet ?? MarkdownStyleSheet.terminal();
+    final effectiveStyleSheet =
+        component.styleSheet ?? MarkdownStyleSheet.terminal();
     final document = md.Document(
       extensionSet: md.ExtensionSet.gitHubFlavored,
       encodeHtml: false,
@@ -149,7 +151,8 @@ class MarkdownStyleSheet {
       ),
       boldStyle: const TextStyle(fontWeight: FontWeight.bold),
       italicStyle: const TextStyle(fontStyle: FontStyle.italic),
-      strikethroughStyle: const TextStyle(decoration: TextDecoration.lineThrough),
+      strikethroughStyle:
+          const TextStyle(decoration: TextDecoration.lineThrough),
       codeStyle: const TextStyle(
         color: Colors.yellow,
         backgroundColor: Colors.black,
@@ -292,7 +295,10 @@ class _MarkdownVisitor {
         );
       case 'pre':
         // Code block
-        final codeElement = element.children != null && element.children!.isNotEmpty ? element.children!.first : null;
+        final codeElement =
+            element.children != null && element.children!.isNotEmpty
+                ? element.children!.first
+                : null;
         final code = codeElement?.textContent ?? element.textContent;
         return TextSpan(
           children: [
@@ -347,13 +353,16 @@ class _MarkdownVisitor {
         // In markdown package, we need to check the parent element differently
         final isOrderedList = false; // Default to unordered
         // ignore: dead_code
-        final bullet = isOrderedList ? '${_orderedListCounter++}. ' : styleSheet.listBullet;
+        final bullet = isOrderedList
+            ? '${_orderedListCounter++}. '
+            : styleSheet.listBullet;
         final children = <InlineSpan>[TextSpan(text: indent + bullet)];
 
         if (element.children != null) {
           for (final child in element.children!) {
             // Insert line break before nested lists
-            if (child is md.Element && (child.tag == 'ul' || child.tag == 'ol')) {
+            if (child is md.Element &&
+                (child.tag == 'ul' || child.tag == 'ol')) {
               // Only add newline if there's content before the nested list
               if (children.length > 1) {
                 children.add(const TextSpan(text: '\n'));
@@ -414,7 +423,8 @@ class _MarkdownVisitor {
                   final cells = <String>[];
                   if (row.children != null) {
                     for (final cell in row.children!) {
-                      if (cell is md.Element && (cell.tag == 'th' || cell.tag == 'td')) {
+                      if (cell is md.Element &&
+                          (cell.tag == 'th' || cell.tag == 'td')) {
                         cells.add(cell.textContent);
                       }
                     }
@@ -426,7 +436,9 @@ class _MarkdownVisitor {
                     if (i >= columnWidths.length) {
                       columnWidths.add(0);
                     }
-                    columnWidths[i] = columnWidths[i] > cells[i].length ? columnWidths[i] : cells[i].length;
+                    columnWidths[i] = columnWidths[i] > cells[i].length
+                        ? columnWidths[i]
+                        : cells[i].length;
                   }
                 }
               }

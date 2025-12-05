@@ -87,7 +87,8 @@ class KeyboardEvent {
   bool get isMetaPressed => modifiers.meta;
 
   /// Check if this event matches a specific key with optional modifiers.
-  bool matches(LogicalKey key, {
+  bool matches(
+    LogicalKey key, {
     bool? ctrl,
     bool? shift,
     bool? alt,

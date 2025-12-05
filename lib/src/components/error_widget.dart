@@ -2,7 +2,7 @@ import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 
 /// A widget that displays an error message when a render object fails.
-/// 
+///
 /// This widget is used as a fallback when errors occur during rendering.
 /// It provides a visual representation of the error in the terminal.
 class TUIErrorWidget extends SingleChildRenderObjectComponent {
@@ -27,7 +27,8 @@ class TUIErrorWidget extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderTUIErrorBox renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderTUIErrorBox renderObject) {
     // RenderTUIErrorBox is immutable after creation
   }
 }
@@ -56,7 +57,8 @@ class ErrorThrowingWidget extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderErrorThrowing renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderErrorThrowing renderObject) {
     renderObject
       ..throwInLayout = throwInLayout
       ..throwInPaint = throwInPaint
@@ -110,7 +112,7 @@ class RenderErrorThrowing extends RenderObject {
       final z = x ~/ y; // This will throw
       print('This should never print: $z');
     }
-    
+
     // If we somehow get here, set a size
     size = constraints.constrain(const Size(20, 5));
   }
@@ -118,12 +120,12 @@ class RenderErrorThrowing extends RenderObject {
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     if (_throwInPaint) {
       // Deliberately cause an error
       throw Exception(_errorMessage);
     }
-    
+
     // Normal paint (if not throwing)
     canvas.drawText(
       offset,

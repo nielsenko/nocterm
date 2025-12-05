@@ -146,9 +146,9 @@ class Color {
     if (isDefault) {
       // Reset to default colors
       if (background) {
-        return '\x1b[49m';  // Reset background to default
+        return '\x1b[49m'; // Reset background to default
       }
-      return '\x1b[39m';  // Reset foreground to default
+      return '\x1b[39m'; // Reset foreground to default
     }
     if (background) {
       return '\x1b[48;2;$red;$green;${blue}m';
@@ -211,9 +211,15 @@ class Color {
     // Blend formula: result = fg * alpha + bg * (1 - alpha)
     // We normalize to 0-1 range for calculation, then convert back to 0-255
     return Color.fromRGB(
-      (foreground.r * 255 * alpha + background.r * 255 * invAlpha).round().clamp(0, 255),
-      (foreground.g * 255 * alpha + background.g * 255 * invAlpha).round().clamp(0, 255),
-      (foreground.b * 255 * alpha + background.b * 255 * invAlpha).round().clamp(0, 255),
+      (foreground.r * 255 * alpha + background.r * 255 * invAlpha)
+          .round()
+          .clamp(0, 255),
+      (foreground.g * 255 * alpha + background.g * 255 * invAlpha)
+          .round()
+          .clamp(0, 255),
+      (foreground.b * 255 * alpha + background.b * 255 * invAlpha)
+          .round()
+          .clamp(0, 255),
     );
   }
 
@@ -222,11 +228,11 @@ class Color {
     if (identical(this, other)) return true;
     if (other.runtimeType != runtimeType) return false;
     return other is Color &&
-           other.isDefault == isDefault &&
-           other.alpha == alpha &&
-           other.red == red &&
-           other.green == green &&
-           other.blue == blue;
+        other.isDefault == isDefault &&
+        other.alpha == alpha &&
+        other.red == red &&
+        other.green == green &&
+        other.blue == blue;
   }
 
   @override
@@ -245,10 +251,10 @@ class Color {
 /// Useful for color computations like rotating through the color spectrum.
 class HSVColor {
   const HSVColor.fromAHSV(this.alpha, this.hue, this.saturation, this.value)
-    : assert(alpha >= 0.0 && alpha <= 1.0),
-      assert(hue >= 0.0 && hue <= 360.0),
-      assert(saturation >= 0.0 && saturation <= 1.0),
-      assert(value >= 0.0 && value <= 1.0);
+      : assert(alpha >= 0.0 && alpha <= 1.0),
+        assert(hue >= 0.0 && hue <= 360.0),
+        assert(saturation >= 0.0 && saturation <= 1.0),
+        assert(value >= 0.0 && value <= 1.0);
 
   final double alpha;
   final double hue;
@@ -261,22 +267,35 @@ class HSVColor {
 
   Color toColor() {
     final double chroma = saturation * value;
-    final double secondary = chroma * (1.0 - (((hue / 60.0) % 2.0) - 1.0).abs());
+    final double secondary =
+        chroma * (1.0 - (((hue / 60.0) % 2.0) - 1.0).abs());
     final double match = value - chroma;
 
     double red, green, blue;
     if (hue < 60.0) {
-      red = chroma; green = secondary; blue = 0.0;
+      red = chroma;
+      green = secondary;
+      blue = 0.0;
     } else if (hue < 120.0) {
-      red = secondary; green = chroma; blue = 0.0;
+      red = secondary;
+      green = chroma;
+      blue = 0.0;
     } else if (hue < 180.0) {
-      red = 0.0; green = chroma; blue = secondary;
+      red = 0.0;
+      green = chroma;
+      blue = secondary;
     } else if (hue < 240.0) {
-      red = 0.0; green = secondary; blue = chroma;
+      red = 0.0;
+      green = secondary;
+      blue = chroma;
     } else if (hue < 300.0) {
-      red = secondary; green = 0.0; blue = chroma;
+      red = secondary;
+      green = 0.0;
+      blue = chroma;
     } else {
-      red = chroma; green = 0.0; blue = secondary;
+      red = chroma;
+      green = 0.0;
+      blue = secondary;
     }
 
     return Color.fromARGB(

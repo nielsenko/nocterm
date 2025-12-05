@@ -55,7 +55,8 @@ class ProgressBar extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderProgressBar renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderProgressBar renderObject) {
     renderObject
       ..value = value
       ..minHeight = minHeight
@@ -219,13 +220,16 @@ class RenderProgressBar extends RenderObject {
 
       // Top border
       if (barHeight > 1) {
-        canvas.drawText(offset, borderChars['topLeft']!, style: TextStyle(color: valueColor));
+        canvas.drawText(offset, borderChars['topLeft']!,
+            style: TextStyle(color: valueColor));
         for (int x = 1; x < barWidth - 1; x++) {
-          canvas.drawText(offset + Offset(x.toDouble(), 0), borderChars['horizontal']!,
+          canvas.drawText(
+              offset + Offset(x.toDouble(), 0), borderChars['horizontal']!,
               style: TextStyle(color: valueColor));
         }
         if (barWidth > 1) {
-          canvas.drawText(offset + Offset((barWidth - 1).toDouble(), 0), borderChars['topRight']!,
+          canvas.drawText(offset + Offset((barWidth - 1).toDouble(), 0),
+              borderChars['topRight']!,
               style: TextStyle(color: valueColor));
         }
       }
@@ -233,35 +237,46 @@ class RenderProgressBar extends RenderObject {
       // Side borders and bottom
       if (barHeight > 2) {
         for (int y = 1; y < barHeight - 1; y++) {
-          canvas.drawText(offset + Offset(0, y.toDouble()), borderChars['vertical']!,
+          canvas.drawText(
+              offset + Offset(0, y.toDouble()), borderChars['vertical']!,
               style: TextStyle(color: valueColor));
           if (barWidth > 1) {
-            canvas.drawText(offset + Offset((barWidth - 1).toDouble(), y.toDouble()), borderChars['vertical']!,
+            canvas.drawText(
+                offset + Offset((barWidth - 1).toDouble(), y.toDouble()),
+                borderChars['vertical']!,
                 style: TextStyle(color: valueColor));
           }
         }
 
         // Bottom border
-        canvas.drawText(offset + Offset(0, (barHeight - 1).toDouble()), borderChars['bottomLeft']!,
+        canvas.drawText(offset + Offset(0, (barHeight - 1).toDouble()),
+            borderChars['bottomLeft']!,
             style: TextStyle(color: valueColor));
         for (int x = 1; x < barWidth - 1; x++) {
-          canvas.drawText(offset + Offset(x.toDouble(), (barHeight - 1).toDouble()), borderChars['horizontal']!,
+          canvas.drawText(
+              offset + Offset(x.toDouble(), (barHeight - 1).toDouble()),
+              borderChars['horizontal']!,
               style: TextStyle(color: valueColor));
         }
         if (barWidth > 1) {
           canvas.drawText(
-              offset + Offset((barWidth - 1).toDouble(), (barHeight - 1).toDouble()), borderChars['bottomRight']!,
+              offset +
+                  Offset((barWidth - 1).toDouble(), (barHeight - 1).toDouble()),
+              borderChars['bottomRight']!,
               style: TextStyle(color: valueColor));
         }
       } else if (barHeight == 2) {
         // Simple two-line border
-        canvas.drawText(offset + Offset(0, 1), borderChars['bottomLeft']!, style: TextStyle(color: valueColor));
+        canvas.drawText(offset + Offset(0, 1), borderChars['bottomLeft']!,
+            style: TextStyle(color: valueColor));
         for (int x = 1; x < barWidth - 1; x++) {
-          canvas.drawText(offset + Offset(x.toDouble(), 1), borderChars['horizontal']!,
+          canvas.drawText(
+              offset + Offset(x.toDouble(), 1), borderChars['horizontal']!,
               style: TextStyle(color: valueColor));
         }
         if (barWidth > 1) {
-          canvas.drawText(offset + Offset((barWidth - 1).toDouble(), 1), borderChars['bottomRight']!,
+          canvas.drawText(offset + Offset((barWidth - 1).toDouble(), 1),
+              borderChars['bottomRight']!,
               style: TextStyle(color: valueColor));
         }
       }
@@ -293,7 +308,8 @@ class RenderProgressBar extends RenderObject {
       for (int y = contentStartY; y < contentEndY; y++) {
         for (int x = contentStartX; x < contentEndX; x++) {
           final relativeX = x - contentStartX;
-          final isPulse = (relativeX >= pulsePosition - pulseWidth && relativeX <= pulsePosition) ||
+          final isPulse = (relativeX >= pulsePosition - pulseWidth &&
+                  relativeX <= pulsePosition) ||
               (pulsePosition > contentWidth &&
                   relativeX >= pulsePosition - contentWidth - pulseWidth &&
                   relativeX <= pulsePosition - contentWidth);
@@ -352,7 +368,9 @@ class RenderProgressBar extends RenderObject {
           if (charX >= contentStartX && charX < contentEndX) {
             // Determine if this character position is in filled or unfilled area
             final relativeX = charX - contentStartX;
-            final isFilled = value != null ? relativeX < (value! * contentWidth).floor() : false;
+            final isFilled = value != null
+                ? relativeX < (value! * contentWidth).floor()
+                : false;
 
             canvas.drawText(
               offset + Offset(charX.toDouble(), textY.toDouble()),

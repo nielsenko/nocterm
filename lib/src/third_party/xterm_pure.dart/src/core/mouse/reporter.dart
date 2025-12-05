@@ -25,10 +25,12 @@ abstract class MouseReporter {
         // Normal mode only supports a maximum position of 223, while utf
         // supports positions up to 2015. Both modes send a null byte if the
         // position exceeds that limit.
-        final col = (reportMode == MouseReportMode.normal && x > 223) || (reportMode == MouseReportMode.utf && x > 2015)
+        final col = (reportMode == MouseReportMode.normal && x > 223) ||
+                (reportMode == MouseReportMode.utf && x > 2015)
             ? '\x00'
             : String.fromCharCode(32 + x);
-        final row = (reportMode == MouseReportMode.normal && y > 223) || (reportMode == MouseReportMode.utf && y > 2015)
+        final row = (reportMode == MouseReportMode.normal && y > 223) ||
+                (reportMode == MouseReportMode.utf && y > 2015)
             ? '\x00'
             : String.fromCharCode(32 + y + 1);
         return "\x1b[M$btn$col$row";
@@ -38,7 +40,8 @@ abstract class MouseReporter {
         return "\x1b[<$buttonID;$x;$y$upDown";
       case MouseReportMode.urxvt:
         // The button ID uses the same id as to report it as in normal mode.
-        final buttonID = 32 + (state == TerminalMouseButtonState.up ? 3 : button.id);
+        final buttonID =
+            32 + (state == TerminalMouseButtonState.up ? 3 : button.id);
         return "\x1b[$buttonID;$x;${y}M";
     }
   }

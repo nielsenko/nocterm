@@ -75,7 +75,8 @@ class NoctermTestBinding extends NoctermBinding with SchedulerBinding {
     }
 
     // Execute a frame using the scheduler
-    final timestamp = Duration(microseconds: DateTime.now().microsecondsSinceEpoch);
+    final timestamp =
+        Duration(microseconds: DateTime.now().microsecondsSinceEpoch);
     handleBeginFrame(timestamp);
     _frameCount++;
 
@@ -252,7 +253,7 @@ class NoctermTestBinding extends NoctermBinding with SchedulerBinding {
         return true; // Event is "handled" (blocked)
       }
     }
-    
+
     // First, try to dispatch to children (depth-first)
     bool handled = false;
     element.visitChildren((child) {
@@ -265,7 +266,7 @@ class NoctermTestBinding extends NoctermBinding with SchedulerBinding {
     if (!handled && element is FocusableElement) {
       handled = element.handleKeyEvent(event);
     }
-    
+
     // If no child handled it, and this element's component can handle keys, try it
     if (!handled && element.component is KeyboardHandler) {
       final handler = element.component as KeyboardHandler;

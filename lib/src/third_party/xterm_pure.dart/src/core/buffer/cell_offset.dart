@@ -47,5 +47,9 @@ class CellOffset {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is CellOffset && runtimeType == other.runtimeType && x == other.x && y == other.y;
+      identical(this, other) ||
+      other is CellOffset &&
+          runtimeType == other.runtimeType &&
+          x == other.x &&
+          y == other.y;
 }

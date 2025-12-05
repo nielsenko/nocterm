@@ -104,7 +104,8 @@ class _ScrollbarRenderObjectWidget extends SingleChildRenderObjectComponent {
 }
 
 /// Render object for a scrollbar.
-class RenderScrollbar extends RenderObject with RenderObjectWithChildMixin<RenderObject> {
+class RenderScrollbar extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   RenderScrollbar({
     ScrollController? controller,
     required bool thumbVisibility,
@@ -211,7 +212,8 @@ class RenderScrollbar extends RenderObject with RenderObjectWithChildMixin<Rende
     final scrollbarHeight = size.height;
 
     // Calculate thumb size and position
-    final scrollFraction = controller.viewportDimension / (controller.maxScrollExtent + controller.viewportDimension);
+    final scrollFraction = controller.viewportDimension /
+        (controller.maxScrollExtent + controller.viewportDimension);
     final thumbHeight = math.max(1.0, scrollbarHeight * scrollFraction);
 
     // Calculate thumb position based on scroll offset
@@ -220,7 +222,8 @@ class RenderScrollbar extends RenderObject with RenderObjectWithChildMixin<Rende
       // In reverse mode, invert the thumb position
       // When at offset 0 (visual bottom), thumb should be at bottom
       // When at maxScrollExtent (visual top), thumb should be at top
-      final scrollOffset = 1.0 - (controller.offset / controller.maxScrollExtent);
+      final scrollOffset =
+          1.0 - (controller.offset / controller.maxScrollExtent);
       thumbOffset = scrollOffset * (scrollbarHeight - thumbHeight);
     } else {
       // Normal mode: offset 0 = top, maxScrollExtent = bottom
@@ -240,8 +243,10 @@ class RenderScrollbar extends RenderObject with RenderObjectWithChildMixin<Rende
     // Draw arrows at top and bottom (before thumb so thumb can overwrite if needed)
     if (scrollbarHeight >= 3) {
       // In reverse mode, arrows should reflect the inverted scroll direction
-      final topArrowActive = _isReversed ? !controller.atEnd : !controller.atStart;
-      final bottomArrowActive = _isReversed ? !controller.atStart : !controller.atEnd;
+      final topArrowActive =
+          _isReversed ? !controller.atEnd : !controller.atStart;
+      final bottomArrowActive =
+          _isReversed ? !controller.atStart : !controller.atEnd;
 
       canvas.drawText(
         offset + Offset(scrollbarX, 0),

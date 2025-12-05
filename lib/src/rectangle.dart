@@ -17,7 +17,10 @@ class Rect {
   double get bottom => top + height;
 
   bool contains(Offset offset) {
-    return offset.dx >= left && offset.dx < right && offset.dy >= top && offset.dy < bottom;
+    return offset.dx >= left &&
+        offset.dx < right &&
+        offset.dy >= top &&
+        offset.dy < bottom;
   }
 
   Rect translate(double dx, double dy) {

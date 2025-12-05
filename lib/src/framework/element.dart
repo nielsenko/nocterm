@@ -42,7 +42,8 @@ abstract class Element implements BuildContext {
 
   void mount(Element? parent, dynamic newSlot) {
     assert(_lifecycleState == _ElementLifecycle.initial);
-    assert(parent == null || parent._lifecycleState == _ElementLifecycle.active);
+    assert(
+        parent == null || parent._lifecycleState == _ElementLifecycle.active);
     _parent = parent;
     _slot = newSlot;
     _depth = parent != null ? parent.depth + 1 : 1;
@@ -113,7 +114,8 @@ abstract class Element implements BuildContext {
   }
 
   @protected
-  Element? updateChild(Element? child, Component? newComponent, dynamic newSlot) {
+  Element? updateChild(
+      Element? child, Component? newComponent, dynamic newSlot) {
     if (newComponent == null) {
       if (child != null) {
         deactivateChild(child);
@@ -125,7 +127,8 @@ abstract class Element implements BuildContext {
     if (child != null) {
       bool hasSameSuperclass = true;
 
-      if (hasSameSuperclass && Component.canUpdate(child.component, newComponent)) {
+      if (hasSameSuperclass &&
+          Component.canUpdate(child.component, newComponent)) {
         child.update(newComponent);
         newChild = child;
       } else {
@@ -195,7 +198,8 @@ abstract class Element implements BuildContext {
   }
 
   @protected
-  List<Element> updateChildren(List<Element> oldChildren, List<Component> newComponents) {
+  List<Element> updateChildren(
+      List<Element> oldChildren, List<Component> newComponents) {
     Element? replaceWithNullIfForgotten(Element child) {
       return _owner!._forgottenChildren.contains(child) ? null : child;
     }
@@ -215,19 +219,25 @@ abstract class Element implements BuildContext {
     int newChildrenBottom = newComponents.length - 1;
     int oldChildrenBottom = oldChildren.length - 1;
 
-    final List<Element?> newChildren = List<Element?>.filled(newComponents.length, null);
+    final List<Element?> newChildren =
+        List<Element?>.filled(newComponents.length, null);
 
     Element? previousChild;
 
     // Update the top of the list.
-    while ((oldChildrenTop <= oldChildrenBottom) && (newChildrenTop <= newChildrenBottom)) {
-      final Element? oldChild = replaceWithNullIfForgotten(oldChildren[oldChildrenTop]);
+    while ((oldChildrenTop <= oldChildrenBottom) &&
+        (newChildrenTop <= newChildrenBottom)) {
+      final Element? oldChild =
+          replaceWithNullIfForgotten(oldChildren[oldChildrenTop]);
       final Component newComponent = newComponents[newChildrenTop];
-      assert(oldChild == null || oldChild._lifecycleState == _ElementLifecycle.active);
-      if (oldChild == null || !Component.canUpdate(oldChild.component, newComponent)) {
+      assert(oldChild == null ||
+          oldChild._lifecycleState == _ElementLifecycle.active);
+      if (oldChild == null ||
+          !Component.canUpdate(oldChild.component, newComponent)) {
         break;
       }
-      final Element newChild = updateChild(oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
+      final Element newChild = updateChild(
+          oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
       assert(newChild._lifecycleState == _ElementLifecycle.active);
       newChildren[newChildrenTop] = newChild;
       previousChild = newChild;
@@ -236,11 +246,15 @@ abstract class Element implements BuildContext {
     }
 
     // Scan the bottom of the list.
-    while ((oldChildrenTop <= oldChildrenBottom) && (newChildrenTop <= newChildrenBottom)) {
-      final Element? oldChild = replaceWithNullIfForgotten(oldChildren[oldChildrenBottom]);
+    while ((oldChildrenTop <= oldChildrenBottom) &&
+        (newChildrenTop <= newChildrenBottom)) {
+      final Element? oldChild =
+          replaceWithNullIfForgotten(oldChildren[oldChildrenBottom]);
       final Component newComponent = newComponents[newChildrenBottom];
-      assert(oldChild == null || oldChild._lifecycleState == _ElementLifecycle.active);
-      if (oldChild == null || !Component.canUpdate(oldChild.component, newComponent)) {
+      assert(oldChild == null ||
+          oldChild._lifecycleState == _ElementLifecycle.active);
+      if (oldChild == null ||
+          !Component.canUpdate(oldChild.component, newComponent)) {
         break;
       }
       oldChildrenBottom -= 1;
@@ -253,8 +267,10 @@ abstract class Element implements BuildContext {
     if (haveOldChildren) {
       oldKeyedChildren = <Key, Element>{};
       while (oldChildrenTop <= oldChildrenBottom) {
-        final Element? oldChild = replaceWithNullIfForgotten(oldChildren[oldChildrenTop]);
-        assert(oldChild == null || oldChild._lifecycleState == _ElementLifecycle.active);
+        final Element? oldChild =
+            replaceWithNullIfForgotten(oldChildren[oldChildrenTop]);
+        assert(oldChild == null ||
+            oldChild._lifecycleState == _ElementLifecycle.active);
         if (oldChild != null) {
           if (oldChild.component.key != null) {
             oldKeyedChildren[oldChild.component.key!] = oldChild;
@@ -283,8 +299,10 @@ abstract class Element implements BuildContext {
           }
         }
       }
-      assert(oldChild == null || Component.canUpdate(oldChild.component, newComponent));
-      final Element newChild = updateChild(oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
+      assert(oldChild == null ||
+          Component.canUpdate(oldChild.component, newComponent));
+      final Element newChild = updateChild(
+          oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
       assert(newChild._lifecycleState == _ElementLifecycle.active);
       newChildren[newChildrenTop] = newChild;
       previousChild = newChild;
@@ -294,18 +312,21 @@ abstract class Element implements BuildContext {
     // We've scanned the whole list.
     assert(oldChildrenTop == oldChildrenBottom + 1);
     assert(newChildrenTop == newChildrenBottom + 1);
-    assert(newComponents.length - newChildrenTop == oldChildren.length - oldChildrenTop);
+    assert(newComponents.length - newChildrenTop ==
+        oldChildren.length - oldChildrenTop);
     newChildrenBottom = newComponents.length - 1;
     oldChildrenBottom = oldChildren.length - 1;
 
     // Update the bottom of the list.
-    while ((oldChildrenTop <= oldChildrenBottom) && (newChildrenTop <= newChildrenBottom)) {
+    while ((oldChildrenTop <= oldChildrenBottom) &&
+        (newChildrenTop <= newChildrenBottom)) {
       final Element oldChild = oldChildren[oldChildrenTop];
       assert(replaceWithNullIfForgotten(oldChild) != null);
       assert(oldChild._lifecycleState == _ElementLifecycle.active);
       final Component newComponent = newComponents[newChildrenTop];
       assert(Component.canUpdate(oldChild.component, newComponent));
-      final Element newChild = updateChild(oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
+      final Element newChild = updateChild(
+          oldChild, newComponent, slotFor(newChildrenTop, previousChild))!;
       assert(newChild._lifecycleState == _ElementLifecycle.active);
       newChildren[newChildrenTop] = newChild;
       previousChild = newChild;
@@ -332,7 +353,8 @@ abstract class Element implements BuildContext {
   }
 
   @override
-  T? dependOnInheritedComponentOfExactType<T extends InheritedComponent>({Object? aspect}) {
+  T? dependOnInheritedComponentOfExactType<T extends InheritedComponent>(
+      {Object? aspect}) {
     final InheritedElement? ancestor = _inheritedElements?[T];
     if (ancestor != null) {
       return dependOnInheritedElement(ancestor, aspect: aspect) as T;
@@ -341,7 +363,8 @@ abstract class Element implements BuildContext {
   }
 
   @override
-  InheritedComponent dependOnInheritedElement(InheritedElement ancestor, {Object? aspect}) {
+  InheritedComponent dependOnInheritedElement(InheritedElement ancestor,
+      {Object? aspect}) {
     _dependencies ??= HashSet<InheritedElement>();
     _dependencies!.add(ancestor);
     ancestor.updateDependencies(this, aspect);

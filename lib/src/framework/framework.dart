@@ -41,7 +41,8 @@ abstract class Component {
   Element createElement();
 
   static bool canUpdate(Component oldComponent, Component newComponent) {
-    return oldComponent.runtimeType == newComponent.runtimeType && oldComponent.key == newComponent.key;
+    return oldComponent.runtimeType == newComponent.runtimeType &&
+        oldComponent.key == newComponent.key;
   }
 }
 
@@ -51,7 +52,8 @@ abstract class SingleChildRenderObjectComponent extends RenderObjectComponent {
   final Component? child;
 
   @override
-  SingleChildRenderObjectElement createElement() => SingleChildRenderObjectElement(this);
+  SingleChildRenderObjectElement createElement() =>
+      SingleChildRenderObjectElement(this);
 }
 
 abstract class MultiChildRenderObjectComponent extends RenderObjectComponent {
@@ -60,5 +62,6 @@ abstract class MultiChildRenderObjectComponent extends RenderObjectComponent {
   final List<Component> children;
 
   @override
-  MultiChildRenderObjectElement createElement() => MultiChildRenderObjectElement(this);
+  MultiChildRenderObjectElement createElement() =>
+      MultiChildRenderObjectElement(this);
 }

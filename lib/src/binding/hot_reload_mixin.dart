@@ -21,11 +21,14 @@ mixin HotReloadBinding on NoctermBinding {
 
     // Only enable hot reload if we're running with --enable-vm-service
     // This is automatically set when running with `dart run --enable-vm-service`
-    final bool vmServiceEnabled = Platform.executableArguments.any(
-        (arg) => arg.contains('--enable-vm-service') || arg.contains('--observe') || arg.contains('--enable-asserts'));
+    final bool vmServiceEnabled = Platform.executableArguments.any((arg) =>
+        arg.contains('--enable-vm-service') ||
+        arg.contains('--observe') ||
+        arg.contains('--enable-asserts'));
 
     if (!vmServiceEnabled) {
-      print('[HotReload] VM service not enabled. Run with --enable-vm-service to enable hot reload.');
+      print(
+          '[HotReload] VM service not enabled. Run with --enable-vm-service to enable hot reload.');
       return;
     }
 
@@ -35,7 +38,8 @@ mixin HotReloadBinding on NoctermBinding {
         final info = await Service.getInfo();
         if (info.serverUri != null) {
           if (info.serverWebSocketUri != null) {
-            print('[HotReload] DevTools URL: ${info.serverUri}devtools/?uri=${info.serverWebSocketUri}');
+            print(
+                '[HotReload] DevTools URL: ${info.serverUri}devtools/?uri=${info.serverWebSocketUri}');
           }
         }
       } catch (e) {

@@ -46,7 +46,7 @@ class BuildOwner {
 
   /// Check if there are any dirty elements that need to be rebuilt
   bool get hasDirtyElements => _dirtyElements.isNotEmpty;
-  
+
   /// Builds all dirty elements
   void buildScope(Element context, [VoidCallback? callback]) {
     if (callback != null) {
@@ -80,7 +80,8 @@ class BuildOwner {
 
     assert(() {
       for (final element in _dirtyElements) {
-        assert(!element.dirty, 'Element ${element.runtimeType} is still dirty after building');
+        assert(!element.dirty,
+            'Element ${element.runtimeType} is still dirty after building');
       }
       return true;
     }());
@@ -135,7 +136,8 @@ class _InactiveElements {
   }
 
   void _unmountAll() {
-    final List<Element> elements = _elements.toList()..sort((a, b) => b.depth - a.depth);
+    final List<Element> elements = _elements.toList()
+      ..sort((a, b) => b.depth - a.depth);
     _elements.clear();
 
     for (final element in elements) {

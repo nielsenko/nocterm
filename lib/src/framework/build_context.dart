@@ -28,10 +28,12 @@ abstract class BuildContext {
 
   /// Obtains the nearest [InheritedComponent] of the given type T and
   /// registers this context to be rebuilt when that component changes.
-  T? dependOnInheritedComponentOfExactType<T extends InheritedComponent>({Object? aspect});
+  T? dependOnInheritedComponentOfExactType<T extends InheritedComponent>(
+      {Object? aspect});
 
   /// Registers this context with an [InheritedElement].
-  InheritedComponent dependOnInheritedElement(InheritedElement ancestor, {Object? aspect});
+  InheritedComponent dependOnInheritedElement(InheritedElement ancestor,
+      {Object? aspect});
 
   /// Visit all the children elements.
   void visitChildElements(ElementVisitor visitor);

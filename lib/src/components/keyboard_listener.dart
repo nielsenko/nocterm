@@ -8,14 +8,14 @@ class KeyboardListener extends StatelessComponent {
   final bool Function(LogicalKey key)? onKeyEvent;
   final Component child;
   final bool autofocus;
-  
+
   const KeyboardListener({
     super.key,
     required this.onKeyEvent,
     required this.child,
     this.autofocus = false,
   });
-  
+
   @override
   Component build(BuildContext context) {
     return Focusable(

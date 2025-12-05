@@ -1,7 +1,7 @@
 part of 'framework.dart';
 
 /// Base class for Elements that wrap a single child.
-/// 
+///
 /// This class provides proper lifecycle management for elements that have
 /// exactly one child, ensuring render objects are correctly attached and
 /// detached when the element tree changes.
@@ -63,17 +63,21 @@ abstract class ProxyElement extends Element {
   }
 
   void insertRenderObjectChild(RenderObject child, dynamic slot) {
-    final RenderObjectElement? renderObjectElement = _findAncestorRenderObjectElement();
+    final RenderObjectElement? renderObjectElement =
+        _findAncestorRenderObjectElement();
     renderObjectElement?.insertRenderObjectChild(child, slot);
   }
 
-  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
-    final RenderObjectElement? renderObjectElement = _findAncestorRenderObjectElement();
+  void moveRenderObjectChild(
+      RenderObject child, dynamic oldSlot, dynamic newSlot) {
+    final RenderObjectElement? renderObjectElement =
+        _findAncestorRenderObjectElement();
     renderObjectElement?.moveRenderObjectChild(child, oldSlot, newSlot);
   }
 
   void removeRenderObjectChild(RenderObject child, dynamic slot) {
-    final RenderObjectElement? renderObjectElement = _findAncestorRenderObjectElement();
+    final RenderObjectElement? renderObjectElement =
+        _findAncestorRenderObjectElement();
     renderObjectElement?.removeRenderObjectChild(child, slot);
   }
 
@@ -87,14 +91,15 @@ abstract class ProxyElement extends Element {
 }
 
 /// An Element that uses a ParentDataWidget as its configuration.
-/// 
+///
 /// This properly manages the lifecycle of its child and ensures parent data
 /// is correctly applied to render objects.
 class ParentDataElement<T extends ParentData> extends ProxyElement {
   ParentDataElement(ParentDataComponent<T> component) : super(component);
 
   @override
-  ParentDataComponent<T> get component => super.component as ParentDataComponent<T>;
+  ParentDataComponent<T> get component =>
+      super.component as ParentDataComponent<T>;
 
   void _applyParentData(ParentDataComponent<T> component) {
     void applyParentDataToChild(Element child) {
@@ -128,5 +133,4 @@ class ParentDataElement<T extends ParentData> extends ProxyElement {
   void notifyClients(ProxyComponent oldComponent) {
     _applyParentData(component);
   }
-
 }

@@ -51,7 +51,8 @@ class PipelineOwner {
 
   void flushPaint() {
     // Sort by depth (deepest first) for paint order
-    final List<RenderObject> dirtyNodes = List<RenderObject>.from(_nodesNeedingPaint);
+    final List<RenderObject> dirtyNodes =
+        List<RenderObject>.from(_nodesNeedingPaint);
     _nodesNeedingPaint.clear();
 
     // Sort nodes by depth - deeper nodes should be painted first
@@ -104,10 +105,14 @@ class BoxConstraints {
   BoxConstraints deflate(EdgeInsets insets) {
     final horizontal = insets.left + insets.right;
     final vertical = insets.top + insets.bottom;
-    final deflatedMinWidth = (minWidth - horizontal).clamp(0.0, double.infinity);
-    final deflatedMaxWidth = (maxWidth - horizontal).clamp(deflatedMinWidth, double.infinity);
-    final deflatedMinHeight = (minHeight - vertical).clamp(0.0, double.infinity);
-    final deflatedMaxHeight = (maxHeight - vertical).clamp(deflatedMinHeight, double.infinity);
+    final deflatedMinWidth =
+        (minWidth - horizontal).clamp(0.0, double.infinity);
+    final deflatedMaxWidth =
+        (maxWidth - horizontal).clamp(deflatedMinWidth, double.infinity);
+    final deflatedMinHeight =
+        (minHeight - vertical).clamp(0.0, double.infinity);
+    final deflatedMaxHeight =
+        (maxHeight - vertical).clamp(deflatedMinHeight, double.infinity);
     return BoxConstraints(
       minWidth: deflatedMinWidth,
       maxWidth: deflatedMaxWidth,
@@ -395,7 +400,8 @@ abstract class RenderObject {
         for (int y = startY.clamp(0, buffer.height); y < endY; y++) {
           for (int x = startX.clamp(0, buffer.width); x < endX; x++) {
             final existingCell = buffer.getCell(x, y);
-            final existingBg = existingCell.style.backgroundColor ?? Color.defaultColor;
+            final existingBg =
+                existingCell.style.backgroundColor ?? Color.defaultColor;
             final blendedBg = Color.alphaBlend(rainbowColor, existingBg);
             buffer.setCell(
               x,
@@ -422,7 +428,9 @@ abstract class RenderObject {
     try {
       if (hasSize) {
         final errorBox = RenderTUIErrorBox(
-          message: _hasLayoutError ? 'Layout Error in $runtimeType' : 'Paint Error in $runtimeType',
+          message: _hasLayoutError
+              ? 'Layout Error in $runtimeType'
+              : 'Paint Error in $runtimeType',
           error: _lastError,
           stackTrace: _lastStackTrace,
         );
@@ -492,7 +500,8 @@ abstract class RenderObject {
   bool hitTest(HitTestResult result, {required Offset position}) {
     if (Rect.fromLTWH(0, 0, size.width, size.height).contains(position)) {
       result.add(this);
-      return hitTestChildren(result, position: position) || hitTestSelf(position);
+      return hitTestChildren(result, position: position) ||
+          hitTestSelf(position);
     }
     return false;
   }
@@ -577,7 +586,8 @@ class BoxParentData extends ParentData {
 }
 
 /// RenderObject that can have a single child
-mixin RenderObjectWithChildMixin<ChildType extends RenderObject> on RenderObject {
+mixin RenderObjectWithChildMixin<ChildType extends RenderObject>
+    on RenderObject {
   ChildType? _child;
   ChildType? get child => _child;
 
@@ -612,7 +622,8 @@ mixin RenderObjectWithChildMixin<ChildType extends RenderObject> on RenderObject
 }
 
 /// RenderObject that can have multiple children
-mixin ContainerRenderObjectMixin<ChildType extends RenderObject> on RenderObject {
+mixin ContainerRenderObjectMixin<ChildType extends RenderObject>
+    on RenderObject {
   final List<ChildType> _children = [];
   List<ChildType> get children => _children;
 
@@ -702,7 +713,8 @@ abstract class RenderObjectComponent extends Component {
   RenderObject createRenderObject(BuildContext context);
 
   @protected
-  void updateRenderObject(BuildContext context, covariant RenderObject renderObject) {}
+  void updateRenderObject(
+      BuildContext context, covariant RenderObject renderObject) {}
 }
 
 /// Element for RenderObjectComponent
@@ -710,7 +722,8 @@ abstract class RenderObjectElement extends Element {
   RenderObjectElement(RenderObjectComponent super.component);
 
   @override
-  RenderObjectComponent get component => super.component as RenderObjectComponent;
+  RenderObjectComponent get component =>
+      super.component as RenderObjectComponent;
 
   RenderObject? _renderObject;
   RenderObject get renderObject => _renderObject!;
@@ -738,7 +751,8 @@ abstract class RenderObjectElement extends Element {
     super.updateSlot(newSlot);
     assert(slot == newSlot);
     assert(_ancestorRenderObjectElement == _findAncestorRenderObjectElement());
-    _ancestorRenderObjectElement?.moveRenderObjectChild(renderObject, oldSlot, slot);
+    _ancestorRenderObjectElement?.moveRenderObjectChild(
+        renderObject, oldSlot, slot);
   }
 
   @override
@@ -755,7 +769,8 @@ abstract class RenderObjectElement extends Element {
     assert(_renderObject != null);
     assert(_ancestorRenderObjectElement == null);
     _ancestorRenderObjectElement = _findAncestorRenderObjectElement();
-    _ancestorRenderObjectElement?.insertRenderObjectChild(renderObject, newSlot);
+    _ancestorRenderObjectElement?.insertRenderObjectChild(
+        renderObject, newSlot);
   }
 
   RenderObjectElement? _findAncestorRenderObjectElement() {
@@ -783,7 +798,8 @@ abstract class RenderObjectElement extends Element {
   /// with an existing [Element] child and a `slot` that differs from the slot
   /// that element was previously given.
   @protected
-  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot);
+  void moveRenderObjectChild(
+      RenderObject child, dynamic oldSlot, dynamic newSlot);
 
   /// Remove the given child from [renderObject].
   ///
@@ -846,7 +862,8 @@ class SingleChildRenderObjectElement extends RenderObjectElement {
   }
 
   @override
-  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
+  void moveRenderObjectChild(
+      RenderObject child, dynamic oldSlot, dynamic newSlot) {
     // SingleChildRenderObjectElement never moves children since slot is always null
     assert(false, 'SingleChildRenderObjectElement should never move children');
   }
@@ -883,7 +900,8 @@ class MultiChildRenderObjectElement extends RenderObjectElement {
   @override
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
-    final List<Component> children = (component as dynamic).children ?? const [];
+    final List<Component> children =
+        (component as dynamic).children ?? const [];
     Element? previousChild;
     _children = List<Element>.generate(children.length, (index) {
       final slot = IndexedSlot(index, previousChild);
@@ -896,7 +914,8 @@ class MultiChildRenderObjectElement extends RenderObjectElement {
   @override
   void update(Component newComponent) {
     super.update(newComponent);
-    final List<Component> newChildren = (newComponent as dynamic).children ?? const [];
+    final List<Component> newChildren =
+        (newComponent as dynamic).children ?? const [];
     _children = updateChildren(_children, newChildren);
   }
 
@@ -913,7 +932,8 @@ class MultiChildRenderObjectElement extends RenderObjectElement {
 
     // Otherwise, traverse children to find the last render object
     element.visitChildren((Element child) {
-      final RenderObject? childRenderObject = _findLastRenderObjectDescendant(child);
+      final RenderObject? childRenderObject =
+          _findLastRenderObjectDescendant(child);
       if (childRenderObject != null) {
         result = childRenderObject;
       }
@@ -946,7 +966,8 @@ class MultiChildRenderObjectElement extends RenderObjectElement {
   }
 
   @override
-  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
+  void moveRenderObjectChild(
+      RenderObject child, dynamic oldSlot, dynamic newSlot) {
     final ContainerRenderObjectMixin<RenderObject> renderObject =
         this.renderObject as ContainerRenderObjectMixin<RenderObject>;
 

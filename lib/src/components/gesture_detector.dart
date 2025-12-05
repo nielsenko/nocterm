@@ -284,7 +284,8 @@ class _RenderGestureDetector extends RenderMouseRegion {
   bool _isLeftButtonPressed = false;
 
   @override
-  MouseTrackerAnnotation? get annotation => _gestureAnnotation ?? super.annotation;
+  MouseTrackerAnnotation? get annotation =>
+      _gestureAnnotation ?? super.annotation;
 
   void _updateGestureAnnotation() {
     _gestureAnnotation = MouseTrackerAnnotation(
@@ -305,7 +306,9 @@ class _RenderGestureDetector extends RenderMouseRegion {
       onExit: (event) {
         // When exiting, if button was pressed inside and is now released,
         // we should complete the gesture
-        if (!event.pressed && _isLeftButtonPressed && event.button == MouseButton.left) {
+        if (!event.pressed &&
+            _isLeftButtonPressed &&
+            event.button == MouseButton.left) {
           _isLeftButtonPressed = false;
           _onPointerUp(event);
         }

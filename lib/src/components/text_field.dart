@@ -93,7 +93,9 @@ class TextSelection {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TextSelection && other.baseOffset == baseOffset && other.extentOffset == extentOffset;
+    return other is TextSelection &&
+        other.baseOffset == baseOffset &&
+        other.extentOffset == extentOffset;
   }
 
   @override
@@ -136,7 +138,8 @@ class TextField extends StatefulComponent {
           (maxLines == null) || (minLines == null) || (maxLines >= minLines),
           "minLines can't be greater than maxLines",
         ),
-        assert(!obscureText || maxLines == 1, 'Obscured fields cannot be multiline.'),
+        assert(!obscureText || maxLines == 1,
+            'Obscured fields cannot be multiline.'),
         assert(maxLength == null || maxLength > 0);
 
   final TextEditingController? controller;
@@ -156,6 +159,7 @@ class TextField extends StatefulComponent {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
+
   /// Callback invoked when text is pasted.
   /// Return `true` to indicate the paste was handled (skip default insertion).
   /// Return `false` or null to proceed with default insertion.
@@ -232,7 +236,8 @@ class _TextFieldState extends State<TextField> {
     super.didUpdateComponent(oldComponent);
 
     // Handle focus changes or blink rate changes
-    if (component.focused != oldComponent.focused || component.cursorBlinkRate != oldComponent.cursorBlinkRate) {
+    if (component.focused != oldComponent.focused ||
+        component.cursorBlinkRate != oldComponent.cursorBlinkRate) {
       if (component.focused && component.showCursor) {
         _startCursorBlink();
       } else {
@@ -274,22 +279,27 @@ class _TextFieldState extends State<TextField> {
 
       // Account for borders and padding to get actual content width
       final decoration = component.decoration ?? const InputDecoration();
-      final padding = decoration.contentPadding ?? const EdgeInsets.symmetric(horizontal: 1);
+      final padding = decoration.contentPadding ??
+          const EdgeInsets.symmetric(horizontal: 1);
       final horizontalPadding = padding.left + padding.right;
-      final borderWidth = decoration.border != null ? 2.0 : 0.0; // 1 on each side
+      final borderWidth =
+          decoration.border != null ? 2.0 : 0.0; // 1 on each side
       // Reserve 1 column for cursor display
-      final maxVisibleWidth = (component.width! - borderWidth - horizontalPadding - 1).toInt();
+      final maxVisibleWidth =
+          (component.width! - borderWidth - horizontalPadding - 1).toInt();
 
       if (maxVisibleWidth <= 0) return; // No space to display text
 
       // Calculate visual column position of cursor (accounting for wide characters)
-      final textBeforeCursor = text.substring(0, math.min(cursorPos, text.length));
+      final textBeforeCursor =
+          text.substring(0, math.min(cursorPos, text.length));
       final cursorVisualColumn = UnicodeWidth.stringWidth(textBeforeCursor);
 
       // Calculate visual width of currently visible text
       int viewOffsetVisualColumn = 0;
       if (_viewOffset > 0 && _viewOffset <= text.length) {
-        viewOffsetVisualColumn = UnicodeWidth.stringWidth(text.substring(0, _viewOffset));
+        viewOffsetVisualColumn =
+            UnicodeWidth.stringWidth(text.substring(0, _viewOffset));
       }
 
       // Adjust view offset to keep cursor visible
@@ -297,7 +307,8 @@ class _TextFieldState extends State<TextField> {
         // Cursor moved before visible area - scroll left
         // Find the character offset that corresponds to the cursor's visual position
         _viewOffset = cursorPos;
-      } else if (cursorVisualColumn >= viewOffsetVisualColumn + maxVisibleWidth) {
+      } else if (cursorVisualColumn >=
+          viewOffsetVisualColumn + maxVisibleWidth) {
         // Cursor moved after visible area - scroll right
         // We need to find a view offset such that the cursor is visible
         int newOffset = 0;
@@ -369,10 +380,14 @@ class _TextFieldState extends State<TextField> {
     } else if (key == LogicalKey.arrowRight && event.isControlPressed) {
       _moveCursorByWord(1, false);
       return true;
-    } else if (key == LogicalKey.arrowUp && event.isShiftPressed && component.maxLines != 1) {
+    } else if (key == LogicalKey.arrowUp &&
+        event.isShiftPressed &&
+        component.maxLines != 1) {
       _moveCursorVertically(-1, true);
       return true;
-    } else if (key == LogicalKey.arrowDown && event.isShiftPressed && component.maxLines != 1) {
+    } else if (key == LogicalKey.arrowDown &&
+        event.isShiftPressed &&
+        component.maxLines != 1) {
       _moveCursorVertically(1, true);
       return true;
     } else if (key == LogicalKey.arrowLeft) {
@@ -510,7 +525,9 @@ class _TextFieldState extends State<TextField> {
     }
 
     // Check max lines for multi-line fields
-    if (component.maxLines != null && component.maxLines! > 1 && char.contains('\n')) {
+    if (component.maxLines != null &&
+        component.maxLines! > 1 &&
+        char.contains('\n')) {
       final currentLines = text.split('\n').length;
       final newLines = char.split('\n').length - 1;
 
@@ -524,11 +541,14 @@ class _TextFieldState extends State<TextField> {
 
     if (!isCollapsed) {
       // Replace selected text
-      newText = text.substring(0, clampedStart) + char + text.substring(clampedEnd);
+      newText =
+          text.substring(0, clampedStart) + char + text.substring(clampedEnd);
       newOffset = clampedStart + char.length;
     } else {
       // Insert at cursor position
-      newText = text.substring(0, clampedExtentOffset) + char + text.substring(clampedExtentOffset);
+      newText = text.substring(0, clampedExtentOffset) +
+          char +
+          text.substring(clampedExtentOffset);
       newOffset = clampedExtentOffset + char.length;
     }
 
@@ -552,7 +572,8 @@ class _TextFieldState extends State<TextField> {
 
     if (!isCollapsed) {
       // Delete selected text
-      _controller.text = text.substring(0, clampedStart) + text.substring(clampedEnd);
+      _controller.text =
+          text.substring(0, clampedStart) + text.substring(clampedEnd);
       _controller.selection = TextSelection.collapsed(offset: clampedStart);
     } else if (clampedExtentOffset > 0) {
       // Delete the grapheme cluster before cursor
@@ -564,7 +585,8 @@ class _TextFieldState extends State<TextField> {
       if (graphemes.isNotEmpty) {
         final newTextBefore = graphemes.skipLast(1).toString();
         _controller.text = newTextBefore + textAfter;
-        _controller.selection = TextSelection.collapsed(offset: newTextBefore.length);
+        _controller.selection =
+            TextSelection.collapsed(offset: newTextBefore.length);
       }
     }
   }
@@ -582,7 +604,8 @@ class _TextFieldState extends State<TextField> {
 
     if (!isCollapsed) {
       // Delete selected text
-      _controller.text = text.substring(0, clampedStart) + text.substring(clampedEnd);
+      _controller.text =
+          text.substring(0, clampedStart) + text.substring(clampedEnd);
       _controller.selection = TextSelection.collapsed(offset: clampedStart);
     } else if (clampedExtentOffset < textLength) {
       // Delete the grapheme cluster after cursor
@@ -624,7 +647,8 @@ class _TextFieldState extends State<TextField> {
 
     if (!isCollapsed) {
       // Delete selected text
-      _controller.text = text.substring(0, clampedStart) + text.substring(clampedEnd);
+      _controller.text =
+          text.substring(0, clampedStart) + text.substring(clampedEnd);
       _controller.selection = TextSelection.collapsed(offset: clampedStart);
       return;
     }
@@ -643,7 +667,8 @@ class _TextFieldState extends State<TextField> {
       start--;
     }
 
-    _controller.text = text.substring(0, start) + text.substring(clampedExtentOffset);
+    _controller.text =
+        text.substring(0, start) + text.substring(clampedExtentOffset);
     _controller.selection = TextSelection.collapsed(offset: start);
   }
 
@@ -660,7 +685,8 @@ class _TextFieldState extends State<TextField> {
 
     if (!isCollapsed) {
       // Delete selected text
-      _controller.text = text.substring(0, clampedStart) + text.substring(clampedEnd);
+      _controller.text =
+          text.substring(0, clampedStart) + text.substring(clampedEnd);
       _controller.selection = TextSelection.collapsed(offset: clampedStart);
       return;
     }
@@ -679,7 +705,8 @@ class _TextFieldState extends State<TextField> {
       end++;
     }
 
-    _controller.text = text.substring(0, clampedExtentOffset) + text.substring(end);
+    _controller.text =
+        text.substring(0, clampedExtentOffset) + text.substring(end);
     // Cursor position stays the same
   }
 
@@ -710,7 +737,8 @@ class _TextFieldState extends State<TextField> {
     // Transpose characters
     if (charIndex > 0) {
       final temp = chars[charIndex - 1];
-      chars[charIndex - 1] = chars[charIndex == chars.length ? charIndex - 1 : charIndex];
+      chars[charIndex - 1] =
+          chars[charIndex == chars.length ? charIndex - 1 : charIndex];
       chars[charIndex == chars.length ? charIndex - 1 : charIndex] = temp;
 
       _controller.text = chars.join();
@@ -732,7 +760,8 @@ class _TextFieldState extends State<TextField> {
   }
 
   void _moveCursorToEnd() {
-    _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+    _controller.selection =
+        TextSelection.collapsed(offset: _controller.text.length);
     _renderTextField?.resetTargetColumn();
   }
 
@@ -779,7 +808,8 @@ class _TextFieldState extends State<TextField> {
         ClipboardManager.copy(selectedText);
 
         // Delete the selected text
-        _controller.text = text.substring(0, clampedStart) + text.substring(clampedEnd);
+        _controller.text =
+            text.substring(0, clampedStart) + text.substring(clampedEnd);
         _controller.selection = TextSelection.collapsed(offset: clampedStart);
       }
     }
@@ -825,11 +855,13 @@ class _TextFieldState extends State<TextField> {
 
     // Handle view offset for single-line fields
     if (component.maxLines == 1 && component.width != null) {
-      final padding = decoration.contentPadding ?? const EdgeInsets.symmetric(horizontal: 1);
+      final padding = decoration.contentPadding ??
+          const EdgeInsets.symmetric(horizontal: 1);
       final horizontalPadding = padding.left + padding.right;
       final borderWidth = decoration.border != null ? 2.0 : 0.0;
       // Reserve 1 column for cursor display
-      final maxVisibleWidth = (component.width! - borderWidth - horizontalPadding - 1).toInt();
+      final maxVisibleWidth =
+          (component.width! - borderWidth - horizontalPadding - 1).toInt();
 
       if (maxVisibleWidth > 0 && _viewOffset < displayText.length) {
         // Extract the visible portion based on visual width, not character count
@@ -888,9 +920,12 @@ class _TextFieldState extends State<TextField> {
       content = Container(
         width: component.width,
         height: component.height ?? (component.maxLines ?? 1).toDouble() + 2,
-        padding: decoration.contentPadding ?? const EdgeInsets.symmetric(horizontal: 1),
+        padding: decoration.contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 1),
         decoration: BoxDecoration(
-          border: isFocused ? decoration.focusedBorder ?? decoration.border : decoration.border,
+          border: isFocused
+              ? decoration.focusedBorder ?? decoration.border
+              : decoration.border,
           color: decoration.fillColor,
         ),
         child: content,
@@ -1171,8 +1206,9 @@ class RenderTextField extends RenderObject {
       direction: direction,
     );
 
-    final newSelection =
-        extendSelection ? _selection.copyWith(extentOffset: newOffset) : TextSelection.collapsed(offset: newOffset);
+    final newSelection = extendSelection
+        ? _selection.copyWith(extentOffset: newOffset)
+        : TextSelection.collapsed(offset: newOffset);
 
     if (newSelection != _selection) {
       _selection = newSelection;
@@ -1204,8 +1240,9 @@ class RenderTextField extends RenderObject {
       targetVisualColumn: _targetVisualColumn!,
     );
 
-    final newSelection =
-        extendSelection ? _selection.copyWith(extentOffset: newOffset) : TextSelection.collapsed(offset: newOffset);
+    final newSelection = extendSelection
+        ? _selection.copyWith(extentOffset: newOffset)
+        : TextSelection.collapsed(offset: newOffset);
 
     if (newSelection != _selection) {
       _selection = newSelection;
@@ -1222,8 +1259,9 @@ class RenderTextField extends RenderObject {
       direction: direction,
     );
 
-    final newSelection =
-        extendSelection ? _selection.copyWith(extentOffset: newOffset) : TextSelection.collapsed(offset: newOffset);
+    final newSelection = extendSelection
+        ? _selection.copyWith(extentOffset: newOffset)
+        : TextSelection.collapsed(offset: newOffset);
 
     if (newSelection != _selection) {
       _selection = newSelection;
@@ -1243,8 +1281,9 @@ class RenderTextField extends RenderObject {
       currentOffset: _selection.extentOffset,
     );
 
-    final newSelection =
-        extendSelection ? _selection.copyWith(extentOffset: newOffset) : TextSelection.collapsed(offset: newOffset);
+    final newSelection = extendSelection
+        ? _selection.copyWith(extentOffset: newOffset)
+        : TextSelection.collapsed(offset: newOffset);
 
     if (newSelection != _selection) {
       _selection = newSelection;
@@ -1264,8 +1303,9 @@ class RenderTextField extends RenderObject {
       currentOffset: _selection.extentOffset,
     );
 
-    final newSelection =
-        extendSelection ? _selection.copyWith(extentOffset: newOffset) : TextSelection.collapsed(offset: newOffset);
+    final newSelection = extendSelection
+        ? _selection.copyWith(extentOffset: newOffset)
+        : TextSelection.collapsed(offset: newOffset);
 
     if (newSelection != _selection) {
       _selection = newSelection;
@@ -1283,7 +1323,8 @@ class RenderTextField extends RenderObject {
   @override
   void performLayout() {
     // Use TextLayoutEngine for proper Unicode text wrapping
-    String textToLayout = _text.isEmpty && _placeholder != null ? _placeholder! : _text;
+    String textToLayout =
+        _text.isEmpty && _placeholder != null ? _placeholder! : _text;
 
     // Apply text obscuring if needed
     if (_obscureText && !_text.isEmpty) {
@@ -1292,8 +1333,11 @@ class RenderTextField extends RenderObject {
 
     // Reserve 1 column for the cursor block to be displayed within bounds
     // This ensures the cursor doesn't appear to go "into the wall" at line ends
-    final availableWidth = constraints.maxWidth.isFinite ? constraints.maxWidth.toInt() : 80;
-    final maxWidth = (availableWidth - 1).clamp(1, double.infinity).toInt(); // Reserve space for cursor
+    final availableWidth =
+        constraints.maxWidth.isFinite ? constraints.maxWidth.toInt() : 80;
+    final maxWidth = (availableWidth - 1)
+        .clamp(1, double.infinity)
+        .toInt(); // Reserve space for cursor
 
     final config = TextLayoutConfig(
       softWrap: _maxLines != 1, // Enable wrapping for multi-line fields
@@ -1341,10 +1385,12 @@ class RenderTextField extends RenderObject {
       // Apply justification if needed
       String displayLine = line;
       if (_textAlign == TextAlign.justify && i < lines.length - 1) {
-        displayLine = TextLayoutEngine.justifyLine(line, alignmentWidth, isLastLine: false);
+        displayLine = TextLayoutEngine.justifyLine(line, alignmentWidth,
+            isLastLine: false);
       }
 
-      _paintLineWithSelection(canvas, Offset(xOffset, offset.dy + i), displayLine, textStyle, i);
+      _paintLineWithSelection(
+          canvas, Offset(xOffset, offset.dy + i), displayLine, textStyle, i);
     }
 
     // Paint cursor only for the focused field
@@ -1353,7 +1399,8 @@ class RenderTextField extends RenderObject {
     }
   }
 
-  void _paintLineWithSelection(TerminalCanvas canvas, Offset offset, String line, TextStyle style, int lineIndex) {
+  void _paintLineWithSelection(TerminalCanvas canvas, Offset offset,
+      String line, TextStyle style, int lineIndex) {
     // Calculate the character range for this line
     int lineStartOffset = 0;
     if (_layoutResult != null && lineIndex > 0) {
@@ -1362,7 +1409,8 @@ class RenderTextField extends RenderObject {
         lineStartOffset += _layoutResult!.lines[i].length;
         // Only add 1 for actual newline characters in the text, not wrapped lines
         if (i < _layoutResult!.lines.length - 1) {
-          final textUpToLine = _text.substring(0, math.min(lineStartOffset, _text.length));
+          final textUpToLine =
+              _text.substring(0, math.min(lineStartOffset, _text.length));
           if (textUpToLine.endsWith('\n')) {
             lineStartOffset++;
           }
@@ -1393,15 +1441,23 @@ class RenderTextField extends RenderObject {
 
           // Paint selected text with selection background
           final selectedText = line.substring(localSelStart, localSelEnd);
-          final beforeWidth = localSelStart > 0 ? UnicodeWidth.stringWidth(line.substring(0, localSelStart)) : 0;
-          final selectionStyle = style.copyWith(backgroundColor: selectionColor);
-          canvas.drawText(offset + Offset(beforeWidth.toDouble(), 0), selectedText, style: selectionStyle);
+          final beforeWidth = localSelStart > 0
+              ? UnicodeWidth.stringWidth(line.substring(0, localSelStart))
+              : 0;
+          final selectionStyle =
+              style.copyWith(backgroundColor: selectionColor);
+          canvas.drawText(
+              offset + Offset(beforeWidth.toDouble(), 0), selectedText,
+              style: selectionStyle);
 
           // Paint non-selected text after selection
           if (localSelEnd < line.length) {
             final afterText = line.substring(localSelEnd);
-            final beforeSelectedWidth = UnicodeWidth.stringWidth(line.substring(0, localSelEnd));
-            canvas.drawText(offset + Offset(beforeSelectedWidth.toDouble(), 0), afterText, style: style);
+            final beforeSelectedWidth =
+                UnicodeWidth.stringWidth(line.substring(0, localSelEnd));
+            canvas.drawText(
+                offset + Offset(beforeSelectedWidth.toDouble(), 0), afterText,
+                style: style);
           }
 
           return;
@@ -1432,19 +1488,24 @@ class RenderTextField extends RenderObject {
       final lineLength = line.length;
 
       // Check if cursor is on this line
-      if (charCount + lineLength >= _selection.extentOffset || i == lines.length - 1) {
-        final positionInLine = (_selection.extentOffset - charCount).clamp(0, lineLength);
+      if (charCount + lineLength >= _selection.extentOffset ||
+          i == lines.length - 1) {
+        final positionInLine =
+            (_selection.extentOffset - charCount).clamp(0, lineLength);
 
         // Calculate visual position using Unicode width
         final textBeforeCursor = line.substring(0, positionInLine);
         final visualColumn = UnicodeWidth.stringWidth(textBeforeCursor);
 
-        final cursorOffset = offset + Offset(visualColumn.toDouble(), i.toDouble());
+        final cursorOffset =
+            offset + Offset(visualColumn.toDouble(), i.toDouble());
 
         // Get the character at cursor position (or space if at end)
-        final charAtCursor = positionInLine < line.length ? line[positionInLine] : ' ';
+        final charAtCursor =
+            positionInLine < line.length ? line[positionInLine] : ' ';
 
-        _drawCursorAtPosition(canvas, cursorOffset, charAtCursor, positionInLine, cursorColor);
+        _drawCursorAtPosition(
+            canvas, cursorOffset, charAtCursor, positionInLine, cursorColor);
         break;
       }
 

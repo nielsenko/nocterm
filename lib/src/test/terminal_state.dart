@@ -23,9 +23,13 @@ class TerminalState {
         );
 
     final lines = <String>[];
-    for (int y = targetArea.top.toInt(); y < targetArea.bottom.toInt() && y < size.height; y++) {
+    for (int y = targetArea.top.toInt();
+        y < targetArea.bottom.toInt() && y < size.height;
+        y++) {
       final line = StringBuffer();
-      for (int x = targetArea.left.toInt(); x < targetArea.right.toInt() && x < size.width; x++) {
+      for (int x = targetArea.left.toInt();
+          x < targetArea.right.toInt() && x < size.width;
+          x++) {
         final cell = buffer.getCell(x, y);
         // Skip zero-width space markers
         if (cell.char != '\u200B') {

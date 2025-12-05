@@ -153,7 +153,8 @@ mixin SchedulerBinding on NoctermBinding {
 
   // --- Transient Callbacks ---
 
-  final Map<int, _FrameCallbackEntry> _transientCallbacks = <int, _FrameCallbackEntry>{};
+  final Map<int, _FrameCallbackEntry> _transientCallbacks =
+      <int, _FrameCallbackEntry>{};
   int _nextFrameCallbackId = 0;
 
   /// Registers a transient frame callback.
@@ -178,7 +179,8 @@ mixin SchedulerBinding on NoctermBinding {
     String? debugLabel,
   }) {
     final int id = _nextFrameCallbackId++;
-    _transientCallbacks[id] = _FrameCallbackEntry(callback, debugLabel: debugLabel);
+    _transientCallbacks[id] =
+        _FrameCallbackEntry(callback, debugLabel: debugLabel);
     if (!rescheduling) {
       scheduleFrame();
     }
@@ -309,7 +311,8 @@ mixin SchedulerBinding on NoctermBinding {
 
   void _executeFrame() {
     _lastFrameTime = DateTime.now();
-    final timeStamp = Duration(microseconds: _lastFrameTime!.microsecondsSinceEpoch);
+    final timeStamp =
+        Duration(microseconds: _lastFrameTime!.microsecondsSinceEpoch);
     handleBeginFrame(timeStamp);
   }
 
@@ -361,7 +364,8 @@ mixin SchedulerBinding on NoctermBinding {
       // Phase 1: Transient callbacks (animations)
       NoctermTimeline.startSync('Animate');
       _schedulerPhase = SchedulerPhase.transientCallbacks;
-      final localTransientCallbacks = Map<int, _FrameCallbackEntry>.of(_transientCallbacks);
+      final localTransientCallbacks =
+          Map<int, _FrameCallbackEntry>.of(_transientCallbacks);
       for (final entry in localTransientCallbacks.values) {
         if (!entry.cancelled) {
           _invokeFrameCallback(
@@ -422,7 +426,8 @@ mixin SchedulerBinding on NoctermBinding {
 
       // Phase 4: Post-frame callbacks
       _schedulerPhase = SchedulerPhase.postFrameCallbacks;
-      final localPostFrameCallbacks = Queue<FrameCallback>.of(_postFrameCallbacks);
+      final localPostFrameCallbacks =
+          Queue<FrameCallback>.of(_postFrameCallbacks);
       _postFrameCallbacks.clear();
       for (final callback in localPostFrameCallbacks) {
         _invokeFrameCallback(callback, _currentFrameTimeStamp!);
@@ -436,10 +441,12 @@ mixin SchedulerBinding on NoctermBinding {
       if (_frameTimingCallbacks.isNotEmpty) {
         final timing = FrameTiming(
           frameNumber: _frameNumber,
-          buildDuration: Duration(microseconds: buildEnd - frameStart.microsecondsSinceEpoch),
+          buildDuration: Duration(
+              microseconds: buildEnd - frameStart.microsecondsSinceEpoch),
           layoutDuration: Duration(microseconds: layoutEnd - buildEnd),
           paintDuration: Duration(microseconds: paintEnd - layoutEnd),
-          compositingDuration: Duration.zero, // Tracked separately in TerminalBinding
+          compositingDuration:
+              Duration.zero, // Tracked separately in TerminalBinding
           totalDuration: frameEnd.difference(frameStart),
           timestamp: frameStart,
         );

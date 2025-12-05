@@ -35,7 +35,8 @@ class ScrollController extends ChangeNotifier {
 
   /// Whether scrolling is reversed (up for vertical, left for horizontal).
   bool get isReversed =>
-      _axisDirection == AxisDirection.up || _axisDirection == AxisDirection.left;
+      _axisDirection == AxisDirection.up ||
+      _axisDirection == AxisDirection.left;
 
   /// Whether the [offset] is at the minimum value.
   bool get atStart => offset <= minScrollExtent;

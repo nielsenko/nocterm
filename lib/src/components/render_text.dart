@@ -82,7 +82,7 @@ class RenderText extends RenderObject {
     final maxWidth = constraints.maxWidth.isFinite
         ? constraints.maxWidth.toInt()
         : double.maxFinite.toInt();
-    
+
     // Debug: print constraint info
     // print('RenderText layout: text="$_text", constraints=$constraints, maxWidth=$maxWidth');
 
@@ -95,7 +95,7 @@ class RenderText extends RenderObject {
     );
 
     _layoutResult = TextLayoutEngine.layout(_text, config);
-    
+
     size = constraints.constrain(Size(
       _layoutResult!.actualWidth.toDouble(),
       _layoutResult!.actualHeight.toDouble(),
@@ -105,17 +105,17 @@ class RenderText extends RenderObject {
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     if (_layoutResult == null) return;
-    
+
     final lines = _layoutResult!.lines;
     // Use the actual size width for alignment, not the constraint
     // The size has been constrained during layout
     final alignmentWidth = size.width.toInt();
-    
+
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
-      
+
       // Check if this is the last line of a paragraph for justification
       bool isLastLine = i == lines.length - 1;
       if (i < lines.length - 1) {
@@ -123,26 +123,28 @@ class RenderText extends RenderObject {
         // This is a simplification - proper implementation would track paragraph boundaries
         isLastLine = false;
       }
-      
+
       // Apply justification if needed
       String displayLine = line;
       if (_textAlign == TextAlign.justify && !isLastLine) {
-        displayLine = TextLayoutEngine.justifyLine(line, alignmentWidth, isLastLine: isLastLine);
+        displayLine = TextLayoutEngine.justifyLine(line, alignmentWidth,
+            isLastLine: isLastLine);
       }
-      
+
       // Calculate horizontal offset based on text alignment
-      final xOffset = offset.dx + TextLayoutEngine.calculateAlignmentOffset(
-        displayLine,
-        alignmentWidth,
-        _textAlign,
-      );
-      
+      final xOffset = offset.dx +
+          TextLayoutEngine.calculateAlignmentOffset(
+            displayLine,
+            alignmentWidth,
+            _textAlign,
+          );
+
       // Apply clipping if needed
       if (_overflow == TextOverflow.clip && constraints.maxWidth.isFinite) {
         // The TextLayoutEngine already handles truncation, so we just paint what it gave us
         // But we might need to clip at the canvas level for safety
       }
-      
+
       canvas.drawText(
         Offset(xOffset, offset.dy + i),
         displayLine,

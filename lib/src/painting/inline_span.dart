@@ -4,7 +4,7 @@ import 'package:nocterm/nocterm.dart';
 typedef InlineSpanVisitor = bool Function(InlineSpan span);
 
 /// An immutable span of inline content which forms part of a paragraph.
-/// 
+///
 /// This is the base class for all inline span types. Unlike Flutter's version,
 /// this is simplified for terminal rendering without gesture recognition or
 /// complex text metrics.
@@ -22,7 +22,8 @@ abstract class InlineSpan {
   /// Returns the plain text representation of this span.
   String toPlainText({bool includePlaceholderOffsets = true}) {
     final StringBuffer buffer = StringBuffer();
-    computeToPlainText(buffer, includePlaceholderOffsets: includePlaceholderOffsets);
+    computeToPlainText(buffer,
+        includePlaceholderOffsets: includePlaceholderOffsets);
     return buffer.toString();
   }
 
@@ -40,7 +41,7 @@ abstract class InlineSpan {
   });
 
   /// Converts this span to a list of styled text segments for rendering.
-  /// 
+  ///
   /// Each segment contains a piece of text and its associated style.
   /// The parent style is merged with the span's style.
   List<StyledTextSegment> toStyledSegments([TextStyle? parentStyle]);
@@ -49,7 +50,7 @@ abstract class InlineSpan {
   TextStyle? mergeStyle(TextStyle? parent, TextStyle? child) {
     if (parent == null) return child;
     if (child == null) return parent;
-    
+
     return TextStyle(
       color: child.color ?? parent.color,
       backgroundColor: child.backgroundColor ?? parent.backgroundColor,
@@ -72,14 +73,14 @@ abstract class InlineSpan {
 }
 
 /// A styled segment of text ready for rendering.
-/// 
+///
 /// This is a simple data class that pairs a string with its style.
 class StyledTextSegment {
   const StyledTextSegment(this.text, this.style);
-  
+
   final String text;
   final TextStyle? style;
-  
+
   @override
   String toString() => 'StyledTextSegment("$text", $style)';
 }

@@ -9,7 +9,7 @@ abstract class InputEvent {
 /// Keyboard input event
 class KeyboardInputEvent extends InputEvent {
   final KeyboardEvent event;
-  
+
   const KeyboardInputEvent(this.event);
 }
 

@@ -32,7 +32,8 @@ class CursorMovement {
 
       // Check if there's a newline after this line in the original text
       bool hasNewline = false;
-      if (i < layoutResult.lines.length - 1 && textOffset + lineLength < text.length) {
+      if (i < layoutResult.lines.length - 1 &&
+          textOffset + lineLength < text.length) {
         // The layout engine splits on newlines, so there should be a newline if we're not at the end
         if (text[textOffset + lineLength] == '\n') {
           hasNewline = true;
@@ -43,10 +44,13 @@ class CursorMovement {
       final lineEndWithNewline = lineEndOffset + (hasNewline ? 1 : 0);
 
       // Check if cursor is on this line
-      if (cursorOffset < lineEndWithNewline || i == layoutResult.lines.length - 1) {
+      if (cursorOffset < lineEndWithNewline ||
+          i == layoutResult.lines.length - 1) {
         // Cursor is on this line
-        final positionInLine = math.min(math.max(0, cursorOffset - textOffset), lineLength);
-        final textBeforeCursor = positionInLine > 0 ? line.substring(0, positionInLine) : '';
+        final positionInLine =
+            math.min(math.max(0, cursorOffset - textOffset), lineLength);
+        final textBeforeCursor =
+            positionInLine > 0 ? line.substring(0, positionInLine) : '';
         final visualColumn = UnicodeWidth.stringWidth(textBeforeCursor);
 
         return CursorPosition(
@@ -104,7 +108,8 @@ class CursorMovement {
     }
 
     // Move by one grapheme cluster
-    final newGraphemeIndex = (currentGraphemeIndex + direction).clamp(0, graphemes.length);
+    final newGraphemeIndex =
+        (currentGraphemeIndex + direction).clamp(0, graphemes.length);
 
     // Calculate new character offset
     int newOffset = 0;
@@ -131,7 +136,8 @@ class CursorMovement {
       cursorOffset: currentOffset,
     );
 
-    final targetLine = (currentPos.line + direction).clamp(0, layoutResult.lines.length - 1);
+    final targetLine =
+        (currentPos.line + direction).clamp(0, layoutResult.lines.length - 1);
     if (targetLine == currentPos.line) return currentOffset;
 
     // Find the new cursor position on the target line
@@ -239,21 +245,36 @@ class CursorMovement {
   }
 
   static bool _isWordBoundary(String char) {
-    return char == ' ' || char == '\t' || char == '\n' || char == '\r' ||
-           char == '.' || char == ',' || char == ';' || char == ':' ||
-           char == '!' || char == '?' || char == '(' || char == ')' ||
-           char == '[' || char == ']' || char == '{' || char == '}' ||
-           char == '"' || char == "'" || char == '/' || char == '\\';
+    return char == ' ' ||
+        char == '\t' ||
+        char == '\n' ||
+        char == '\r' ||
+        char == '.' ||
+        char == ',' ||
+        char == ';' ||
+        char == ':' ||
+        char == '!' ||
+        char == '?' ||
+        char == '(' ||
+        char == ')' ||
+        char == '[' ||
+        char == ']' ||
+        char == '{' ||
+        char == '}' ||
+        char == '"' ||
+        char == "'" ||
+        char == '/' ||
+        char == '\\';
   }
 }
 
 /// Information about a cursor position in laid out text
 class CursorPosition {
-  final int line;           // Line index in the layout result
-  final int column;          // Character column within the line
-  final int visualColumn;    // Visual column accounting for Unicode width
+  final int line; // Line index in the layout result
+  final int column; // Character column within the line
+  final int visualColumn; // Visual column accounting for Unicode width
   final int lineStartOffset; // Character offset of line start in original text
-  final int lineEndOffset;   // Character offset of line end in original text
+  final int lineEndOffset; // Character offset of line end in original text
   final int actualLineIndex; // Actual line index (counting only real newlines)
 
   const CursorPosition({

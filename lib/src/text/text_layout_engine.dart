@@ -5,10 +5,10 @@ import '../utils/unicode_width.dart';
 enum TextOverflow {
   /// Clip the overflowing text to fix its container
   clip,
-  
+
   /// Use an ellipsis to indicate that the text has overflowed
   ellipsis,
-  
+
   /// Render overflowing text outside of its container
   visible,
 }
@@ -17,13 +17,13 @@ enum TextOverflow {
 enum TextAlign {
   /// Align the text on the left edge of the container
   left,
-  
-  /// Align the text on the right edge of the container  
+
+  /// Align the text on the right edge of the container
   right,
-  
+
   /// Align the text in the center of the container
   center,
-  
+
   /// Stretch lines of text to align both edges to the container
   justify,
 }
@@ -35,7 +35,7 @@ class TextLayoutConfig {
   final TextAlign textAlign;
   final int? maxLines;
   final int maxWidth;
-  
+
   const TextLayoutConfig({
     this.softWrap = true,
     this.overflow = TextOverflow.clip,
@@ -52,7 +52,7 @@ class TextLayoutResult {
   final int actualHeight;
   final bool didOverflowWidth;
   final bool didOverflowHeight;
-  
+
   const TextLayoutResult({
     required this.lines,
     required this.actualWidth,
@@ -65,16 +65,16 @@ class TextLayoutResult {
 /// Engine for laying out text with word wrapping and overflow handling
 class TextLayoutEngine {
   static const String _ellipsis = '...';
-  
+
   /// Perform text layout with the given configuration
   static TextLayoutResult layout(String text, TextLayoutConfig config) {
     if (!config.softWrap || config.maxWidth == double.maxFinite.toInt()) {
       return _layoutNoWrap(text, config);
     }
-    
+
     return _layoutWithWrap(text, config);
   }
-  
+
   /// Layout text without wrapping (only handle explicit newlines)
   static TextLayoutResult _layoutNoWrap(String text, TextLayoutConfig config) {
     final lines = text.split('\n');
@@ -82,21 +82,21 @@ class TextLayoutEngine {
       final width = UnicodeWidth.stringWidth(line);
       return width > max ? width : max;
     });
-    
+
     // Apply maxLines constraint
     List<String> finalLines = lines;
     bool didOverflowHeight = false;
-    
+
     if (config.maxLines != null && lines.length > config.maxLines!) {
       didOverflowHeight = true;
       finalLines = lines.take(config.maxLines!).toList();
-      
+
       if (config.overflow == TextOverflow.ellipsis && finalLines.isNotEmpty) {
-        finalLines[finalLines.length - 1] = 
+        finalLines[finalLines.length - 1] =
             _addEllipsisToLine(finalLines.last, config.maxWidth);
       }
     }
-    
+
     return TextLayoutResult(
       lines: finalLines,
       actualWidth: maxLineWidth,
@@ -105,42 +105,43 @@ class TextLayoutEngine {
       didOverflowHeight: didOverflowHeight,
     );
   }
-  
+
   /// Layout text with word wrapping
-  static TextLayoutResult _layoutWithWrap(String text, TextLayoutConfig config) {
+  static TextLayoutResult _layoutWithWrap(
+      String text, TextLayoutConfig config) {
     final List<String> wrappedLines = [];
     final paragraphs = text.split('\n');
-    
+
     for (final paragraph in paragraphs) {
       if (paragraph.isEmpty) {
         wrappedLines.add('');
         continue;
       }
-      
+
       final lines = _wrapParagraph(paragraph, config.maxWidth);
       wrappedLines.addAll(lines);
     }
-    
+
     // Apply maxLines constraint
     List<String> finalLines = wrappedLines;
     bool didOverflowHeight = false;
-    
+
     if (config.maxLines != null && wrappedLines.length > config.maxLines!) {
       didOverflowHeight = true;
       finalLines = wrappedLines.take(config.maxLines!).toList();
-      
+
       if (config.overflow == TextOverflow.ellipsis && finalLines.isNotEmpty) {
-        finalLines[finalLines.length - 1] = 
+        finalLines[finalLines.length - 1] =
             _addEllipsisToLine(finalLines.last, config.maxWidth);
       }
     }
-    
+
     // Calculate actual width
     final actualWidth = finalLines.fold(0, (max, line) {
       final width = UnicodeWidth.stringWidth(line);
       return width > max ? width : max;
     });
-    
+
     return TextLayoutResult(
       lines: finalLines,
       actualWidth: actualWidth,
@@ -149,18 +150,18 @@ class TextLayoutEngine {
       didOverflowHeight: didOverflowHeight,
     );
   }
-  
+
   /// Wrap a single paragraph into multiple lines
   static List<String> _wrapParagraph(String paragraph, int maxWidth) {
     final List<String> lines = [];
     final words = _splitIntoWords(paragraph);
-    
+
     String currentLine = '';
     int currentLineWidth = 0;
-    
+
     for (final word in words) {
       final wordWidth = UnicodeWidth.stringWidth(word);
-      
+
       if (currentLineWidth == 0) {
         // First word on line
         if (wordWidth > maxWidth) {
@@ -182,7 +183,7 @@ class TextLayoutEngine {
       } else {
         // Word doesn't fit - start new line
         lines.add(currentLine);
-        
+
         if (wordWidth > maxWidth) {
           // Word is too long for a line by itself
           final brokenWords = _breakLongWord(word, maxWidth);
@@ -197,15 +198,15 @@ class TextLayoutEngine {
         }
       }
     }
-    
+
     // Add remaining line
     if (currentLine.isNotEmpty) {
       lines.add(currentLine);
     }
-    
+
     return lines;
   }
-  
+
   /// Split text into words, preserving spaces and considering break opportunities
   static List<String> _splitIntoWords(String text) {
     final List<String> words = [];
@@ -284,7 +285,7 @@ class TextLayoutEngine {
 
     return false;
   }
-  
+
   /// Break a long word that doesn't fit on a single line
   static List<String> _breakLongWord(String word, int maxWidth) {
     final List<String> parts = [];
@@ -311,7 +312,7 @@ class TextLayoutEngine {
 
     return parts.isEmpty ? [''] : parts;
   }
-  
+
   /// Add ellipsis to a line, truncating as needed
   static String _addEllipsisToLine(String line, int maxWidth) {
     final ellipsisWidth = UnicodeWidth.stringWidth(_ellipsis);
@@ -338,7 +339,7 @@ class TextLayoutEngine {
 
     return truncated + _ellipsis;
   }
-  
+
   /// Calculate horizontal offset for a line based on alignment
   static double calculateAlignmentOffset(
     String line,
@@ -346,7 +347,7 @@ class TextLayoutEngine {
     TextAlign textAlign,
   ) {
     final lineWidth = UnicodeWidth.stringWidth(line);
-    
+
     switch (textAlign) {
       case TextAlign.left:
         return 0;
@@ -359,28 +360,29 @@ class TextLayoutEngine {
         return 0;
     }
   }
-  
+
   /// Apply justification to a line by adding spaces between words
-  static String justifyLine(String line, int maxWidth, {bool isLastLine = false}) {
+  static String justifyLine(String line, int maxWidth,
+      {bool isLastLine = false}) {
     if (isLastLine) {
       return line; // Don't justify last line of paragraph
     }
-    
+
     final words = _splitIntoWords(line).where((w) => w != ' ').toList();
     if (words.length <= 1) {
       return line; // Can't justify single word
     }
-    
-    final totalWordWidth = words.fold(0, 
-        (sum, word) => sum + UnicodeWidth.stringWidth(word));
+
+    final totalWordWidth =
+        words.fold(0, (sum, word) => sum + UnicodeWidth.stringWidth(word));
     final totalSpaces = maxWidth - totalWordWidth;
     final gaps = words.length - 1;
-    
+
     if (gaps == 0) return line;
-    
+
     final spacesPerGap = totalSpaces ~/ gaps;
     final extraSpaces = totalSpaces % gaps;
-    
+
     final buffer = StringBuffer();
     for (int i = 0; i < words.length; i++) {
       buffer.write(words[i]);
@@ -389,7 +391,7 @@ class TextLayoutEngine {
         buffer.write(' ' * spaces);
       }
     }
-    
+
     return buffer.toString();
   }
 }

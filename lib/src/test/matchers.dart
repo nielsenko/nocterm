@@ -97,11 +97,16 @@ class HasStyledText extends Matcher {
 
   bool _styleMatches(TextStyle actual, TextStyle expected) {
     if (expected.color != null && actual.color != expected.color) return false;
-    if (expected.backgroundColor != null && actual.backgroundColor != expected.backgroundColor) return false;
-    if (expected.fontWeight == FontWeight.bold && actual.fontWeight != FontWeight.bold) return false;
-    if (expected.fontStyle == FontStyle.italic && actual.fontStyle != FontStyle.italic) return false;
-    if (expected.decoration?.hasUnderline == true && actual.decoration?.hasUnderline != true) return false;
-    if (expected.fontWeight == FontWeight.dim && actual.fontWeight != FontWeight.dim) return false;
+    if (expected.backgroundColor != null &&
+        actual.backgroundColor != expected.backgroundColor) return false;
+    if (expected.fontWeight == FontWeight.bold &&
+        actual.fontWeight != FontWeight.bold) return false;
+    if (expected.fontStyle == FontStyle.italic &&
+        actual.fontStyle != FontStyle.italic) return false;
+    if (expected.decoration?.hasUnderline == true &&
+        actual.decoration?.hasUnderline != true) return false;
+    if (expected.fontWeight == FontWeight.dim &&
+        actual.fontWeight != FontWeight.dim) return false;
     if (expected.reverse && !actual.reverse) return false;
     return true;
   }
@@ -214,7 +219,8 @@ Matcher containsText(String text) => ContainsText(text);
 Matcher hasTextAt(int x, int y, String text) => HasTextAt(x, y, text);
 
 /// Matches if terminal has styled text
-Matcher hasStyledText(String text, TextStyle style) => HasStyledText(text, style);
+Matcher hasStyledText(String text, TextStyle style) =>
+    HasStyledText(text, style);
 
 /// Matches if terminal state matches snapshot
 Matcher matchesSnapshot(String snapshot) => MatchesSnapshot(snapshot);

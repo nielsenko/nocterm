@@ -83,7 +83,8 @@ class VerticalDivider extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderVerticalDivider renderObject) {
+  void updateRenderObject(
+      BuildContext context, RenderVerticalDivider renderObject) {
     renderObject
       ..width = width
       ..thickness = thickness
@@ -171,7 +172,7 @@ class RenderDivider extends RenderObject {
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     final startX = offset.dx + indent;
     final endX = offset.dx + size.width - endIndent;
     final y = offset.dy + (size.height / 2).floor();
@@ -179,7 +180,7 @@ class RenderDivider extends RenderObject {
     if (startX >= endX) return;
 
     String char = _getCharacterForStyle(style, horizontal: true);
-    
+
     for (double x = startX; x < endX; x += 1) {
       canvas.drawText(
         Offset(x, y),
@@ -284,7 +285,7 @@ class RenderVerticalDivider extends RenderObject {
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
-    
+
     final x = offset.dx + (size.width / 2).floor();
     final startY = offset.dy + indent;
     final endY = offset.dy + size.height - endIndent;
@@ -292,7 +293,7 @@ class RenderVerticalDivider extends RenderObject {
     if (startY >= endY) return;
 
     String char = _getCharacterForStyle(style, horizontal: false);
-    
+
     for (double y = startY; y < endY; y += 1) {
       canvas.drawText(
         Offset(x, y),

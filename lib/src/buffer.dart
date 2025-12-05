@@ -20,9 +20,7 @@ class Cell {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other.runtimeType != runtimeType) return false;
-    return other is Cell &&
-        other.char == char &&
-        other.style == style;
+    return other is Cell && other.char == char && other.style == style;
   }
 
   @override
@@ -75,7 +73,8 @@ class Buffer {
 
         // For wide characters, mark the next cell as occupied
         if (charWidth == 2 && currentX + 1 < width) {
-          cells[y][currentX + 1] = Cell(char: '\u200B', style: style); // Zero-width space marker
+          cells[y][currentX + 1] =
+              Cell(char: '\u200B', style: style); // Zero-width space marker
         }
       }
 

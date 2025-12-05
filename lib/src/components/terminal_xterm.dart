@@ -399,7 +399,8 @@ class _TerminalRenderer extends StatelessComponent {
       final g = (colorValue >> 8) & 0xFF;
       final b = colorValue & 0xFF;
       return Color.fromRGB(r, g, b);
-    } else if (colorType == xterm.CellColor.palette || colorType == xterm.CellColor.named) {
+    } else if (colorType == xterm.CellColor.palette ||
+        colorType == xterm.CellColor.named) {
       // Palette color (0-255)
       return _getPaletteColor(colorValue);
     }

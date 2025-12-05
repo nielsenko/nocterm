@@ -85,7 +85,8 @@ abstract final class NoctermTimeline {
   /// Throws if [metricsEnabled] is false.
   static PerformanceMetrics collectMetrics() {
     if (!_metricsEnabled) {
-      throw StateError('Metrics collection not enabled. Set metricsEnabled = true first.');
+      throw StateError(
+          'Metrics collection not enabled. Set metricsEnabled = true first.');
     }
     final metrics = PerformanceMetrics._(_buffer.computeTimings());
     resetMetrics();
@@ -145,7 +146,8 @@ class PerformanceMetrics {
   ///
   /// Returns zero metrics if the block never executed.
   AggregatedBlock getAggregated(String name) {
-    return aggregated[name] ?? AggregatedBlock(name: name, totalDuration: 0, count: 0);
+    return aggregated[name] ??
+        AggregatedBlock(name: name, totalDuration: 0, count: 0);
   }
 
   @override
@@ -153,7 +155,8 @@ class PerformanceMetrics {
     final buffer = StringBuffer('PerformanceMetrics:\n');
     for (final entry in aggregated.entries) {
       final avg = entry.value.averageDuration.toStringAsFixed(1);
-      buffer.writeln('  ${entry.key}: ${entry.value.totalDuration}µs (${entry.value.count}x, avg: ${avg}µs)');
+      buffer.writeln(
+          '  ${entry.key}: ${entry.value.totalDuration}µs (${entry.value.count}x, avg: ${avg}µs)');
     }
     return buffer.toString();
   }
@@ -174,7 +177,8 @@ class AggregatedBlock {
   double get averageDuration => count > 0 ? totalDuration / count : 0.0;
 
   @override
-  String toString() => 'AggregatedBlock($name, ${totalDuration}µs, ${count}x, avg: ${averageDuration.toStringAsFixed(1)}µs)';
+  String toString() =>
+      'AggregatedBlock($name, ${totalDuration}µs, ${count}x, avg: ${averageDuration.toStringAsFixed(1)}µs)';
 }
 
 /// Internal buffer for tracking timed blocks.
@@ -259,7 +263,8 @@ class FrameTiming {
   bool get isSlowFrame => totalDuration.inMicroseconds > 16667;
 
   /// Duration spent in rendering (layout + paint + compositing).
-  Duration get renderDuration => layoutDuration + paintDuration + compositingDuration;
+  Duration get renderDuration =>
+      layoutDuration + paintDuration + compositingDuration;
 
   @override
   String toString() {

@@ -11,7 +11,8 @@ import 'package:path/path.dart' as p;
 /// nocterm storage, avoiding pollution of the user's project directory.
 String getNoctermDirectory() {
   // Get home directory
-  final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+  final home =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
   if (home == null) {
     throw StateError('Could not determine home directory');
   }

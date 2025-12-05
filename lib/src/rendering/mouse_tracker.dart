@@ -36,7 +36,8 @@ class MouseTrackerAnnotation {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is MouseTrackerAnnotation && other.renderObject == renderObject;
+    return other is MouseTrackerAnnotation &&
+        other.renderObject == renderObject;
   }
 
   @override
@@ -57,7 +58,8 @@ class MouseTracker {
     final Set<MouseTrackerAnnotation> newAnnotations = {};
     for (final entry in hitTestResult.mouseEntries) {
       if (entry.target is MouseTrackerAnnotationProvider) {
-        final annotation = (entry.target as MouseTrackerAnnotationProvider).annotation;
+        final annotation =
+            (entry.target as MouseTrackerAnnotationProvider).annotation;
         if (annotation != null) {
           newAnnotations.add(annotation);
         }

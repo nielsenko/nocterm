@@ -62,7 +62,8 @@ class MouseRegion extends SingleChildRenderObjectComponent {
   }
 
   @override
-  void updateRenderObject(BuildContext context, covariant RenderMouseRegion renderObject) {
+  void updateRenderObject(
+      BuildContext context, covariant RenderMouseRegion renderObject) {
     renderObject
       ..onEnter = onEnter
       ..onExit = onExit

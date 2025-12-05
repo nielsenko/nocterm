@@ -8,7 +8,9 @@ import 'mouse_hit_test.dart';
 
 /// Render object for MouseRegion that tracks mouse enter/exit/hover events.
 class RenderMouseRegion extends RenderObject
-    with RenderObjectWithChildMixin<RenderObject>, MouseTrackerAnnotationProvider {
+    with
+        RenderObjectWithChildMixin<RenderObject>,
+        MouseTrackerAnnotationProvider {
   RenderMouseRegion({
     MouseEventCallback? onEnter,
     MouseEventCallback? onExit,
