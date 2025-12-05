@@ -1,29 +1,29 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert' show json;
+import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:meta/meta.dart';
 import 'package:nocterm/src/components/basic.dart';
 import 'package:nocterm/src/rectangle.dart';
+import 'package:nocterm/src/rendering/debug.dart';
 import 'package:nocterm/src/size.dart';
 import 'package:nocterm/src/style.dart';
-import 'package:nocterm/src/rendering/debug.dart';
 
 import 'terminal_canvas.dart';
 
-part 'component.dart';
-part 'element.dart';
+part 'binding.dart';
 part 'build_context.dart';
 part 'build_owner.dart';
-part 'render_object.dart';
-part 'proxy_element.dart';
-part 'stateless_component.dart';
-part 'stateful_component.dart';
 part 'buildable_element.dart';
+part 'component.dart';
+part 'element.dart';
 part 'keys.dart';
-part 'binding.dart';
+part 'proxy_element.dart';
 part 'render_error_box.dart';
+part 'render_object.dart';
+part 'stateful_component.dart';
+part 'stateless_component.dart';
 
 typedef ComponentBuilder = Component Function(BuildContext context);
 typedef StateSetter = void Function(VoidCallback fn);

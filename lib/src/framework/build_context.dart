@@ -23,6 +23,9 @@ abstract class BuildContext {
   /// Returns the state of the nearest ancestor [StatefulComponent].
   T? findAncestorStateOfType<T extends State>();
 
+  /// Visit all the ancestor elements.
+  void visitAncestorElements(ConditionalElementVisitor visitor);
+
   /// Returns the render object of the nearest ancestor [RenderObjectComponent].
   T? findAncestorRenderObjectOfType<T extends RenderObject>();
 
@@ -34,6 +37,9 @@ abstract class BuildContext {
   /// Registers this context with an [InheritedElement].
   InheritedComponent dependOnInheritedElement(InheritedElement ancestor,
       {Object? aspect});
+
+  InheritedElement? getElementForInheritedComponentOfExactType<
+      T extends InheritedComponent>();
 
   /// Visit all the children elements.
   void visitChildElements(ElementVisitor visitor);

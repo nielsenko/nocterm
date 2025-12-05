@@ -8,10 +8,10 @@ import 'package:nocterm/src/rendering/scrollable_render_object.dart';
 
 import '../backend/terminal.dart' as term;
 import '../buffer.dart' as buf;
-import '../keyboard/input_parser.dart';
 import '../keyboard/input_event.dart';
-import '../rendering/mouse_tracker.dart';
+import '../keyboard/input_parser.dart';
 import '../rendering/mouse_hit_test.dart';
+import '../rendering/mouse_tracker.dart';
 import 'hot_reload_mixin.dart';
 
 /// Terminal UI binding that handles terminal input/output and event loop

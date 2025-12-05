@@ -1,5 +1,7 @@
 part of 'framework.dart';
 
+typedef ConditionalElementVisitor = bool Function(Element element);
+
 enum _ElementLifecycle {
   initial,
   active,
@@ -40,6 +42,7 @@ abstract class Element implements BuildContext {
   @override
   NoctermBinding get binding => NoctermBinding.instance;
 
+  @mustCallSuper
   void mount(Element? parent, dynamic newSlot) {
     assert(_lifecycleState == _ElementLifecycle.initial);
     assert(
@@ -53,8 +56,9 @@ abstract class Element implements BuildContext {
     }
     final Key? key = component.key;
     if (key is GlobalKey) {
-      owner!._registerGlobalKey(key, this);
+      owner?._registerGlobalKey(key, this);
     }
+    _updateInheritance();
   }
 
   void update(Component newComponent) {
@@ -157,6 +161,7 @@ abstract class Element implements BuildContext {
     owner!._inactiveElements.add(child);
   }
 
+  @mustCallSuper
   void activate() {
     assert(_lifecycleState == _ElementLifecycle.inactive);
     assert(parent != null);
@@ -166,11 +171,18 @@ abstract class Element implements BuildContext {
     visitChildren((Element child) {
       child.activate();
     });
+    _updateInheritance();
+  }
+
+  void _updateInheritance() {
+    assert(_lifecycleState == _ElementLifecycle.active);
+    _inheritedElements = _parent?._inheritedElements;
   }
 
   void deactivate() {
     assert(_lifecycleState == _ElementLifecycle.active);
     // Remove parent assertion - parent can be null when called from _InactiveElements
+    _inheritedElements = null;
     _lifecycleState = _ElementLifecycle.inactive;
   }
 
@@ -195,6 +207,14 @@ abstract class Element implements BuildContext {
 
   void visitChildElements(ElementVisitor visitor) {
     visitChildren(visitor);
+  }
+
+  @override
+  void visitAncestorElements(ConditionalElementVisitor visitor) {
+    Element? ancestor = _parent;
+    while (ancestor != null && visitor(ancestor)) {
+      ancestor = ancestor._parent;
+    }
   }
 
   @protected
@@ -355,9 +375,14 @@ abstract class Element implements BuildContext {
   @override
   T? dependOnInheritedComponentOfExactType<T extends InheritedComponent>(
       {Object? aspect}) {
-    final InheritedElement? ancestor = _inheritedElements?[T];
-    if (ancestor != null) {
-      return dependOnInheritedElement(ancestor, aspect: aspect) as T;
+    if (_inheritedElements?[T] case final InheritedElement ancestor) {
+      if (dependOnInheritedElement(ancestor, aspect: aspect)
+          case final T component) {
+        return component;
+      }
+
+      throw Exception(
+          'dependOnInheritedComponentOfExactType: $T is not an $InheritedComponent');
     }
     return null;
   }
@@ -369,6 +394,12 @@ abstract class Element implements BuildContext {
     _dependencies!.add(ancestor);
     ancestor.updateDependencies(this, aspect);
     return ancestor.component;
+  }
+
+  @override
+  InheritedElement? getElementForInheritedComponentOfExactType<
+      T extends InheritedComponent>() {
+    return _inheritedElements?[T];
   }
 
   Map<Type, InheritedElement>? _inheritedElements;
@@ -383,18 +414,22 @@ abstract class Element implements BuildContext {
   @override
   T? findAncestorComponentOfExactType<T extends Component>() {
     Element? ancestor = parent;
-    while (ancestor != null && ancestor.component.runtimeType != T) {
+    while (ancestor != null) {
+      if (ancestor.component case final T component) {
+        return component;
+      }
       ancestor = ancestor.parent;
     }
-    return ancestor?.component as T?;
+
+    return null;
   }
 
   @override
   T? findAncestorStateOfType<T extends State>() {
     Element? ancestor = parent;
     while (ancestor != null) {
-      if (ancestor is StatefulElement && ancestor.state is T) {
-        return ancestor.state as T;
+      if (ancestor case StatefulElement(:final T state)) {
+        return state;
       }
       ancestor = ancestor.parent;
     }
@@ -405,11 +440,12 @@ abstract class Element implements BuildContext {
   T? findAncestorRenderObjectOfType<T extends RenderObject>() {
     Element? ancestor = parent;
     while (ancestor != null) {
-      if (ancestor is RenderObjectElement && ancestor.renderObject is T) {
-        return ancestor.renderObject as T;
+      if (ancestor case RenderObjectElement(:final T renderObject)) {
+        return renderObject;
       }
       ancestor = ancestor.parent;
     }
+
     return null;
   }
 

@@ -236,7 +236,7 @@ class ScrollController extends ChangeNotifier {
 }
 
 /// Base class for change notification.
-abstract class ChangeNotifier {
+abstract class ChangeNotifier implements Listenable {
   final List<VoidCallback> _listeners = [];
 
   /// Register a closure to be called when the object notifies its listeners.
