@@ -50,9 +50,11 @@ class ProviderScope extends StatefulComponent {
     UncontrolledProviderScope? scope;
 
     if (listen) {
-      scope = context.dependOnInheritedComponentOfExactType<UncontrolledProviderScope>();
+      scope = context
+          .dependOnInheritedComponentOfExactType<UncontrolledProviderScope>();
     } else {
-      scope = context.findAncestorComponentOfExactType<UncontrolledProviderScope>();
+      scope =
+          context.findAncestorComponentOfExactType<UncontrolledProviderScope>();
     }
 
     if (scope == null) {
@@ -66,9 +68,11 @@ class ProviderScope extends StatefulComponent {
 
   /// Returns the [_UncontrolledProviderScopeElement] of the closest [ProviderScope] ancestor.
   @internal
-  static _UncontrolledProviderScopeElement scopeElementOf(BuildContext context) {
+  static _UncontrolledProviderScopeElement scopeElementOf(
+      BuildContext context) {
     // Find the InheritedElement for UncontrolledProviderScope
-    final InheritedElement? element = context.getElementForInheritedWidgetOfExactType<UncontrolledProviderScope>();
+    final InheritedElement? element = context
+        .getElementForInheritedWidgetOfExactType<UncontrolledProviderScope>();
 
     if (element == null || element is! _UncontrolledProviderScopeElement) {
       throw StateError(
@@ -139,7 +143,8 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
   _UncontrolledProviderScopeElement(UncontrolledProviderScope super.component);
 
   @override
-  UncontrolledProviderScope get component => super.component as UncontrolledProviderScope;
+  UncontrolledProviderScope get component =>
+      super.component as UncontrolledProviderScope;
 
   ProviderContainer get container => component.container;
 
@@ -164,7 +169,7 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
   }
 
   @override
-  void notifyDependent(Element dependent) {
+  void notifyDependent(InheritedComponent oldComponent, Element dependent) {
     // Called when this InheritedElement changes and needs to notify dependents
     // First, let the dependent's provider dependencies know it's about to rebuild
     final dependencies = _dependents[dependent];
@@ -172,7 +177,7 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
       dependencies.didRebuildDependent();
     }
 
-    super.notifyDependent(dependent);
+    super.notifyDependent(oldComponent, dependent);
   }
 
   /// Remove dependencies for a dependent element
@@ -199,7 +204,8 @@ class _UncontrolledProviderScopeElement extends InheritedElement {
 extension on BuildContext {
   /// Gets the InheritedElement for a given InheritedWidget type
   @internal
-  InheritedElement? getElementForInheritedWidgetOfExactType<T extends InheritedComponent>() {
+  InheritedElement?
+      getElementForInheritedWidgetOfExactType<T extends InheritedComponent>() {
     // This is a workaround since nocterm doesn't expose this directly
     // We need to walk up the tree to find the InheritedElement
     Element? element = this as Element;
