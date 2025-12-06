@@ -73,3 +73,7 @@ export 'src/rendering/debug.dart';
 
 // Widgets
 export 'src/widgets/nocterm_app.dart';
+
+// Builder components
+export 'src/components/builder.dart';
+export 'src/components/layout_builder.dart';
