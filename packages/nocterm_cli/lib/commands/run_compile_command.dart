@@ -85,9 +85,9 @@ exit \$EXIT_CODE
 
   await exeFile.writeAsString(content);
 
-  final permission = await Process.run('chmod', ['+x', exePath]);
+  final fileType = await Process.run('chmod', ['+x', exePath]);
 
-  if (permission.exitCode != 0) {
+  if (fileType.exitCode != 0) {
     print('Error: Failed to set permissions on nocterm executable');
     exit(1);
   }
