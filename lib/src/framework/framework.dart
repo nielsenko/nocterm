@@ -5,6 +5,7 @@ import 'dart:developer' as developer;
 
 import 'package:meta/meta.dart';
 import 'package:nocterm/src/components/basic.dart';
+import 'package:nocterm/src/foundation/persistent_hash_map.dart';
 import 'package:nocterm/src/rectangle.dart';
 import 'package:nocterm/src/rendering/debug.dart';
 import 'package:nocterm/src/size.dart';

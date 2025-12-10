@@ -173,10 +173,9 @@ class InheritedElement extends BuildableElement {
 
   @override
   void _updateInheritance() {
-    _inheritedElements = HashMap<Type, InheritedElement>.from({
-      ...?parent?._inheritedElements,
-      component.runtimeType: this,
-    });
+    _inheritedElements =
+        (_parent?._inheritedElements ?? const PersistentHashMap.empty())
+            .put(component.runtimeType, this);
   }
 
   @protected

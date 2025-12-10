@@ -410,7 +410,7 @@ abstract class Element implements BuildContext {
     return _inheritedElements?[T];
   }
 
-  Map<Type, InheritedElement>? _inheritedElements;
+  PersistentHashMap<Type, InheritedElement>? _inheritedElements;
   Set<InheritedElement>? _dependencies;
 
   void didChangeDependencies() {
