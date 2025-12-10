@@ -4,11 +4,11 @@ CLI tools for nocterm - A Terminal User Interface framework for Dart.
 
 ## Installation
 
-Compile the CLI executable:
+Install the CLI globall:
 
 ```bash
 cd packages/nocterm_cli
-dart compile exe bin/nocterm_cli.dart -o ../../nocterm
+dart pub global activate . --source path
 ```
 
 ## Commands
@@ -33,11 +33,13 @@ Stream logs from a running nocterm app via WebSocket. Logs are displayed in real
 **Usage:**
 
 Terminal 1 - Start the shell:
+
 ```bash
-./nocterm shell
+nocterm shell
 ```
 
 Terminal 2 - Run your nocterm app (or from IDE with debugger):
+
 ```bash
 cd test_shell_app
 dart run bin/test_app.dart
@@ -65,14 +67,14 @@ The app will automatically render into the shell instead of its own stdout.
 dart run bin/my_app.dart
 
 # In another terminal, view logs:
-./nocterm logs
+nocterm logs
 ```
 
 ### Shell Mode (IDE Debugging)
 
 ```bash
 # Terminal 1: Start shell
-./nocterm shell
+nocterm shell
 
 # IDE or Terminal 2: Run app with debugger
 # App automatically detects shell and renders there
@@ -80,7 +82,7 @@ dart run bin/my_app.dart
 dart run bin/my_app.dart
 
 # Optional Terminal 3: View logs
-./nocterm logs
+nocterm logs
 ```
 
 **Note:** In shell mode, `print()` statements appear in BOTH the terminal/IDE where you run the app (Terminal 2 above) AND are streamed to WebSocket logs (viewable with `nocterm logs`), while the TUI renders in the shell (Terminal 1). This gives you maximum flexibility for debugging!
@@ -103,14 +105,17 @@ See `test_shell_app/` for a simple example that works in both normal and shell m
 ## Troubleshooting
 
 **App doesn't connect to shell:**
+
 - Make sure the shell is running first
 - Check that `.nocterm/shell_handle` exists in the current directory
 - Verify the socket path in shell_handle is correct
 
 **Shell shows garbled output:**
+
 - This shouldn't happen, but if it does, check for protocol version mismatches
 - Try recompiling both the CLI and the app
 
 **Input not working:**
+
 - Make sure your terminal supports raw mode
 - Check that stdin is not being piped or redirected

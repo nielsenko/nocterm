@@ -1,8 +1,10 @@
 import 'dart:io';
 
-import 'package:nocterm/nocterm.dart' hide StdioBackend;
+import 'package:nocterm/nocterm.dart';
 
-Future<void> runRestoreShellCommand() async {
+void restoreTerminal() {
+  if (!stdout.hasTerminal) return;
+
   stdout.write(EscapeCodes.disable.values.join(''));
   stdout.write(EscapeCodes.showCursor);
 
