@@ -8,10 +8,10 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  file: ^7.0.1
+  meta: ^1.17.0
   nocterm: ^0.1.0
   scoped_deps: ^0.1.0+2
-  meta: ^1.17.0
-  file: ^7.0.1
 
 dev_dependencies:
   lints: ^5.0.0
