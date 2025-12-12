@@ -1,8 +1,9 @@
 import 'dart:async';
-import '../keyboard/mouse_event.dart';
+
 import '../framework/framework.dart';
-import 'recognizer.dart';
+import '../keyboard/mouse_event.dart';
 import 'events.dart';
+import 'recognizer.dart';
 
 /// Recognizes tap gestures.
 ///
@@ -33,6 +34,7 @@ class TapGestureRecognizer extends GestureRecognizer {
   bool _sentTapDown = false;
   bool _wonArena = false;
 
+  // ignore: unused_field
   static const Duration _doubleTapTimeout = Duration(milliseconds: 300);
   static const double _kTouchSlop = 2.0; // cells
 
@@ -171,8 +173,6 @@ class DoubleTapGestureRecognizer extends GestureRecognizer {
 
   @override
   void handlePointerDown(MouseEvent event, Offset localPosition) {
-    final now = DateTime.now();
-
     if (_tapCount == 0) {
       // First tap
       _firstTapPosition = localPosition;

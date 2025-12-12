@@ -1,13 +1,12 @@
+import 'package:nocterm/src/rendering/mouse_region.dart';
+
 import '../framework/framework.dart';
-import '../keyboard/mouse_event.dart';
 import '../gestures/events.dart';
 import '../gestures/hit_test.dart';
-import '../gestures/recognizer.dart';
-import '../gestures/tap.dart';
 import '../gestures/long_press.dart';
+import '../gestures/tap.dart';
+import '../keyboard/mouse_event.dart';
 import '../rendering/mouse_tracker.dart';
-import '../rendering/mouse_hit_test.dart';
-import 'package:nocterm/src/rendering/mouse_region.dart';
 
 /// A widget that detects gestures.
 ///

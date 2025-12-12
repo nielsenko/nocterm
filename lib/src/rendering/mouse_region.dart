@@ -1,10 +1,9 @@
 import '../framework/framework.dart';
 import '../framework/terminal_canvas.dart';
-import '../keyboard/mouse_event.dart';
 import '../rectangle.dart';
 import '../size.dart';
-import 'mouse_tracker.dart';
 import 'mouse_hit_test.dart';
+import 'mouse_tracker.dart';
 
 /// Render object for MouseRegion that tracks mouse enter/exit/hover events.
 class RenderMouseRegion extends RenderObject
