@@ -45,20 +45,3 @@ jobs:
 
       - name: Run tests
         run: dart test --reporter expanded
-
-  # This job creates a badge-compatible status
-  ci:
-    name: CI
-    runs-on: ubuntu-latest
-    needs: [analyze, test]
-    if: always()
-    steps:
-      - name: Check status
-        run: |
-          if [[ "${{ needs.analyze.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
-            echo "All checks passed!"
-            exit 0
-          else
-            echo "Some checks failed"
-            exit 1
-          fi

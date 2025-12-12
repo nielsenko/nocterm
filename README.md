@@ -2,6 +2,7 @@
 <img src="doc/assets/nocterm_banner.png" height="100" alt="Nocterm" />
 </p>
 
+[![CI](https://github.com/norbert515/nocterm/actions/workflows/ci.yml/badge.svg)](https://github.com/norbert515/nocterm/actions/workflows/ci.yml)
 [![Pub Version](https://img.shields.io/pub/v/nocterm)](https://pub.dev/packages/nocterm)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
