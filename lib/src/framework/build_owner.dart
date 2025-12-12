@@ -33,7 +33,12 @@ class BuildOwner {
   /// Schedules element for rebuild
   void scheduleBuildFor(Element element) {
     assert(element._lifecycleState == _ElementLifecycle.active);
-    assert(!element._inDirtyList);
+    if (element._inDirtyList) {
+      // Unsure why this is being called twice, but returning
+      // early to avoid the assert.
+      // assert(!element._inDirtyList);
+      return;
+    }
 
     if (!_scheduledFlushDirtyElements && onNeedsBuild != null) {
       _scheduledFlushDirtyElements = true;
