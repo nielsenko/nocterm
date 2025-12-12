@@ -78,7 +78,7 @@ await testNocterm('counter test', (tester) async {
 
 ## Documentation
 
-See the [full documentation](https://nocterm.docs.page) for guides on components, state management, testing, and more.
+See the [full documentation](https://docs.page/Norbert515/nocterm~docs) for guides on components, state management, testing, and more.
 
 ## Contributing
 
