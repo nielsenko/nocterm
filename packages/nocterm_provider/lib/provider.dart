@@ -31,6 +31,7 @@ export 'src/provider.dart'
         ProviderNullException,
         Locator,
         ReadContext,
+        SelectContext,
         WatchContext;
 export 'src/reassemble_handler.dart' show ReassembleHandler;
 export 'src/selector.dart'
