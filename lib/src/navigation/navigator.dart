@@ -1,15 +1,15 @@
 import 'dart:async';
-
-import '../components/basic.dart';
-import '../components/stack.dart' show Alignment;
 import '../framework/framework.dart';
+import '../components/basic.dart';
+import '../components/keyboard_listener.dart';
+import '../components/stack.dart' show Alignment;
 import '../keyboard/logical_key.dart';
 import '../style.dart';
-import 'navigator_observer.dart';
-import 'overlay.dart';
-import 'pop_behavior.dart';
 import 'route.dart';
 import 'route_settings.dart';
+import 'pop_behavior.dart';
+import 'navigator_observer.dart';
+import 'overlay.dart';
 
 /// A widget that manages a stack of routes using an overlay
 class Navigator extends StatefulComponent {

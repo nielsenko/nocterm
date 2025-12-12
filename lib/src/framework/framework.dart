@@ -5,8 +5,8 @@ import 'dart:developer' as developer;
 
 import 'package:meta/meta.dart';
 import 'package:nocterm/src/components/basic.dart';
-import 'package:nocterm/src/foundation/nocterm_error.dart';
 import 'package:nocterm/src/foundation/persistent_hash_map.dart';
+import 'package:nocterm/src/foundation/nocterm_error.dart';
 import 'package:nocterm/src/rectangle.dart';
 import 'package:nocterm/src/rendering/debug.dart';
 import 'package:nocterm/src/size.dart';
@@ -18,7 +18,6 @@ part 'binding.dart';
 part 'build_context.dart';
 part 'build_owner.dart';
 part 'buildable_element.dart';
-part 'builder.dart';
 part 'component.dart';
 part 'element.dart';
 part 'keys.dart';
