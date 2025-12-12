@@ -7,205 +7,144 @@ import 'package:nocterm/src/backend/socket_backend.dart';
 import 'package:nocterm/src/backend/stdio_backend.dart';
 import 'package:nocterm/src/backend/terminal.dart' as term;
 
-/// Run a TUI application on native platforms (Linux, macOS, Windows).
-Future<void> runAppImpl(Component app, {bool enableHotReload = true}) async {
-  await _AppRunner(app, enableHotReload: enableHotReload).run();
+(File?, bool) _useShellMode() {
+// Check for shell mode
+  final shellHandleFile = File(getShellHandlePath());
+  if (shellHandleFile.existsSync() case false) {
+    return (null, false);
+  }
+
+  final socketPath = shellHandleFile.readAsStringSync().trim();
+  if (socketPath.isEmpty) {
+    return (null, false);
+  }
+
+  if (File(socketPath).existsSync()) {
+    return (shellHandleFile, true);
+  }
+
+  return (null, false);
 }
 
-class _AppRunner {
-  _AppRunner(this.app, {this.enableHotReload = true})
-      : _cleanUp = _CleanUp(),
-        _logServer = LogServer();
+/// Run a TUI application on native platforms (Linux, macOS, Windows).
+Future<void> runAppImpl(Component app, {bool enableHotReload = true}) async {
+  if (_useShellMode() case (final file?, true)) {
+    await _runAppInShellMode(app, file, enableHotReload);
+  } else {
+    await _runAppNormalMode(app, enableHotReload);
+  }
+}
 
-  final Component app;
-  final bool enableHotReload;
-  final _CleanUp _cleanUp;
-  final LogServer _logServer;
+Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
+  TerminalBinding? binding;
+  LogServer? logServer;
+  Logger? logger;
 
-  bool _initialized = false;
-  Future<void> _initialize() async {
-    if (_initialized) return;
-
-    _cleanUp.add(_logServer.close);
-
-    _binding = switch (shellMode) {
-      true => await _socketBackend(),
-      false => _stdBackend(),
-    };
-
-    _cleanUp.add(() async {
-      if (!binding.shouldExit) {
-        binding.shutdown();
-      }
-    });
-
+  try {
+    // Start log server
+    logServer = LogServer();
     try {
-      await _logServer.start();
-      _logger = Logger(logServer: _logServer);
-      _cleanUp.add(logger.close);
+      await logServer.start();
+      logger = Logger(logServer: logServer);
     } catch (e) {
-      _logger = Logger();
-      if (shellMode) {
-        stderr.writeln('Failed to start log server: $e');
+      stderr.writeln('Failed to start log server: $e');
+    }
+
+    await runZoned(() async {
+      final backend = StdioBackend();
+      final terminal = term.Terminal(backend);
+      binding = TerminalBinding(terminal);
+
+      binding!.initialize();
+      binding!.attachRootComponent(app);
+
+      if (enableHotReload && !bool.fromEnvironment('dart.vm.product')) {
+        await binding!.initializeHotReload();
       }
-    }
 
-    _initialized = true;
+      await binding!.runEventLoop();
+    },
+        zoneSpecification: ZoneSpecification(
+          print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
+            logger?.log(message);
+          },
+          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
+              Object error, StackTrace stackTrace) {
+            logger?.log('ERROR: $error\n$stackTrace');
+          },
+        ));
+  } catch (e) {
+    // Handle signal-based exit
+  } finally {
+    if (binding != null && !binding!.shouldExit) {
+      binding!.shutdown();
+    }
+    try {
+      await logger?.close();
+      await logServer?.close();
+    } catch (_) {}
   }
+}
 
-  Logger? _logger;
-  Logger get logger {
-    if (_logger case final logger?) {
-      return logger;
+Future<void> _runAppInShellMode(
+  Component app,
+  File shellHandleFile,
+  bool enableHotReload,
+) async {
+  TerminalBinding? binding;
+  LogServer? logServer;
+  Logger? logger;
+
+  try {
+    logServer = LogServer();
+    try {
+      await logServer.start();
+      logger = Logger(logServer: logServer);
+    } catch (e) {
+      stderr.writeln('Failed to start log server: $e');
     }
 
-    throw StateError('Logger not initialized');
-  }
-
-  bool? _shellMode;
-  bool get shellMode {
-    if (_shellMode case final mode?) {
-      return mode;
-    }
-    if (!shellHandleFile.existsSync()) {
-      return _shellMode = false;
-    }
-
-    final socketPath = shellHandleFile.readAsStringSync().trim();
-    if (socketPath.isEmpty) {
-      return _shellMode = false;
-    }
-
-    return _shellMode = File(socketPath).existsSync();
-  }
-
-  File? _shellHandleFile;
-  File get shellHandleFile => switch (_shellHandleFile) {
-        final file? => file,
-        _ => _shellHandleFile = File(getShellHandlePath()),
-      };
-
-  TerminalBinding? _binding;
-  TerminalBinding get binding => switch (_binding) {
-        final binding? => binding,
-        null => throw StateError('Socket backend not initialized'),
-      };
-
-  TerminalBinding _stdBackend() {
-    final backend = StdioBackend();
-    final terminal = term.Terminal(backend);
-    final binding = TerminalBinding(terminal);
-    _cleanUp.add(() async {
-      if (!binding.shouldExit) {
-        binding.shutdown();
-      }
-    });
-    return binding;
-  }
-
-  Future<TerminalBinding> _socketBackend() async {
     final socketPath = await shellHandleFile.readAsString();
-
-    if (socketPath.isEmpty) {
-      throw StateError('Shell handle file is empty');
-    }
-
-    if (!File(socketPath).existsSync()) {
-      throw StateError('Shell socket file does not exist: $socketPath');
-    }
-
     final socket = await Socket.connect(
       InternetAddress(socketPath.trim(), type: InternetAddressType.unix),
       0,
     );
 
-    final backend = SocketBackend(socket);
-    final terminal = term.Terminal(backend);
-    final binding = TerminalBinding(terminal);
-    _cleanUp.add(() async {
-      if (!binding.shouldExit) {
-        binding.shutdown();
+    await runZoned(() async {
+      final backend = SocketBackend(socket);
+      final terminal = term.Terminal(backend);
+      binding = TerminalBinding(terminal);
+
+      binding!.initialize();
+      binding!.attachRootComponent(app);
+
+      if (enableHotReload && !bool.fromEnvironment('dart.vm.product')) {
+        await binding!.initializeHotReload();
       }
-    });
 
-    _cleanUp.add(() async {
-      socket.destroy();
-    });
-
-    return binding;
-  }
-
-  bool _running = false;
-
-  Future<void> run() async {
-    if (_running) return;
-
-    _running = true;
-    await _initialize();
-
-    try {
-      final binding = this.binding;
-
-      await runZoned(
-        () async {
-          binding.initialize();
-          binding.attachRootComponent(app);
-
-          if (enableHotReload && !bool.fromEnvironment('dart.vm.product')) {
-            await binding.initializeHotReload();
-          }
-
-          await binding.runEventLoop();
-        },
+      await binding!.runEventLoop();
+    },
         zoneSpecification: ZoneSpecification(
-          print: (
-            Zone self,
-            ZoneDelegate parent,
-            Zone zone,
-            String message,
-          ) {
-            logger.log(message);
+          print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
+            logger?.log(message);
             parent.print(zone, message);
           },
-          handleUncaughtError: (
-            Zone self,
-            ZoneDelegate parent,
-            Zone zone,
-            Object error,
-            StackTrace stackTrace,
-          ) {
+          handleUncaughtError: (Zone self, ZoneDelegate parent, Zone zone,
+              Object error, StackTrace stackTrace) {
             final errorMessage = 'ERROR: $error\n$stackTrace';
-            logger.log(errorMessage);
-            if (shellMode) {
-              stderr.writeln(errorMessage);
-            }
+            logger?.log(errorMessage);
+            stderr.writeln(errorMessage);
           },
-        ),
-      );
-    } catch (e) {
-      if (shellMode) {
-        stderr.writeln('Shell mode error: $e');
-      }
-    } finally {
-      await _cleanUp.cleanup();
+        ));
+  } catch (e) {
+    stderr.writeln('Shell mode error: $e');
+  } finally {
+    if (binding != null && !binding!.shouldExit) {
+      binding!.shutdown();
     }
-  }
-}
-
-class _CleanUp {
-  _CleanUp();
-
-  late final List<Future<void> Function()> _fns = [];
-
-  void add(Future<void> Function() fn) {
-    _fns.add(fn);
-  }
-
-  Future<void> cleanup() async {
-    for (final fn in _fns) {
-      await fn().catchError((e) {
-        stderr.writeln('Error during cleanup: $e');
-      });
-    }
+    try {
+      await logger?.close();
+      await logServer?.close();
+    } catch (_) {}
   }
 }
