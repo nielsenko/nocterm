@@ -18,6 +18,7 @@ part 'binding.dart';
 part 'build_context.dart';
 part 'build_owner.dart';
 part 'buildable_element.dart';
+part 'builder.dart';
 part 'component.dart';
 part 'element.dart';
 part 'keys.dart';
