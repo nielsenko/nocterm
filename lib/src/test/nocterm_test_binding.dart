@@ -1,15 +1,11 @@
 import 'dart:async';
 
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/focusable.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/src/rectangle.dart';
-import 'package:nocterm/src/keyboard/mouse_event.dart';
-import 'package:nocterm/src/rendering/mouse_tracker.dart';
 import 'package:nocterm/src/rendering/mouse_hit_test.dart';
+import 'package:nocterm/src/rendering/mouse_tracker.dart';
 
 import '../backend/terminal.dart' as term;
-import '../backend/terminal_backend.dart';
 import '../buffer.dart' as buf;
 
 /// Test binding for TUI applications that provides controlled frame rendering

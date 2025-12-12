@@ -1,6 +1,5 @@
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/src/rectangle.dart';
 
 /// Title alignment options for border titles
 enum TitleAlignment {

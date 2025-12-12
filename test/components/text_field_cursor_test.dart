@@ -1,6 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/keyboard/keyboard_event.dart';
-import 'package:nocterm/nocterm_test.dart';
 import 'package:test/test.dart';
 
 void main() {

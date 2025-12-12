@@ -1,8 +1,7 @@
-import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/components/error_widget.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/nocterm_test.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Error Recovery', () {
@@ -136,6 +135,7 @@ void main() {
 }
 
 /// A test widget that can recover from errors
+// ignore: must_be_immutable
 class _TestRecoverableWidget extends SingleChildRenderObjectComponent {
   _TestRecoverableWidget({this.throwInPaint = false});
 

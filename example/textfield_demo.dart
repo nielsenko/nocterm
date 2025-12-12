@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'dart:io';
+
 import 'package:nocterm/nocterm.dart';
 
 void main() {

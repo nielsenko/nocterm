@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/process/pty_controller.dart';
 
 /// Example demonstrating the PTY controller/component pattern.
 ///

@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/markdown_text.dart';
 
 void main() {
   runApp(MarkdownDemo());

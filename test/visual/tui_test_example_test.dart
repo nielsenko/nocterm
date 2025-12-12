@@ -1,5 +1,7 @@
-import 'package:test/test.dart' hide isEmpty;
+// ignore_for_file: unused_element
+
 import 'package:nocterm/nocterm.dart';
+import 'package:test/test.dart' hide isEmpty;
 
 // Example component for testing
 class Counter extends StatefulComponent {

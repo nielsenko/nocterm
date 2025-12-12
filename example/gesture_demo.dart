@@ -32,7 +32,9 @@ class _GestureDemoAppState extends State<GestureDemoApp> {
   int _doubleTapCount = 0;
   int _longPressCount = 0;
   Offset? _lastTapPosition;
+  // ignore: unused_field
   Offset? _lastDoubleTapPosition;
+  // ignore: unused_field
   Offset? _lastLongPressPosition;
   bool _isTapDown = false;
   bool _isLongPressing = false;

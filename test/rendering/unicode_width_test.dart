@@ -1,6 +1,5 @@
 import 'package:nocterm/src/utils/unicode_width.dart';
 import 'package:test/test.dart';
-import 'package:nocterm/nocterm.dart';
 
 void main() {
   group('Unicode Width Calculation', () {

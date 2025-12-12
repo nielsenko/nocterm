@@ -1,6 +1,6 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/nocterm_test.dart';
 import 'package:test/test.dart';
+
 import '../../example/gesture_demo.dart';
 
 void main() {

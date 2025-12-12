@@ -1,17 +1,8 @@
 import 'package:nocterm/nocterm.dart' hide TextAlign;
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 
-import 'render_text.dart';
-
-// Re-export text related enums
-export 'render_text.dart' show TextOverflow, TextAlign;
 import 'render_flex.dart';
-
-// Import from stack.dart for alignment and text direction
-import 'stack.dart' show AlignmentGeometry, Alignment, TextDirection;
-
-// Export keyboard listener
-export 'keyboard_listener.dart' show KeyboardListener;
+import 'render_text.dart';
 
 // Container is now defined in decorated_box.dart with full decoration support
 export 'decorated_box.dart'
@@ -29,6 +20,10 @@ export 'decorated_box.dart'
         DecoratedBox,
         BorderTitle,
         TitleAlignment;
+// Export keyboard listener
+export 'keyboard_listener.dart' show KeyboardListener;
+// Re-export text related enums
+export 'render_text.dart' show TextOverflow, TextAlign;
 
 /// A run of text with a single style
 class Text extends SingleChildRenderObjectComponent {

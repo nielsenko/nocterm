@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart' as md;
 import 'package:nocterm/nocterm.dart';
+
 import 'rich_text.dart';
 
 /// A widget that displays markdown-formatted text.
@@ -352,8 +353,8 @@ class _MarkdownVisitor {
         final indent = '  ' * _listDepth;
         // In markdown package, we need to check the parent element differently
         final isOrderedList = false; // Default to unordered
-        // ignore: dead_code
         final bullet = isOrderedList
+            // ignore: dead_code
             ? '${_orderedListCounter++}. '
             : styleSheet.listBullet;
         final children = <InlineSpan>[TextSpan(text: indent + bullet)];

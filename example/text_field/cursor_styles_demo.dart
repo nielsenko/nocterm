@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/text_field.dart';
 
 void main() async {
   await runApp(const CursorStylesDemo());

@@ -1,6 +1,5 @@
-import 'package:nocterm/src/process/pty_controller.dart';
-import 'package:test/test.dart';
 import 'package:nocterm/nocterm.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('TerminalXterm', () {

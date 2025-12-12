@@ -1,7 +1,6 @@
-import 'package:nocterm/src/keyboard/keyboard_event.dart';
+import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/keyboard/keyboard_parser.dart';
 import 'package:test/test.dart';
-import 'package:nocterm/nocterm.dart';
 
 void main() {
   group('Keyboard Modifiers', () {

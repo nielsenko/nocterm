@@ -3,14 +3,9 @@ import 'dart:io';
 
 import 'package:nocterm/nocterm.dart'
     hide StdioBackend, SocketBackend, WebBackend;
-import 'package:nocterm/src/backend/stdio_backend.dart';
 import 'package:nocterm/src/backend/socket_backend.dart';
+import 'package:nocterm/src/backend/stdio_backend.dart';
 import 'package:nocterm/src/backend/terminal.dart' as term;
-import 'package:nocterm/src/utils/logger.dart';
-import 'package:nocterm/src/utils/log_server.dart';
-import 'package:nocterm/src/utils/nocterm_paths.dart';
-
-import 'terminal_binding.dart';
 
 /// Run a TUI application on native platforms (Linux, macOS, Windows).
 Future<void> runAppImpl(Component app, {bool enableHotReload = true}) async {

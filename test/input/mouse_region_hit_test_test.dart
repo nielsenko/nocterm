@@ -1,5 +1,6 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/nocterm_test.dart';
 import 'package:test/test.dart';
 
 void main() {

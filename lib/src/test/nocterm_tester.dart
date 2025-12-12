@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/keyboard/mouse_event.dart';
 
 /// Main testing interface for TUI applications.
 /// Provides methods for rendering frames, simulating input, and inspecting state.

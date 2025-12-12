@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:nocterm/nocterm.dart';
 
 /// This test verifies that terminal paste (Cmd+V) works correctly

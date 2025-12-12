@@ -497,7 +497,7 @@ void main() {
 
 /// Simple stateful component for testing Ctrl+C counter pattern
 class _CounterApp extends StatefulComponent {
-  const _CounterApp({super.key});
+  const _CounterApp();
 
   @override
   State<_CounterApp> createState() => _CounterAppState();
