@@ -2,7 +2,8 @@ import 'dart:math' as math;
 
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-
+import 'package:nocterm/src/rectangle.dart';
+import '../keyboard/mouse_event.dart';
 import '../rendering/scrollable_render_object.dart';
 
 /// Signature for a function that creates a widget for a given index.

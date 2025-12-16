@@ -19,11 +19,30 @@ String getNoctermDirectory() {
   }
 
   // Get current working directory and create a hash
-  final cwd = Directory.current.path;
-  final cwdHash = sha256.convert(utf8.encode(cwd)).toString().substring(0, 16);
+  final proj = getProjectDirectory();
+  final projHash =
+      sha256.convert(utf8.encode(proj)).toString().substring(0, 16);
 
   // Return path: ~/.nocterm/<hash>/
-  return p.join(home, '.nocterm', cwdHash);
+  return p.join(home, '.nocterm', projHash);
+}
+
+String getProjectDirectory() {
+  var parent = Directory.current;
+  while (true) {
+    final newParent = parent.parent;
+
+    if (newParent == parent) {
+      throw StateError('Could not determine project directory');
+    }
+
+    final pubspec = File(p.join(parent.path, 'pubspec.yaml'));
+    if (pubspec.existsSync()) {
+      return parent.path;
+    }
+
+    parent = newParent;
+  }
 }
 
 /// Get the path to the log_port file for the current directory.

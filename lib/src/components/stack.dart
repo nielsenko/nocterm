@@ -1,4 +1,5 @@
 import 'package:nocterm/nocterm.dart';
+import 'package:nocterm/src/rectangle.dart';
 
 /// The direction in which text flows.
 enum TextDirection {

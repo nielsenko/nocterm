@@ -7,14 +7,29 @@ import 'package:nocterm/src/backend/socket_backend.dart';
 import 'package:nocterm/src/backend/stdio_backend.dart';
 import 'package:nocterm/src/backend/terminal.dart' as term;
 
+(File?, bool) _useShellMode() {
+// Check for shell mode
+  final shellHandleFile = File(getShellHandlePath());
+  if (shellHandleFile.existsSync() case false) {
+    return (null, false);
+  }
+
+  final socketPath = shellHandleFile.readAsStringSync().trim();
+  if (socketPath.isEmpty) {
+    return (null, false);
+  }
+
+  if (File(socketPath).existsSync()) {
+    return (shellHandleFile, true);
+  }
+
+  return (null, false);
+}
+
 /// Run a TUI application on native platforms (Linux, macOS, Windows).
 Future<void> runAppImpl(Component app, {bool enableHotReload = true}) async {
-  // Check for shell mode
-  final shellHandleFile = File(getShellHandlePath());
-  final useShellMode = await shellHandleFile.exists();
-
-  if (useShellMode) {
-    await _runAppInShellMode(app, shellHandleFile, enableHotReload);
+  if (_useShellMode() case (final file?, true)) {
+    await _runAppInShellMode(app, file, enableHotReload);
   } else {
     await _runAppNormalMode(app, enableHotReload);
   }
@@ -72,7 +87,10 @@ Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
 }
 
 Future<void> _runAppInShellMode(
-    Component app, File shellHandleFile, bool enableHotReload) async {
+  Component app,
+  File shellHandleFile,
+  bool enableHotReload,
+) async {
   TerminalBinding? binding;
   LogServer? logServer;
   Logger? logger;

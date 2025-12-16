@@ -10,8 +10,6 @@ import '../framework/framework.dart';
 /// Mixin that adds hot reload support to TUI bindings
 mixin HotReloadBinding on NoctermBinding {
   HotReloader? _reloader;
-  StreamSubscription? _reloadSubscription;
-  bool _isReloading = false;
 
   /// Initialize hot reload support
   ///
@@ -49,33 +47,30 @@ mixin HotReloadBinding on NoctermBinding {
       }
 
       _reloader = await HotReloader.create(
-        debounceInterval: const Duration(seconds: 1),
+        automaticReload: true,
+        debounceInterval: Duration(milliseconds: 100),
         onBeforeReload: (ctx) {
-          if (_isReloading) {
-            return false; // Prevent concurrent reloads
-          }
-          _isReloading = true;
-
           // Log the file that triggered the reload
-          if (ctx.event != null) {
-            print('[HotReload] Change detected: ${ctx.event!.path}');
+          if (ctx.event case final event?) {
+            print('[HotReload] Change detected: ${event.path}');
           }
           return true;
         },
         onAfterReload: (ctx) {
-          _isReloading = false;
-
-          if (ctx.result == HotReloadResult.Succeeded) {
-            // Trigger reassemble after successful reload
-            _performReassembleAfterReload();
-          } else if (ctx.result == HotReloadResult.Failed) {
-            NoctermError.reportError(NoctermErrorDetails(
-              exception: Exception('Compilation error during hot reload'),
-              library: 'nocterm hot reload',
-              context: 'during hot reload compilation',
-            ));
-          } else {
-            print('[HotReload] Hot reload failed: ${ctx.result}');
+          switch (ctx.result) {
+            case HotReloadResult.Failed:
+              NoctermError.reportError(NoctermErrorDetails(
+                exception: Exception('Compilation error during hot reload'),
+                library: 'nocterm hot reload',
+                context: 'during hot reload compilation',
+              ));
+            case HotReloadResult.Succeeded:
+              // Trigger reassemble after successful reload
+              _performReassembleAfterReload();
+            case HotReloadResult.PartiallySucceeded:
+              print('[HotReload] Hot reload partially succeeded');
+            case HotReloadResult.Skipped:
+              print('[HotReload] Hot reload skipped');
           }
         },
       );
@@ -106,7 +101,6 @@ mixin HotReloadBinding on NoctermBinding {
 
   /// Stop hot reload support
   void stopHotReload() {
-    _reloadSubscription?.cancel();
     _reloader?.stop();
     _reloader = null;
   }
