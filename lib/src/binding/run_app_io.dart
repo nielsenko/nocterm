@@ -27,15 +27,36 @@ import 'package:nocterm/src/backend/terminal.dart' as term;
 }
 
 /// Run a TUI application on native platforms (Linux, macOS, Windows).
-Future<void> runAppImpl(Component app, {bool enableHotReload = true}) async {
+Future<void> runAppImpl(
+  Component app, {
+  bool enableHotReload = true,
+  ScreenMode screenMode = ScreenMode.alternateScreen,
+  InlineExitBehavior inlineExitBehavior = InlineExitBehavior.preserve,
+}) async {
   if (_useShellMode() case (final file?, true)) {
-    await _runAppInShellMode(app, file, enableHotReload);
+    await _runAppInShellMode(
+      app,
+      file,
+      enableHotReload,
+      screenMode,
+      inlineExitBehavior,
+    );
   } else {
-    await _runAppNormalMode(app, enableHotReload);
+    await _runAppNormalMode(
+      app,
+      enableHotReload,
+      screenMode,
+      inlineExitBehavior,
+    );
   }
 }
 
-Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
+Future<void> _runAppNormalMode(
+  Component app,
+  bool enableHotReload,
+  ScreenMode screenMode,
+  InlineExitBehavior inlineExitBehavior,
+) async {
   TerminalBinding? binding;
   LogServer? logServer;
   Logger? logger;
@@ -53,7 +74,11 @@ Future<void> _runAppNormalMode(Component app, bool enableHotReload) async {
     await runZoned(() async {
       final backend = StdioBackend();
       final terminal = term.Terminal(backend);
-      binding = TerminalBinding(terminal);
+      binding = TerminalBinding(
+        terminal,
+        screenMode: screenMode,
+        inlineExitBehavior: inlineExitBehavior,
+      );
 
       binding!.initialize();
       binding!.attachRootComponent(app);
@@ -90,6 +115,8 @@ Future<void> _runAppInShellMode(
   Component app,
   File shellHandleFile,
   bool enableHotReload,
+  ScreenMode screenMode,
+  InlineExitBehavior inlineExitBehavior,
 ) async {
   TerminalBinding? binding;
   LogServer? logServer;
@@ -113,7 +140,11 @@ Future<void> _runAppInShellMode(
     await runZoned(() async {
       final backend = SocketBackend(socket);
       final terminal = term.Terminal(backend);
-      binding = TerminalBinding(terminal);
+      binding = TerminalBinding(
+        terminal,
+        screenMode: screenMode,
+        inlineExitBehavior: inlineExitBehavior,
+      );
 
       binding!.initialize();
       binding!.attachRootComponent(app);

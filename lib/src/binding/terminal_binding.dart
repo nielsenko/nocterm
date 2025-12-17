@@ -17,7 +17,11 @@ import 'hot_reload_mixin.dart';
 /// Terminal UI binding that handles terminal input/output and event loop
 class TerminalBinding extends NoctermBinding
     with SchedulerBinding, HotReloadBinding {
-  TerminalBinding(this.terminal) {
+  TerminalBinding(
+    this.terminal, {
+    this.screenMode = ScreenMode.alternateScreen,
+    this.inlineExitBehavior = InlineExitBehavior.preserve,
+  }) {
     _instance = this;
     _initializePipelineOwner();
   }
@@ -26,6 +30,22 @@ class TerminalBinding extends NoctermBinding
   static TerminalBinding get instance => _instance!;
 
   final term.Terminal terminal;
+
+  /// Controls how the TUI renders in the terminal.
+  final ScreenMode screenMode;
+
+  /// Controls what happens to inline content when the app exits.
+  final InlineExitBehavior inlineExitBehavior;
+
+  /// Whether the binding is running in inline mode.
+  bool get isInlineMode => screenMode == ScreenMode.inline;
+
+  /// Tracks the number of lines rendered in inline mode for cursor repositioning.
+  int _inlineRenderedLines = 0;
+
+  /// Whether this is the first frame rendered in inline mode.
+  bool _isFirstInlineFrame = true;
+
   PipelineOwner? _pipelineOwner;
   PipelineOwner get pipelineOwner => _pipelineOwner!;
 
@@ -71,11 +91,19 @@ class TerminalBinding extends NoctermBinding
 
   /// Initialize the terminal and start the event loop
   void initialize() {
-    // Setup terminal
-    terminal.enterAlternateScreen();
-    terminal.hideCursor();
-    terminal.bindOSCStream(_oscEventsController.stream);
-    terminal.clear();
+    // Setup terminal based on screen mode
+    if (isInlineMode) {
+      // Inline mode: don't use alternate screen, just hide cursor
+      terminal.hideCursor();
+      terminal.bindOSCStream(_oscEventsController.stream);
+      // Don't clear - we want to preserve terminal history
+    } else {
+      // Alternate screen mode (default)
+      terminal.enterAlternateScreen();
+      terminal.hideCursor();
+      terminal.bindOSCStream(_oscEventsController.stream);
+      terminal.clear();
+    }
 
     // Enable mouse tracking (SGR mode for better coordinate support)
     // ESC [ ? 1000 h - Send Mouse X & Y on button press and release
@@ -443,7 +471,7 @@ class TerminalBinding extends NoctermBinding
 
     // Perform terminal cleanup synchronously
     try {
-      // IMPORTANT: Disable mouse tracking BEFORE leaving alternate screen
+      // IMPORTANT: Disable mouse tracking
       terminal.backend.writeRaw('\x1B[?1003l'); // Disable all motion tracking
       terminal.backend.writeRaw('\x1B[?1006l'); // Disable SGR mouse mode
       terminal.backend.writeRaw('\x1B[?1002l'); // Disable button event tracking
@@ -451,16 +479,39 @@ class TerminalBinding extends NoctermBinding
       terminal.restoreColors(); // Restore terminal colors
       terminal.flush();
 
-      // Restore terminal
-      terminal.showCursor();
-      terminal.leaveAlternateScreen();
-      terminal.clear();
+      // Handle inline mode exit behavior
+      if (isInlineMode) {
+        _handleInlineExit();
+      } else {
+        // Restore terminal from alternate screen
+        terminal.showCursor();
+        terminal.leaveAlternateScreen();
+        terminal.clear();
+      }
 
       // Restore raw mode via backend
       terminal.backend.disableRawMode();
     } catch (_) {
       // Ignore any errors during cleanup
     }
+  }
+
+  /// Handle cleanup for inline mode based on exit behavior
+  void _handleInlineExit() {
+    if (inlineExitBehavior == InlineExitBehavior.clear) {
+      // Clear all rendered content by moving up and clearing each line
+      if (_inlineRenderedLines > 0) {
+        // Move cursor up to the start of rendered content
+        terminal.write('\x1B[${_inlineRenderedLines}A');
+        // Clear from cursor to end of screen
+        terminal.write('\x1B[J');
+      }
+    } else {
+      // Preserve: Move cursor below the rendered content
+      // If we're at the last rendered line, just print a newline
+      terminal.write('\n');
+    }
+    terminal.showCursor();
   }
 
   /// Route a keyboard event through the component tree
@@ -689,7 +740,7 @@ class TerminalBinding extends NoctermBinding
 
     // Try to cleanup terminal, but handle errors gracefully
     try {
-      // IMPORTANT: Disable mouse tracking and bracketed paste BEFORE leaving alternate screen
+      // IMPORTANT: Disable mouse tracking and bracketed paste
       // This ensures the terminal properly processes the disable commands
       terminal.backend.writeRaw(EscapeCodes.disable.motionTracking);
       terminal.backend.writeRaw(EscapeCodes.disable.sgrMouseMode);
@@ -697,22 +748,27 @@ class TerminalBinding extends NoctermBinding
       terminal.backend.writeRaw(EscapeCodes.disable.basicMouseTracking);
       terminal.backend.writeRaw(EscapeCodes.disable.bracketedPasteMode);
 
-      // Restore terminal (this includes leaving alternate screen)
-      terminal.showCursor();
-      terminal.leaveAlternateScreen();
+      // Handle mode-specific cleanup
+      if (isInlineMode) {
+        _handleInlineExit();
+      } else {
+        // Restore terminal (this includes leaving alternate screen)
+        terminal.showCursor();
+        terminal.leaveAlternateScreen();
 
-      // CRITICAL: Disable mouse tracking again after leaving alternate screen
-      // Some terminals restore previous state when switching buffers
-      terminal.backend.writeRaw(EscapeCodes.disable.motionTracking);
-      terminal.backend.writeRaw(EscapeCodes.disable.sgrMouseMode);
-      terminal.backend.writeRaw(EscapeCodes.disable.buttonEventTracking);
-      terminal.backend.writeRaw(EscapeCodes.disable.basicMouseTracking);
+        // CRITICAL: Disable mouse tracking again after leaving alternate screen
+        // Some terminals restore previous state when switching buffers
+        terminal.backend.writeRaw(EscapeCodes.disable.motionTracking);
+        terminal.backend.writeRaw(EscapeCodes.disable.sgrMouseMode);
+        terminal.backend.writeRaw(EscapeCodes.disable.buttonEventTracking);
+        terminal.backend.writeRaw(EscapeCodes.disable.basicMouseTracking);
 
-      // Send a terminal reset sequence as a final safety measure
-      // This helps ensure the terminal is in a clean state
-      terminal.backend.writeRaw(EscapeCodes.resetDeviceAttributes);
+        // Send a terminal reset sequence as a final safety measure
+        // This helps ensure the terminal is in a clean state
+        terminal.backend.writeRaw(EscapeCodes.resetDeviceAttributes);
 
-      terminal.clear();
+        terminal.clear();
+      }
 
       // Final flush to ensure all cleanup is complete
       terminal.flush();
@@ -872,6 +928,76 @@ class TerminalBinding extends NoctermBinding
     terminal.flush();
   }
 
+  /// Render inline without alternate screen.
+  ///
+  /// The key differences from full render:
+  /// - First frame: print lines with newlines (they stay in terminal history)
+  /// - Subsequent frames: move cursor back up to top of our region, re-render
+  void _renderInline(buf.Buffer buffer) {
+    // If not the first frame and we have previously rendered lines,
+    // move the cursor back up to re-render in place
+    if (!_isFirstInlineFrame && _inlineRenderedLines > 0) {
+      // Move cursor up N lines to the start of our rendered region
+      terminal.write('\x1B[${_inlineRenderedLines}A');
+      // Move cursor to beginning of line
+      terminal.write('\x1B[G');
+    }
+
+    TextStyle? currentStyle;
+
+    for (int y = 0; y < buffer.height; y++) {
+      // Clear the line before writing to handle cases where new content
+      // is shorter than previous content
+      terminal.write('\x1B[K'); // Clear from cursor to end of line
+
+      for (int x = 0; x < buffer.width; x++) {
+        final cell = buffer.getCell(x, y);
+
+        // Handle style
+        final hasStyle = cell.style.color != null ||
+            cell.style.backgroundColor != null ||
+            cell.style.fontWeight == FontWeight.bold ||
+            cell.style.fontWeight == FontWeight.dim ||
+            cell.style.fontStyle == FontStyle.italic ||
+            cell.style.decoration?.hasUnderline == true ||
+            cell.style.reverse;
+
+        if (hasStyle) {
+          if (currentStyle != cell.style) {
+            if (currentStyle != null) {
+              terminal.write(TextStyle.reset);
+            }
+            terminal.write(cell.style.toAnsi());
+            currentStyle = cell.style;
+          }
+          terminal.write(cell.char);
+        } else {
+          if (currentStyle != null) {
+            terminal.write(TextStyle.reset);
+            currentStyle = null;
+          }
+          terminal.write(cell.char);
+        }
+      }
+
+      // Move to next line
+      if (y < buffer.height - 1) {
+        terminal.write('\n');
+      }
+    }
+
+    // Reset style at end
+    if (currentStyle != null) {
+      terminal.write(TextStyle.reset);
+    }
+
+    // Track how many lines we rendered for next frame
+    _inlineRenderedLines = buffer.height;
+    _isFirstInlineFrame = false;
+
+    terminal.flush();
+  }
+
   /// The actual frame drawing logic, registered as a persistent callback.
   void _drawFrameCallback(Duration timeStamp) {
     if (rootElement == null) return;
@@ -880,8 +1006,7 @@ class TerminalBinding extends NoctermBinding
     super.drawFrame();
 
     // Get current terminal size (may have been updated by resize event)
-    final size = terminal.size;
-    final buffer = buf.Buffer(size.width.toInt(), size.height.toInt());
+    final terminalSize = terminal.size;
 
     // Find render object in tree
     RenderObject? findRenderObject(Element element) {
@@ -896,32 +1021,76 @@ class TerminalBinding extends NoctermBinding
     }
 
     final renderObject = findRenderObject(rootElement!);
-    if (renderObject != null) {
-      // Attach render object to pipeline owner if needed
-      if (renderObject.owner != pipelineOwner) {
-        renderObject.attach(pipelineOwner);
-      }
+    if (renderObject == null) return;
 
-      // Layout phase
-      renderObject.layout(BoxConstraints.tight(
-          Size(size.width.toDouble(), size.height.toDouble())));
-
-      // Flush layout pipeline
-      pipelineOwner.flushLayout();
-
-      // Flush paint pipeline
-      pipelineOwner.flushPaint();
-
-      // Paint phase - actually render to canvas
-      final canvas = TerminalCanvas(
-        buffer,
-        Rect.fromLTWH(0, 0, size.width.toDouble(), size.height.toDouble()),
-      );
-      renderObject.paintWithContext(canvas, Offset.zero);
+    // Attach render object to pipeline owner if needed
+    if (renderObject.owner != pipelineOwner) {
+      renderObject.attach(pipelineOwner);
     }
 
-    // Render to terminal using differential rendering
-    _renderDifferential(buffer);
+    // Determine layout constraints based on screen mode
+    final BoxConstraints constraints;
+    if (isInlineMode) {
+      // Inline mode: unbounded height, let component determine its natural height
+      // Width is still constrained to terminal width
+      constraints = BoxConstraints(
+        minWidth: terminalSize.width.toDouble(),
+        maxWidth: terminalSize.width.toDouble(),
+        minHeight: 0,
+        maxHeight: double.infinity,
+      );
+    } else {
+      // Alternate screen mode: tight constraints to terminal size
+      constraints = BoxConstraints.tight(
+        Size(terminalSize.width.toDouble(), terminalSize.height.toDouble()),
+      );
+    }
+
+    // Layout phase
+    renderObject.layout(constraints);
+
+    // Flush layout pipeline
+    pipelineOwner.flushLayout();
+
+    // Flush paint pipeline
+    pipelineOwner.flushPaint();
+
+    // Determine buffer size based on screen mode
+    final int bufferWidth = terminalSize.width.toInt();
+    final int bufferHeight;
+    double paintYOffset = 0.0;
+
+    if (isInlineMode) {
+      // In inline mode, use the component's actual rendered height
+      // clamped to terminal height (excess scrolls into terminal scrollback)
+      final componentHeight = renderObject.size.height.toInt();
+      final terminalHeight = terminalSize.height.toInt();
+      bufferHeight = componentHeight.clamp(1, terminalHeight);
+
+      // Calculate paint offset - if component overflows, paint with negative Y
+      // so the BOTTOM of the component appears in our buffer
+      if (componentHeight > terminalHeight) {
+        paintYOffset = -(componentHeight - terminalHeight).toDouble();
+      }
+    } else {
+      bufferHeight = terminalSize.height.toInt();
+    }
+
+    final buffer = buf.Buffer(bufferWidth, bufferHeight);
+
+    // Paint phase - actually render to canvas
+    final canvas = TerminalCanvas(
+      buffer,
+      Rect.fromLTWH(0, 0, bufferWidth.toDouble(), bufferHeight.toDouble()),
+    );
+    renderObject.paintWithContext(canvas, Offset(0, paintYOffset));
+
+    // Render to terminal
+    if (isInlineMode) {
+      _renderInline(buffer);
+    } else {
+      _renderDifferential(buffer);
+    }
 
     // Store buffer for next frame comparison
     _previousBuffer = buffer;

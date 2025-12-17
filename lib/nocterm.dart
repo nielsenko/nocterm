@@ -18,7 +18,7 @@ export 'src/size.dart';
 export 'src/rectangle.dart';
 export 'src/test/nocterm_test_binding.dart';
 export 'src/binding/terminal_binding.dart';
-export 'src/binding/run_app.dart' show runApp;
+export 'src/binding/run_app.dart' show runApp, ScreenMode, InlineExitBehavior;
 export 'src/binding/scheduler_binding.dart';
 export 'src/binding/scheduler_phase.dart';
 export 'src/components/basic.dart';
