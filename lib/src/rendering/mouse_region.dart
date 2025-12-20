@@ -1,5 +1,6 @@
 import '../framework/framework.dart';
 import '../framework/terminal_canvas.dart';
+import '../keyboard/mouse_event.dart';
 import '../rectangle.dart';
 import '../size.dart';
 import 'mouse_tracker.dart';

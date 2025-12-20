@@ -64,11 +64,6 @@
           "title": "Hot Reload",
           "href": "/fundamentals/hot-reload",
           "icon": "fire"
-        },
-        {
-          "title": "Inline Mode",
-          "href": "/fundamentals/inline-mode",
-          "icon": "terminal"
         }
       ]
     },

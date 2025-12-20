@@ -7,6 +7,9 @@ import 'render_text.dart';
 export 'render_text.dart' show TextOverflow, TextAlign;
 import 'render_flex.dart';
 
+// Import from stack.dart for alignment and text direction
+import 'stack.dart' show AlignmentGeometry, Alignment, TextDirection;
+
 // Export keyboard listener
 export 'keyboard_listener.dart' show KeyboardListener;
 

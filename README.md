@@ -63,16 +63,6 @@ Run with hot reload:
 dart --enable-vm-service your_app.dart
 ```
 
-## Inline Mode
-
-For CLIs and tools that shouldn't take over the full screen, use inline mode:
-
-```dart
-await runApp(MyComponent(), screenMode: ScreenMode.inline);
-```
-
-See the [inline mode documentation](https://docs.page/Norbert515/nocterm~docs/fundamentals/inline-mode) for details.
-
 ## Testing
 
 Test your TUI components just like Flutter widgets:

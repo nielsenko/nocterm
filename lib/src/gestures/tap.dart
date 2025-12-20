@@ -33,6 +33,7 @@ class TapGestureRecognizer extends GestureRecognizer {
   bool _sentTapDown = false;
   bool _wonArena = false;
 
+  static const Duration _doubleTapTimeout = Duration(milliseconds: 300);
   static const double _kTouchSlop = 2.0; // cells
 
   @override
@@ -170,6 +171,8 @@ class DoubleTapGestureRecognizer extends GestureRecognizer {
 
   @override
   void handlePointerDown(MouseEvent event, Offset localPosition) {
+    final now = DateTime.now();
+
     if (_tapCount == 0) {
       // First tap
       _firstTapPosition = localPosition;
