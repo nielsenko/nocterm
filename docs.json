@@ -73,12 +73,12 @@
         {
           "title": "Layout",
           "href": "/components/layout",
-          "icon": "layout"
+          "icon": "table-columns"
         },
         {
           "title": "Text & Styling",
           "href": "/components/text",
-          "icon": "type"
+          "icon": "font"
         },
         {
           "title": "Input",
@@ -88,12 +88,12 @@
         {
           "title": "Scrolling",
           "href": "/components/scrolling",
-          "icon": "arrows-vertical"
+          "icon": "arrows-up-down"
         },
         {
           "title": "Overlays",
           "href": "/components/overlays",
-          "icon": "layers"
+          "icon": "layer-group"
         },
         {
           "title": "Terminal",
@@ -118,7 +118,7 @@
         {
           "title": "Focus Management",
           "href": "/interactivity/focus",
-          "icon": "target"
+          "icon": "bullseye"
         }
       ]
     },
