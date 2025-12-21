@@ -1,0 +1,329 @@
+---
+title: Scrolling
+description: Scrollable content components
+icon: arrows-up-down
+---
+
+Scrolling components display content larger than the available space. This guide covers `ListView` and scrolling patterns.
+
+## ListView
+
+`ListView` displays a scrollable list of children:
+
+```dart
+ListView(
+  children: [
+    Text('Item 1'),
+    Text('Item 2'),
+    Text('Item 3'),
+    Text('Item 4'),
+    Text('Item 5'),
+  ],
+)
+```
+
+### ListView.builder
+
+For large or infinite lists, use `ListView.builder`:
+
+```dart
+ListView.builder(
+  itemCount: 100,
+  itemBuilder: (context, index) {
+    return Text('Item $index');
+  },
+)
+```
+
+Only visible items are built, making this efficient for long lists.
+
+### ListView.separated
+
+Add separators between items:
+
+```dart
+ListView.separated(
+  itemCount: 10,
+  itemBuilder: (context, index) {
+    return Text('Item $index');
+  },
+  separatorBuilder: (context, index) {
+    return Divider();
+  },
+)
+```
+
+### Scroll direction
+
+Scroll horizontally or vertically:
+
+```dart
+// Vertical (default)
+ListView(
+  scrollDirection: Axis.vertical,
+  children: [...],
+)
+
+// Horizontal
+ListView(
+  scrollDirection: Axis.horizontal,
+  children: [...],
+)
+```
+
+### Reverse scrolling
+
+Scroll from bottom to top (useful for chat apps):
+
+```dart
+ListView(
+  reverse: true,  // Start at bottom
+  children: [
+    Text('Message 1'),
+    Text('Message 2'),
+    Text('Message 3'),
+  ],
+)
+```
+
+### Padding
+
+Add padding around the list:
+
+```dart
+ListView(
+  padding: EdgeInsets.all(2),
+  children: [...],
+)
+```
+
+## Mouse wheel scrolling
+
+`ListView` supports mouse wheel scrolling automatically when the terminal supports it.
+
+Users can:
+- Scroll with the mouse wheel
+- Use arrow keys if wrapped in `Focusable`
+
+## ScrollController
+
+Control scrolling programmatically:
+
+```dart
+class ScrollExample extends StatefulComponent {
+  const ScrollExample({super.key});
+
+  @override
+  State<ScrollExample> createState() => _ScrollExampleState();
+}
+
+class _ScrollExampleState extends State<ScrollExample> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToTop() {
+    _scrollController.jumpTo(0);
+  }
+
+  void _scrollToBottom() {
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  @override
+  Component build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Button(
+              onPressed: _scrollToTop,
+              child: Text('Top'),
+            ),
+            Button(
+              onPressed: _scrollToBottom,
+              child: Text('Bottom'),
+            ),
+          ],
+        ),
+        Expanded(
+          child: ListView(
+            controller: _scrollController,
+            children: List.generate(
+              50,
+              (i) => Text('Item $i'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### ScrollController methods
+
+```dart
+// Jump to position
+controller.jumpTo(offset);
+
+// Get current position
+double position = controller.offset;
+
+// Get scroll extent
+double max = controller.position.maxScrollExtent;
+```
+
+## Keyboard scrolling
+
+Wrap `ListView` in `Focusable` for keyboard scrolling:
+
+```dart
+Focusable(
+  focused: true,
+  onKeyEvent: (event) {
+    // Handle arrow keys for scrolling
+    if (event.logicalKey == LogicalKey.arrowDown) {
+      // Scroll down logic
+      return true;
+    }
+    if (event.logicalKey == LogicalKey.arrowUp) {
+      // Scroll up logic
+      return true;
+    }
+    return false;
+  },
+  child: ListView(
+    children: [...],
+  ),
+)
+```
+
+> **Note**: As of version 0.1.0, `ListView` does not include automatic keyboard navigation. You must manually implement keyboard scrolling using `Focusable` and `ScrollController`.
+
+## Performance tips
+
+### Use ListView.builder for long lists
+
+```dart
+// Good - builds only visible items
+ListView.builder(
+  itemCount: 10000,
+  itemBuilder: (context, index) => Text('Item $index'),
+)
+
+// Bad - builds all items upfront
+ListView(
+  children: List.generate(10000, (i) => Text('Item $i')),
+)
+```
+
+### Set fixed item extent
+
+If all items have the same height, set `itemExtent`:
+
+```dart
+ListView(
+  itemExtent: 1,  // Each item is 1 row tall
+  children: [...],
+)
+```
+
+This improves scroll performance.
+
+## Common patterns
+
+### Chat interface
+
+```dart
+ListView(
+  reverse: true,  // Latest at bottom
+  children: messages.reversed.map((msg) {
+    return Text('${msg.author}: ${msg.text}');
+  }).toList(),
+)
+```
+
+### Infinite scroll
+
+```dart
+ListView.builder(
+  itemBuilder: (context, index) {
+    if (index >= items.length) {
+      loadMoreItems();  // Load more when reaching end
+      return Text('Loading...');
+    }
+    return Text(items[index]);
+  },
+)
+```
+
+### Grouped lists
+
+```dart
+ListView.builder(
+  itemCount: groups.length,
+  itemBuilder: (context, index) {
+    final group = groups[index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(group.title, style: TextStyle(bold: true)),
+        ...group.items.map((item) => Text('  $item')),
+      ],
+    );
+  },
+)
+```
+
+## Best practices
+
+### Always dispose controllers
+
+```dart
+@override
+void dispose() {
+  _scrollController.dispose();
+  super.dispose();
+}
+```
+
+### Provide scroll indicators
+
+Show users that content is scrollable:
+
+```dart
+Column(
+  children: [
+    Text('↑ More above'),
+    Expanded(
+      child: ListView(children: [...]),
+    ),
+    Text('↓ More below'),
+  ],
+)
+```
+
+### Handle empty lists
+
+```dart
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) {
+    if (items.isEmpty) {
+      return Text('No items to display');
+    }
+    return Text(items[index]);
+  },
+)
+```
+
+## Next steps
+
+- [Overlays](/components/overlays) - Display content on top
+- [Mouse Support](/interactivity/mouse) - Handle mouse events
+- [Layout](/components/layout) - Layout components

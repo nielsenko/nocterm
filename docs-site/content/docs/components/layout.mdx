@@ -1,0 +1,365 @@
+---
+title: Layout
+description: Layout components for building TUI interfaces
+icon: table-columns
+---
+
+Layout components arrange UI elements in your terminal app. This guide covers the main layout components and how to use them.
+
+## Column
+
+`Column` arranges children vertically:
+
+```dart
+Column(
+  children: [
+    Text('First'),
+    Text('Second'),
+    Text('Third'),
+  ],
+)
+```
+
+### Alignment
+
+Control how children align:
+
+```dart
+Column(
+  mainAxisAlignment: MainAxisAlignment.center,  // Vertical alignment
+  crossAxisAlignment: CrossAxisAlignment.start,  // Horizontal alignment
+  children: [
+    Text('Centered vertically'),
+    Text('Aligned to start horizontally'),
+  ],
+)
+```
+
+**mainAxisAlignment** options:
+- `start`: Align to top
+- `center`: Center vertically
+- `end`: Align to bottom
+- `spaceBetween`: Space items evenly with no space at edges
+- `spaceAround`: Space items evenly with half-space at edges
+- `spaceEvenly`: Space items evenly with full space at edges
+
+**crossAxisAlignment** options:
+- `start`: Align to left
+- `center`: Center horizontally
+- `end`: Align to right
+- `stretch`: Stretch children to fill width
+
+## Row
+
+`Row` arranges children horizontally:
+
+```dart
+Row(
+  children: [
+    Text('Left'),
+    Text('Middle'),
+    Text('Right'),
+  ],
+)
+```
+
+### Alignment
+
+Same as Column, but axes are swapped:
+
+```dart
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,  // Horizontal spacing
+  crossAxisAlignment: CrossAxisAlignment.center,      // Vertical alignment
+  children: [
+    Text('Left'),
+    Text('Right'),
+  ],
+)
+```
+
+**mainAxisAlignment** controls horizontal spacing.
+**crossAxisAlignment** controls vertical alignment.
+
+## Expanded
+
+`Expanded` fills available space in `Row` or `Column`:
+
+```dart
+Row(
+  children: [
+    Text('Fixed'),
+    Expanded(
+      child: Text('Takes remaining space'),
+    ),
+    Text('Fixed'),
+  ],
+)
+```
+
+### Flex factor
+
+Control how space is divided:
+
+```dart
+Row(
+  children: [
+    Expanded(
+      flex: 2,
+      child: Text('Gets 2/3 of space'),
+    ),
+    Expanded(
+      flex: 1,
+      child: Text('Gets 1/3 of space'),
+    ),
+  ],
+)
+```
+
+The `flex` value determines the ratio of space each child gets.
+
+## Stack
+
+`Stack` layers children on top of each other:
+
+```dart
+Stack(
+  children: [
+    Container(
+      width: 20,
+      height: 10,
+      decoration: BoxDecoration(color: Colors.blue),
+    ),
+    Positioned(
+      top: 2,
+      left: 5,
+      child: Text('Overlay'),
+    ),
+  ],
+)
+```
+
+### Positioned
+
+Use `Positioned` to place children at specific locations:
+
+```dart
+Stack(
+  children: [
+    // Background (takes full size)
+    Container(color: Colors.gray),
+
+    // Top-left
+    Positioned(
+      top: 0,
+      left: 0,
+      child: Text('TL'),
+    ),
+
+    // Bottom-right
+    Positioned(
+      bottom: 0,
+      right: 0,
+      child: Text('BR'),
+    ),
+  ],
+)
+```
+
+Children without `Positioned` are placed normally and determine the stack size.
+
+## Container
+
+`Container` is a versatile box that combines decoration, padding, and margin:
+
+```dart
+Container(
+  decoration: BoxDecoration(
+    color: Colors.blue,
+    border: BoxBorder.all(color: Colors.white),
+  ),
+  padding: EdgeInsets.all(2),
+  margin: EdgeInsets.all(1),
+  child: Text('Content'),
+)
+```
+
+### Properties
+
+- **decoration**: Background color, borders
+- **padding**: Space inside the border
+- **margin**: Space outside the border
+- **child**: Single child component
+
+### Decoration
+
+Style the container:
+
+```dart
+BoxDecoration(
+  color: Colors.blue,
+  border: BoxBorder.all(color: Colors.white),
+)
+```
+
+## SizedBox
+
+`SizedBox` creates a fixed-size box:
+
+```dart
+SizedBox(
+  width: 20,
+  height: 5,
+  child: Text('Fixed size'),
+)
+```
+
+### Spacing
+
+Use `SizedBox` to add spacing:
+
+```dart
+Column(
+  children: [
+    Text('Top'),
+    SizedBox(height: 2),  // 2 rows of space
+    Text('Bottom'),
+  ],
+)
+```
+
+## Align
+
+`Align` positions a child within itself:
+
+```dart
+Align(
+  alignment: Alignment.topLeft,
+  child: Text('Top-left'),
+)
+```
+
+**Alignment** options:
+- `topLeft`, `topCenter`, `topRight`
+- `centerLeft`, `center`, `centerRight`
+- `bottomLeft`, `bottomCenter`, `bottomRight`
+
+## Center
+
+`Center` centers a child:
+
+```dart
+Center(
+  child: Text('Centered'),
+)
+```
+
+This is equivalent to `Align(alignment: Alignment.center)`.
+
+## Padding
+
+`Padding` adds space around a child:
+
+```dart
+Padding(
+  padding: EdgeInsets.all(2),
+  child: Text('Padded text'),
+)
+```
+
+### EdgeInsets
+
+Specify padding:
+
+```dart
+// Same on all sides
+EdgeInsets.all(2)
+
+// Horizontal and vertical
+EdgeInsets.symmetric(horizontal: 3, vertical: 1)
+
+// Individual sides
+EdgeInsets.only(left: 2, top: 1)
+
+// All sides different
+EdgeInsets.fromLTRB(left: 1, top: 2, right: 3, bottom: 4)
+```
+
+## ConstrainedBox
+
+`ConstrainedBox` constrains child size:
+
+```dart
+ConstrainedBox(
+  constraints: BoxConstraints(
+    minWidth: 10,
+    maxWidth: 30,
+    minHeight: 5,
+    maxHeight: 15,
+  ),
+  child: Text('Constrained'),
+)
+```
+
+Use this to set minimum or maximum sizes.
+
+## Layout tips
+
+### Combine layouts
+
+Nest layout components to build complex UIs:
+
+```dart
+Column(
+  children: [
+    Container(
+      padding: EdgeInsets.all(1),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Left'),
+          Text('Right'),
+        ],
+      ),
+    ),
+    Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          border: BoxBorder.all(),
+        ),
+        child: Center(
+          child: Text('Content area'),
+        ),
+      ),
+    ),
+  ],
+)
+```
+
+### Use Expanded wisely
+
+`Expanded` only works inside `Row` or `Column`:
+
+```dart
+// Good
+Column(
+  children: [
+    Expanded(child: Text('Works')),
+  ],
+)
+
+// Bad - won't work
+Container(
+  child: Expanded(child: Text('Error')),
+)
+```
+
+### Mind terminal size
+
+Design for small terminals (80×24). Test your layouts at different sizes.
+
+## Next steps
+
+- [Text & Styling](/components/text) - Style text in your layouts
+- [Input](/components/input) - Add interactive components
+- [Building UIs](/fundamentals/building-uis) - Composition patterns
