@@ -544,10 +544,12 @@ class RenderPositionedBox extends RenderObject
             ? child!.size.height
             : heightFactor! * child!.size.height;
       } else {
-        // No factors (null) - shrink to child size (Flutter's default behavior)
-        // This is the key fix: we shrink to child size instead of expanding
-        width = child!.size.width;
-        height = child!.size.height;
+        // No factors - shrinkWrap if constraints are unbounded, expand if bounded
+        // This matches Flutter's RenderPositionedBox behavior
+        final bool shrinkWrapWidth = constraints.maxWidth == double.infinity;
+        final bool shrinkWrapHeight = constraints.maxHeight == double.infinity;
+        width = shrinkWrapWidth ? child!.size.width : double.infinity;
+        height = shrinkWrapHeight ? child!.size.height : double.infinity;
       }
     }
 
