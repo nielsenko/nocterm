@@ -8,5 +8,5 @@ environment:
 
 dependencies:
   meta: ^1.17.0
-  nocterm: ^0.1.0
+  nocterm: ^0.2.0
   nocterm_nested: ^0.0.1

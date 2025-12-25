@@ -10,7 +10,7 @@ dependencies:
   args: ^2.7.0
   file: ^7.0.1
   meta: ^1.17.0
-  nocterm: ^0.1.0
+  nocterm: ^0.2.0
   scoped_deps: ^0.1.0+2
 
 dev_dependencies:
