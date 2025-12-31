@@ -126,12 +126,11 @@ class Cubic extends Curve {
 /// The curve starts at 0.0 and ends at 1.0, overshooting and oscillating
 /// with increasing amplitude.
 class _ElasticInCurve extends Curve {
-  const _ElasticInCurve([this.period = 0.4]);
-
-  final double period;
+  const _ElasticInCurve();
 
   @override
   double transform(double t) {
+    const double period = 0.4;
     final double s = period / 4.0;
     t = t - 1.0;
     return -math.pow(2.0, 10.0 * t) *
@@ -147,12 +146,11 @@ class _ElasticInCurve extends Curve {
 /// The curve starts at 0.0 and ends at 1.0, overshooting and oscillating
 /// with decreasing amplitude.
 class _ElasticOutCurve extends Curve {
-  const _ElasticOutCurve([this.period = 0.4]);
-
-  final double period;
+  const _ElasticOutCurve();
 
   @override
   double transform(double t) {
+    const double period = 0.4;
     final double s = period / 4.0;
     return math.pow(2.0, -10.0 * t) *
             math.sin((t - s) * (math.pi * 2.0) / period) +
@@ -165,12 +163,11 @@ class _ElasticOutCurve extends Curve {
 
 /// An oscillating curve that grows and then shrinks in magnitude.
 class _ElasticInOutCurve extends Curve {
-  const _ElasticInOutCurve([this.period = 0.4]);
-
-  final double period;
+  const _ElasticInOutCurve();
 
   @override
   double transform(double t) {
+    const double period = 0.4;
     final double s = period / 4.0;
     t = 2.0 * t - 1.0;
     if (t < 0.0) {

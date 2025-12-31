@@ -142,7 +142,6 @@ void main() {
       test('has characteristic bouncing shape', () {
         // BounceIn should start slow and accelerate with bounces
         final early = Curves.bounceIn.transform(0.2);
-        final mid = Curves.bounceIn.transform(0.5);
         final late = Curves.bounceIn.transform(0.8);
         // Values should generally increase as we approach 1.0
         expect(late, greaterThan(early));

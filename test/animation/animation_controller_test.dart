@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:nocterm/nocterm.dart';
 import 'package:test/test.dart' hide isEmpty;
 
@@ -550,16 +548,13 @@ void main() {
           duration: const Duration(milliseconds: 300),
           vsync: vsync,
         );
-        var listenerCalled = false;
-        controller.addListener(() => listenerCalled = true);
+        controller.addListener(() {});
         controller.forward();
 
         controller.dispose();
         expect(controller.isAnimating, isFalse);
 
-        // After dispose, calling methods should not call listeners
-        listenerCalled = false;
-        // Note: In real implementation, dispose might throw if used after dispose
+        // After dispose, controller should be stopped
       });
     });
 
