@@ -87,3 +87,6 @@ export 'src/theme/theme.dart';
 // ASCII Text
 export 'src/components/ascii_text.dart';
 export 'src/components/ascii_font.dart' show AsciiFont, AsciiGlyph;
+
+// Animation
+export 'src/animation/animations.dart';
