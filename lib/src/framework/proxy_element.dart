@@ -19,14 +19,16 @@ abstract class ProxyElement extends Element {
   @override
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
-    _child = updateChild(null, component.child, null);
+    // Pass through the slot so child render objects get inserted at the correct position
+    _child = updateChild(null, component.child, slot);
   }
 
   @override
   void update(Component newComponent) {
     super.update(newComponent);
     assert(component == newComponent);
-    _child = updateChild(_child, (newComponent as ProxyComponent).child, null);
+    // Pass through the slot so child render objects get inserted at the correct position
+    _child = updateChild(_child, (newComponent as ProxyComponent).child, slot);
     updated(component);
   }
 
