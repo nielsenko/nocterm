@@ -17,13 +17,13 @@
 
 ![Nocterm Example](doc/assets/screenshot.png)
 
-> **Note**: Nocterm is in early development (0.3.1). APIs may change.
+> **Note**: Nocterm is in early development (0.3.2). APIs may change.
 
 ## Installation
 
 ```yaml
 dependencies:
-  nocterm: ^0.3.1
+  nocterm: ^0.3.2
 ```
 
 ## Quick Start
