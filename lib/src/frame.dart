@@ -96,7 +96,8 @@ class Frame {
               previousCell.style.backgroundColor ||
           currentCell.style.fontWeight != previousCell.style.fontWeight ||
           currentCell.style.fontStyle != previousCell.style.fontStyle ||
-          currentCell.style.decoration != previousCell.style.decoration) {
+          currentCell.style.decoration != previousCell.style.decoration ||
+          currentCell.style.reverse != previousCell.style.reverse) {
         return true;
       }
     }
