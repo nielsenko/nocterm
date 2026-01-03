@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 import 'package:nocterm/src/navigation/render_theater.dart';
+import 'package:nocterm/src/painting/display_list.dart';
+import 'package:nocterm/src/painting/recording_canvas.dart';
 import 'package:nocterm/src/rendering/scrollable_render_object.dart';
 
 import '../backend/terminal.dart' as term;
@@ -47,6 +49,10 @@ class TerminalBinding extends NoctermBinding
 
   /// Previous frame's buffer for differential rendering.
   buf.Buffer? _previousBuffer;
+
+  /// Previous frame's DisplayList for dirty region calculation.
+  DisplayList? _previousDisplayList;
+
   StreamSubscription? _inputSubscription;
   StreamSubscription? _resizeSubscription;
   StreamSubscription? _shutdownSubscription;
@@ -373,8 +379,9 @@ class TerminalBinding extends NoctermBinding
             _lastKnownSize!.height != newSize.height) {
           _lastKnownSize = newSize;
           terminal.updateSize(newSize);
-          // Clear previous buffer to force full redraw on resize
+          // Clear previous buffer and display list to force full redraw on resize
           _previousBuffer = null;
+          _previousDisplayList = null;
           scheduleFrame();
         }
       });
@@ -761,7 +768,10 @@ class TerminalBinding extends NoctermBinding
   }
 
   /// Renders only the cells that changed since the previous frame.
-  void _renderDifferential(buf.Buffer buffer) {
+  ///
+  /// If [dirtyRegions] is provided, only cells within those regions will be
+  /// compared. Otherwise, all cells in the buffer will be compared.
+  void _renderDifferential(buf.Buffer buffer, {Set<Rect>? dirtyRegions}) {
     final previous = _previousBuffer;
 
     // First frame or size changed: full redraw
@@ -772,7 +782,87 @@ class TerminalBinding extends NoctermBinding
       return;
     }
 
-    // Differential render - only update changed cells
+    // If dirty regions provided, use region-based diff
+    if (dirtyRegions != null && dirtyRegions.isNotEmpty) {
+      _renderRegionDiff(buffer, previous, dirtyRegions);
+      return;
+    }
+
+    // Fall back to full buffer diff
+    _renderFullDiff(buffer, previous);
+  }
+
+  /// Diff and render only cells within the specified dirty regions.
+  void _renderRegionDiff(
+      buf.Buffer buffer, buf.Buffer previous, Set<Rect> regions) {
+    final sb = StringBuffer();
+    TextStyle? lastStyle;
+    int? lastX, lastY;
+
+    for (final region in regions) {
+      // Clamp region to buffer bounds
+      final startX = region.left.round().clamp(0, buffer.width);
+      final startY = region.top.round().clamp(0, buffer.height);
+      final endX = region.right.round().clamp(0, buffer.width);
+      final endY = region.bottom.round().clamp(0, buffer.height);
+
+      for (int y = startY; y < endY; y++) {
+        for (int x = startX; x < endX; x++) {
+          final cell = buffer.getCell(x, y);
+          final prevCell = previous.getCell(x, y);
+
+          // Skip unchanged cells
+          if (cell == prevCell) continue;
+
+          // Move cursor if not at expected position
+          // (cursor auto-advances after writing)
+          if (lastX != x || lastY != y) {
+            sb.write('\x1b[${y + 1};${x + 1}H');
+          }
+
+          // Handle style changes
+          final hasStyle = cell.style.color != null ||
+              cell.style.backgroundColor != null ||
+              cell.style.fontWeight == FontWeight.bold ||
+              cell.style.fontWeight == FontWeight.dim ||
+              cell.style.fontStyle == FontStyle.italic ||
+              cell.style.decoration?.hasUnderline == true ||
+              cell.style.reverse;
+
+          if (hasStyle) {
+            if (lastStyle != cell.style) {
+              if (lastStyle != null) {
+                sb.write(TextStyle.reset);
+              }
+              sb.write(cell.style.toAnsi());
+              lastStyle = cell.style;
+            }
+            sb.write(cell.char);
+          } else {
+            if (lastStyle != null) {
+              sb.write(TextStyle.reset);
+              lastStyle = null;
+            }
+            sb.write(cell.char);
+          }
+
+          lastX = x + 1; // Cursor advances after write
+          lastY = y;
+        }
+      }
+    }
+
+    if (sb.isNotEmpty) {
+      if (lastStyle != null) {
+        sb.write(TextStyle.reset);
+      }
+      terminal.write(sb.toString());
+      terminal.flush();
+    }
+  }
+
+  /// Full buffer diff - compare every cell (fallback when no dirty regions).
+  void _renderFullDiff(buf.Buffer buffer, buf.Buffer previous) {
     TextStyle? currentStyle;
 
     for (int y = 0; y < buffer.height; y++) {
@@ -882,6 +972,8 @@ class TerminalBinding extends NoctermBinding
     // Get current terminal size (may have been updated by resize event)
     final size = terminal.size;
     final buffer = buf.Buffer(size.width.toInt(), size.height.toInt());
+    final screenRect =
+        Rect.fromLTWH(0, 0, size.width.toDouble(), size.height.toDouble());
 
     // Find render object in tree
     RenderObject? findRenderObject(Element element) {
@@ -896,6 +988,8 @@ class TerminalBinding extends NoctermBinding
     }
 
     final renderObject = findRenderObject(rootElement!);
+    DisplayList? currentDisplayList;
+
     if (renderObject != null) {
       // Attach render object to pipeline owner if needed
       if (renderObject.owner != pipelineOwner) {
@@ -912,16 +1006,27 @@ class TerminalBinding extends NoctermBinding
       // Flush paint pipeline
       pipelineOwner.flushPaint();
 
-      // Paint phase - actually render to canvas
-      final canvas = TerminalCanvas(
-        buffer,
-        Rect.fromLTWH(0, 0, size.width.toDouble(), size.height.toDouble()),
-      );
-      renderObject.paintWithContext(canvas, Offset.zero);
+      // Paint phase - record to DisplayList first
+      final recorder = RecordingCanvas(screenRect);
+      renderObject.paintWithContext(recorder, Offset.zero);
+      currentDisplayList = recorder.finish();
+
+      // Replay DisplayList to buffer
+      final canvas = TerminalCanvas(buffer, screenRect);
+      currentDisplayList.playback(canvas);
     }
 
-    // Render to terminal using differential rendering
-    _renderDifferential(buffer);
+    // Calculate dirty regions from DisplayList diff
+    Set<Rect>? dirtyRegions;
+    if (_previousDisplayList != null && currentDisplayList != null) {
+      dirtyRegions = currentDisplayList.diff(_previousDisplayList!);
+    }
+
+    // Store current DisplayList for next frame
+    _previousDisplayList = currentDisplayList;
+
+    // Render to terminal using differential rendering with dirty regions
+    _renderDifferential(buffer, dirtyRegions: dirtyRegions);
 
     // Store buffer for next frame comparison
     _previousBuffer = buffer;
