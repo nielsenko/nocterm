@@ -14,9 +14,6 @@ import 'stack.dart' as stack_lib;
 /// are no non-positioned children, the stack becomes as large as possible.
 class RenderStack extends RenderObject
     with ContainerRenderObjectMixin<RenderObject> {
-  @override
-  bool get isRepaintBoundary => true;
-
   RenderStack({
     List<RenderObject>? children,
     stack_lib.AlignmentGeometry alignment =

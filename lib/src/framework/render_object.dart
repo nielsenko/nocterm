@@ -283,14 +283,6 @@ abstract class RenderObject {
   Object? _lastError;
   StackTrace? _lastStackTrace;
 
-  /// Cached DisplayList from last paint. Invalidated when markNeedsPaint() is called.
-  DisplayList? _cachedDisplayList;
-
-  /// Whether this RenderObject acts as a repaint boundary.
-  /// Repaint boundaries cache their DisplayList and stop markNeedsPaint propagation.
-  /// Override to return true for expensive-to-paint subtrees.
-  bool get isRepaintBoundary => false;
-
   /// Whether this render object has been laid out and has a size.
   bool get hasSize => _size != null;
 
@@ -308,24 +300,11 @@ abstract class RenderObject {
   /// Mark this render object as needing to be repainted.
   ///
   /// This will cause [paint] to be called during the next paint pass.
-  /// The paint request will propagate up the tree until it reaches a
-  /// repaint boundary, at which point it will be registered with the
-  /// pipeline owner for processing during the next frame.
+  /// The paint request will propagate up to the root, which will trigger
+  /// a frame to be scheduled.
   void markNeedsPaint() {
     if (_needsPaint) return;
     _needsPaint = true;
-    _cachedDisplayList = null; // Invalidate cache
-
-    // Track for debug rainbow visualization
-    if (debugRepaintRainbowEnabled) {
-      _debugWasMarkedNeedsPaint = true;
-    }
-
-    // Repaint boundaries stop propagation
-    if (isRepaintBoundary) {
-      owner?.requestVisualUpdate();
-      return;
-    }
 
     if (parent != null) {
       // Continue propagation up the tree
@@ -335,10 +314,6 @@ abstract class RenderObject {
       owner?.requestVisualUpdate();
     }
   }
-
-  /// Debug flag: true if this render object was marked as needing paint
-  /// during this frame. Reset after painting.
-  bool _debugWasMarkedNeedsPaint = false;
 
   /// Compute the layout for this render object.
   ///
@@ -413,7 +388,7 @@ abstract class RenderObject {
     // Subclasses override this to paint
   }
 
-  /// Internal paint method with error handling and caching.
+  /// Internal paint method with error handling.
   void paintWithContext(TerminalCanvas canvas, Offset offset) {
     // If there was a layout error, show error box and return
     if (_hasLayoutError) {
@@ -422,44 +397,16 @@ abstract class RenderObject {
     }
 
     // Clear error info if no layout error
-    if (!_hasLayoutError) {
-      _lastError = null;
-      _lastStackTrace = null;
+    _lastError = null;
+    _lastStackTrace = null;
+
+    // Paint directly (no caching - we rely on buffer diffing for optimization)
+    try {
+      paint(canvas, offset);
+    } catch (e, stack) {
+      _reportException('paint', e, stack);
+      _paintErrorBox(canvas, offset);
     }
-
-    // If clean and have cache, just replay it (skip painting!)
-    if (!_needsPaint && _cachedDisplayList != null) {
-      _cachedDisplayList!.playback(canvas, offset);
-      return;
-    }
-
-    // For repaint boundaries with known size, record to local DisplayList
-    if (isRepaintBoundary && hasSize) {
-      final localRect = Rect.fromLTWH(0, 0, size.width, size.height);
-      final recorder = RecordingCanvas(localRect);
-
-      try {
-        paint(recorder, Offset.zero); // Paint at local origin
-        _cachedDisplayList = recorder.finish();
-        _cachedDisplayList!
-            .playback(canvas, offset); // Replay at actual position
-      } catch (e, stack) {
-        _cachedDisplayList = null;
-        _reportException('paint', e, stack);
-        _paintErrorBox(canvas, offset);
-      }
-    } else {
-      // Non-boundary: paint directly (no caching)
-      try {
-        paint(canvas, offset);
-      } catch (e, stack) {
-        _reportException('paint', e, stack);
-        _paintErrorBox(canvas, offset);
-      }
-    }
-
-    // Reset debug flag after painting
-    _debugWasMarkedNeedsPaint = false;
   }
 
   /// Paint an error box when painting fails.

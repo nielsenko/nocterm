@@ -7,7 +7,18 @@ class Cell {
   String char;
   TextStyle style;
 
+  /// Cached display width of the character.
+  /// Computed lazily on first access to avoid expensive width calculations.
+  int? _cachedWidth;
+
   Cell({this.char = ' ', TextStyle? style}) : style = style ?? TextStyle();
+
+  /// Returns the display width of this cell's character.
+  /// The width is cached after the first computation for performance.
+  int get width {
+    _cachedWidth ??= UnicodeWidth.graphemeWidth(char);
+    return _cachedWidth!;
+  }
 
   Cell copyWith({String? char, TextStyle? style}) {
     return Cell(

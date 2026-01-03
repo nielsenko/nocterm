@@ -256,9 +256,6 @@ enum BlendMode {
 /// RenderObject that applies decoration to its child
 class RenderDecoratedBox extends RenderObject
     with RenderObjectWithChildMixin<RenderObject> {
-  @override
-  bool get isRepaintBoundary => true;
-
   RenderDecoratedBox({
     required BoxDecoration decoration,
     DecorationPosition position = DecorationPosition.background,
