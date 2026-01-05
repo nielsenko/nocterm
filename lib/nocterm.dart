@@ -41,6 +41,7 @@ export 'src/components/divider.dart';
 export 'src/process/pty_controller.dart';
 export 'src/components/stack.dart';
 export 'src/components/render_stack.dart' show Stack;
+export 'src/components/clip.dart';
 export 'src/components/performance_overlay.dart';
 
 // Navigation
