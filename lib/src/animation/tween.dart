@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:nocterm/src/animation/animation.dart';
 import 'package:nocterm/src/animation/curves.dart';
+import 'package:nocterm/src/style.dart';
 
 // Note: Animatable is defined in animation.dart and re-exported here for convenience.
 export 'package:nocterm/src/animation/animation.dart' show Animatable;
@@ -101,6 +102,23 @@ class DoubleTween extends Tween<double> {
   @override
   double lerp(double t) {
     return begin! + (end! - begin!) * t;
+  }
+}
+
+/// A tween that interpolates between two colors.
+///
+/// This uses [Color.lerp] to interpolate the ARGB channels separately,
+/// which produces smooth color transitions.
+class ColorTween extends Tween<Color?> {
+  /// Creates a [ColorTween].
+  ColorTween({
+    super.begin,
+    super.end,
+  });
+
+  @override
+  Color? lerp(double t) {
+    return Color.lerp(begin, end, t);
   }
 }
 
