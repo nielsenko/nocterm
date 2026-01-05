@@ -264,17 +264,23 @@ class RenderStack extends RenderObject
   void paint(TerminalCanvas canvas, Offset offset) {
     super.paint(canvas, offset);
 
-    // Paint children in order (later children paint on top)
-    for (final child in children) {
-      final stack_lib.StackParentData childParentData =
-          child.parentData! as stack_lib.StackParentData;
+    if (_hasVisualOverflow && clipBehavior != stack_lib.Clip.none) {
+      // Create a clipped canvas for painting children
+      final clippedCanvas = canvas.clip(
+        Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height),
+      );
 
-      if (_hasVisualOverflow && clipBehavior != stack_lib.Clip.none) {
-        // For now, skip clipping implementation as TerminalCanvas doesn't have clip methods
-        // Just paint normally
-        child.paintWithContext(canvas, offset + childParentData.offset);
-      } else {
-        // No clipping needed
+      // Paint children with clipped canvas at Offset.zero since clip already accounts for offset
+      for (final child in children) {
+        final stack_lib.StackParentData childParentData =
+            child.parentData! as stack_lib.StackParentData;
+        child.paintWithContext(clippedCanvas, childParentData.offset);
+      }
+    } else {
+      // No clipping needed - paint children normally
+      for (final child in children) {
+        final stack_lib.StackParentData childParentData =
+            child.parentData! as stack_lib.StackParentData;
         child.paintWithContext(canvas, offset + childParentData.offset);
       }
     }

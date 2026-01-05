@@ -718,6 +718,7 @@ class Container extends StatelessComponent {
     this.constraints,
     this.margin,
     this.transform,
+    this.clipBehavior = Clip.none,
     this.child,
   });
 
@@ -732,6 +733,15 @@ class Container extends StatelessComponent {
   final BoxConstraints? constraints;
   final EdgeInsets? margin;
   final Matrix4? transform;
+
+  /// The clip behavior when [Container.decoration] has a clip.
+  ///
+  /// Defaults to [Clip.none]. Must be [Clip.none] if [decoration] is null.
+  ///
+  /// Unlike with other widgets, if a clip is to be used to avoid visual
+  /// overflow of the container, you should explicitly set [clipBehavior] to
+  /// [Clip.hardEdge] rather than relying on any default behavior.
+  final Clip clipBehavior;
 
   @override
   Component build(BuildContext context) {
@@ -784,6 +794,10 @@ class Container extends StatelessComponent {
 
     if (transform != null) {
       current = Transform(transform: transform!, child: current);
+    }
+
+    if (clipBehavior != Clip.none) {
+      current = ClipRect(clipBehavior: clipBehavior, child: current);
     }
 
     return current!;
