@@ -86,6 +86,13 @@ mixin SchedulerBinding on NoctermBinding {
   int _frameNumber = 0;
   DateTime? _lastFrameTime;
 
+  /// Returns the time of the last frame execution.
+  ///
+  /// This is protected for subclasses that need to implement their own
+  /// frame scheduling while respecting frame rate limiting.
+  @protected
+  DateTime? get lastFrameTime => _lastFrameTime;
+
   /// Target frame duration (default: 60fps = ~16.67ms).
   Duration targetFrameDuration = const Duration(microseconds: 16667);
 
@@ -305,17 +312,22 @@ mixin SchedulerBinding on NoctermBinding {
         // Too soon, delay the frame
         final delay = targetFrameDuration - elapsed;
         Timer(delay, () {
-          _executeFrame();
+          executeFrame();
         });
         return;
       }
     }
 
     // Execute frame immediately
-    Timer.run(_executeFrame);
+    Timer.run(executeFrame);
   }
 
-  void _executeFrame() {
+  /// Executes a single frame by recording the time and calling [handleBeginFrame].
+  ///
+  /// This is protected for subclasses that need custom frame execution logic
+  /// (e.g., waking an event loop after frame execution).
+  @protected
+  void executeFrame() {
     _lastFrameTime = DateTime.now();
     final timeStamp =
         Duration(microseconds: _lastFrameTime!.microsecondsSinceEpoch);

@@ -756,17 +756,34 @@ class TerminalBinding extends NoctermBinding
 
   @override
   void scheduleFrameImpl() {
-    // Override scheduler's frame implementation to also wake the event loop
-    Timer.run(() {
+    // Override scheduler's frame implementation to also wake the event loop.
+    // Respects frame rate limiting from SchedulerBinding.
+    if (enableFrameRateLimiting && lastFrameTime != null) {
       final now = DateTime.now();
-      final timeStamp = Duration(microseconds: now.microsecondsSinceEpoch);
-      handleBeginFrame(timeStamp);
+      final elapsed = now.difference(lastFrameTime!);
 
-      // Wake up the event loop after scheduling the frame
-      if (!_eventLoopController.isClosed) {
-        _eventLoopController.add(null);
+      if (elapsed < targetFrameDuration) {
+        // Too soon, delay the frame
+        final delay = targetFrameDuration - elapsed;
+        Timer(delay, () {
+          _executeFrameAndWakeEventLoop();
+        });
+        return;
       }
-    });
+    }
+
+    // Execute frame immediately
+    Timer.run(_executeFrameAndWakeEventLoop);
+  }
+
+  /// Executes frame and wakes the event loop.
+  void _executeFrameAndWakeEventLoop() {
+    executeFrame();
+
+    // Wake up the event loop after executing the frame
+    if (!_eventLoopController.isClosed) {
+      _eventLoopController.add(null);
+    }
   }
 
   @override
