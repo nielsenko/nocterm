@@ -1,6 +1,5 @@
 import 'package:markdown/markdown.dart' as md;
 import 'package:nocterm/nocterm.dart';
-import 'rich_text.dart';
 
 /// A widget that displays markdown-formatted text.
 ///

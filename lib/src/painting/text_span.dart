@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'inline_span.dart';
 
 /// An immutable span of text with optional children.
 ///

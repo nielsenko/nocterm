@@ -1,6 +1,5 @@
 import 'package:nocterm/nocterm.dart' hide TextAlign;
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/src/painting/inline_span.dart';
 
 import '../text/text_layout_engine.dart';
 import '../utils/unicode_width.dart';

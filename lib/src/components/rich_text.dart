@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart' hide TextAlign;
-import 'package:nocterm/src/painting/inline_span.dart';
 import 'render_paragraph.dart';
 
 // Re-export text related enums and classes

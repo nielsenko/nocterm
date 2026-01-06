@@ -1,5 +1,4 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/components/rich_text.dart';
 import 'package:test/test.dart';
 
 void main() {
