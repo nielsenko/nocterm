@@ -798,7 +798,11 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     return currentPosition; // Exact total extent
   }
 
-  /// Helper to get render object from element
+  /// Helper to get render object from element and attach it to this viewport.
+  ///
+  /// This ensures child render objects are properly attached to the pipeline
+  /// owner, which is necessary for features like GestureDetector that create
+  /// their annotations in attach().
   RenderObject? _getRenderObject(Element element) {
     RenderObject? renderObject;
     void findRenderObject(Element el) {
@@ -810,6 +814,13 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     }
 
     findRenderObject(element);
+
+    // Attach the render object to this viewport's owner if not already attached
+    if (renderObject != null && owner != null && renderObject!.owner != owner) {
+      renderObject!.parent = this;
+      renderObject!.attach(owner!);
+    }
+
     return renderObject;
   }
 

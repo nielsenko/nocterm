@@ -277,7 +277,6 @@ class _RenderGestureDetector extends RenderMouseRegion {
   MouseTrackerAnnotation? _gestureAnnotation;
 
   // Track button press state to detect state transitions
-  // This is more reliable than using isMotion flag
   bool _isLeftButtonPressed = false;
 
   @override
@@ -321,7 +320,7 @@ class _RenderGestureDetector extends RenderMouseRegion {
         }
 
         // Detect button state transitions (pressed -> not pressed, or vice versa)
-        // This works regardless of the isMotion flag
+        // This works regardless of the isMotion flag by tracking actual state changes
         if (event.button == MouseButton.left) {
           if (event.pressed && !_isLeftButtonPressed) {
             // Button was just pressed while hovering
@@ -346,12 +345,13 @@ class _RenderGestureDetector extends RenderMouseRegion {
 
   @override
   bool hitTestSelf(Offset position) {
-    switch (_behavior) {
-      case HitTestBehavior.deferToChild:
-        return false;
-      case HitTestBehavior.opaque:
-      case HitTestBehavior.translucent:
-        return true;
-    }
+    // GestureDetector should always be hittable within its bounds when it has
+    // gesture callbacks registered. This ensures taps work even when child
+    // content is offset (e.g., by Center widget).
+    //
+    // The HitTestBehavior controls whether hits pass through to widgets
+    // behind (via hitTest returning early for opaque), not whether this
+    // GestureDetector itself is hittable.
+    return true;
   }
 }
