@@ -831,6 +831,11 @@ class TerminalBinding extends NoctermBinding
           continue;
         }
 
+        // Skip zero-width space markers (used for wide character tracking)
+        if (cell.char == '\u200B') {
+          continue;
+        }
+
         // Cell changed - move cursor and write
         terminal.moveCursor(x, y);
 
@@ -878,6 +883,11 @@ class TerminalBinding extends NoctermBinding
     for (int y = 0; y < buffer.height; y++) {
       for (int x = 0; x < buffer.width; x++) {
         final cell = buffer.getCell(x, y);
+
+        // Skip zero-width space markers (used for wide character tracking)
+        if (cell.char == '\u200B') {
+          continue;
+        }
 
         // Handle style
         final hasStyle = cell.style.color != null ||
