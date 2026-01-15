@@ -29,6 +29,7 @@ class ListView extends StatefulComponent {
     this.itemExtent,
     this.lazy = false,
     this.keyboardScrollable = false,
+    this.cacheExtent = 5.0,
     List<Component> children = const [],
   })  : itemCount = children.length,
         itemBuilder = ((context, index) => children[index]),
@@ -48,6 +49,7 @@ class ListView extends StatefulComponent {
     this.itemExtent,
     this.lazy = false,
     this.keyboardScrollable = false,
+    this.cacheExtent = 5.0,
     required this.itemBuilder,
     this.itemCount,
   }) : separatorBuilder = null;
@@ -61,6 +63,7 @@ class ListView extends StatefulComponent {
     this.padding,
     this.lazy = false,
     this.keyboardScrollable = false,
+    this.cacheExtent = 5.0,
     required this.itemBuilder,
     required this.separatorBuilder,
     this.itemCount,
@@ -110,6 +113,16 @@ class ListView extends StatefulComponent {
   /// - Page Up/Down: scroll by viewport height
   /// - Home/End: scroll to start/end
   final bool keyboardScrollable;
+
+  /// The number of pixels to build before and after the visible area.
+  ///
+  /// Items within this distance of the visible region will be pre-built,
+  /// which makes scrolling smoother by having content ready before it
+  /// becomes visible.
+  ///
+  /// Defaults to 5.0 (appropriate for TUI where 1 unit = 1 row). Higher values mean smoother
+  /// scrolling but more memory usage.
+  final double cacheExtent;
 
   /// Called to build children for the list.
   final IndexedWidgetBuilder itemBuilder;
@@ -211,6 +224,7 @@ class _ListViewState extends State<ListView> {
       padding: component.padding,
       itemExtent: component.itemExtent,
       lazy: component.lazy,
+      cacheExtent: component.cacheExtent,
       itemBuilder: component.itemBuilder,
       separatorBuilder: component.separatorBuilder,
       itemCount: component.itemCount,
@@ -238,6 +252,7 @@ class _ListViewport extends RenderObjectComponent {
     this.padding,
     this.itemExtent,
     this.lazy = false,
+    this.cacheExtent = 5.0,
     required this.itemBuilder,
     this.separatorBuilder,
     this.itemCount,
@@ -249,6 +264,7 @@ class _ListViewport extends RenderObjectComponent {
   final EdgeInsets? padding;
   final double? itemExtent;
   final bool lazy;
+  final double cacheExtent;
   final IndexedWidgetBuilder itemBuilder;
   final IndexedWidgetBuilder? separatorBuilder;
   final int? itemCount;
@@ -265,6 +281,7 @@ class _ListViewport extends RenderObjectComponent {
       padding: padding,
       itemExtent: itemExtent,
       lazy: lazy,
+      cacheExtent: cacheExtent,
       hasSeparators: separatorBuilder != null,
     );
   }
@@ -279,6 +296,7 @@ class _ListViewport extends RenderObjectComponent {
       ..padding = padding
       ..itemExtent = itemExtent
       ..lazy = lazy
+      ..cacheExtent = cacheExtent
       ..hasSeparators = separatorBuilder != null;
   }
 }
@@ -487,6 +505,7 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     EdgeInsets? padding,
     double? itemExtent,
     bool lazy = false,
+    double cacheExtent = 250.0,
     bool hasSeparators = false,
   })  : _scrollDirection = scrollDirection,
         _reverse = reverse,
@@ -494,6 +513,7 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
         _padding = padding,
         _itemExtent = itemExtent,
         _lazy = lazy,
+        _cacheExtent = cacheExtent,
         _hasSeparators = hasSeparators {
     _controller.addListener(_handleScrollUpdate);
     _controller.attach(this);
@@ -555,6 +575,15 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   set lazy(bool value) {
     if (_lazy != value) {
       _lazy = value;
+      markNeedsLayout();
+    }
+  }
+
+  double _cacheExtent;
+  double get cacheExtent => _cacheExtent;
+  set cacheExtent(double value) {
+    if (_cacheExtent != value) {
+      _cacheExtent = value;
       markNeedsLayout();
     }
   }
@@ -629,6 +658,11 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
 
   /// All built children when not lazy (for accurate extent calculation).
   final List<_ChildLayoutInfo> _allChildren = [];
+
+  /// First and last item indices that were built (includes cache area).
+  /// Used to clean up children outside the cached range.
+  int _firstBuiltIndex = 0;
+  int _lastBuiltIndex = 0;
 
   /// Tracks the average item extent for estimating total scroll extent
   double? _averageItemExtent;
@@ -745,13 +779,11 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
       axisDirection: axisDirection,
     );
 
-    // Clean up invisible children in lazy mode
-    if (_lazy && _visibleChildren.isNotEmpty) {
-      final firstIndex = _visibleChildren.first.index;
-      final lastIndex = _visibleChildren.last.index;
+    // Clean up children outside the cached range in lazy mode
+    if (_lazy) {
       _element!.removeInvisibleChildren(
-        firstIndex >= 0 ? firstIndex : 0,
-        lastIndex >= 0 ? lastIndex : itemCount ?? lastIndex,
+        _firstBuiltIndex,
+        _lastBuiltIndex,
       );
     }
 
@@ -767,16 +799,26 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   }) {
     final scrollOffset = _controller.offset;
 
-    // Find first visible item using cache for O(1) lookup
-    final (startIndex, startPosition) = _findStartingPosition(scrollOffset);
+    // Include cache area before and after visible region for smoother scrolling
+    final cacheStart =
+        (scrollOffset - _cacheExtent).clamp(0.0, double.infinity);
+    final cacheEnd = scrollOffset + viewportExtent + _cacheExtent;
+
+    // Find first item to build (including cache before visible area)
+    final (startIndex, startPosition) = _findStartingPosition(cacheStart);
     int itemIndex = startIndex;
     double currentPosition = startPosition;
+
+    // Track built range for cleanup
+    _firstBuiltIndex = startIndex;
+    _lastBuiltIndex = startIndex;
 
     // Track total extent of measured items for average calculation
     double totalMeasuredExtent = 0;
     int measuredCount = 0;
 
-    while (currentPosition < scrollOffset + viewportExtent) {
+    // Build items until we've covered the cache area
+    while (currentPosition < cacheEnd) {
       if (itemCount != null && itemIndex >= itemCount) break;
 
       // Build item
@@ -801,8 +843,9 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
       _itemOffsets[itemIndex] = currentPosition;
       _itemExtents[itemIndex] = childExtent;
 
-      // Store child info if visible
-      if (currentPosition + childExtent > scrollOffset) {
+      // Store child info if visible (not just in cache area)
+      if (currentPosition + childExtent > scrollOffset &&
+          currentPosition < scrollOffset + viewportExtent) {
         _visibleChildren.add(_ChildLayoutInfo(
           renderObject: renderObject,
           offset: currentPosition,
@@ -824,7 +867,9 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
                 ? separatorRenderObject.size.height
                 : separatorRenderObject.size.width;
 
-            if (currentPosition + separatorExtent > scrollOffset) {
+            // Store separator if visible
+            if (currentPosition + separatorExtent > scrollOffset &&
+                currentPosition < scrollOffset + viewportExtent) {
               _visibleChildren.add(_ChildLayoutInfo(
                 renderObject: separatorRenderObject,
                 offset: currentPosition,
@@ -836,6 +881,8 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
         }
       }
 
+      // Update last built index
+      _lastBuiltIndex = itemIndex;
       itemIndex++;
     }
 
