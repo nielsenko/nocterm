@@ -5,8 +5,10 @@ import 'package:nocterm/src/framework/terminal_canvas.dart';
 /// Render object for flex layouts (Row/Column)
 class RenderFlex extends RenderObject
     with ContainerRenderObjectMixin<RenderObject> {
-  /// Whether to show overflow indicators in debug mode
-  static bool debugShowOverflowIndicator = true;
+  /// Whether to show overflow indicators in debug mode.
+  /// Disabled by default to avoid visual artifacts in production.
+  /// Set to true during development to debug layout overflow issues.
+  static bool debugShowOverflowIndicator = false;
 
   RenderFlex({
     required Axis direction,
