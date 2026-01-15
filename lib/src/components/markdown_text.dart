@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart' as md;
 import 'package:nocterm/nocterm.dart';
+import 'package:nocterm/src/utils/unicode_width.dart';
 
 /// A widget that displays markdown-formatted text.
 ///
@@ -423,14 +424,15 @@ class _MarkdownVisitor {
                   }
                   rows.add(cells);
 
-                  // Update column widths
+                  // Update column widths (using display width, not string length)
                   for (int i = 0; i < cells.length; i++) {
                     if (i >= columnWidths.length) {
                       columnWidths.add(0);
                     }
-                    columnWidths[i] = columnWidths[i] > cells[i].length
+                    final cellWidth = UnicodeWidth.stringWidth(cells[i]);
+                    columnWidths[i] = columnWidths[i] > cellWidth
                         ? columnWidths[i]
-                        : cells[i].length;
+                        : cellWidth;
                   }
                 }
               }
@@ -458,7 +460,14 @@ class _MarkdownVisitor {
         buffer.write('│');
         for (int c = 0; c < rows[r].length; c++) {
           buffer.write(' ');
-          buffer.write(rows[r][c].padRight(columnWidths[c]));
+          // Use unicode-aware padding (pad based on display width, not string length)
+          final cellContent = rows[r][c];
+          final cellDisplayWidth = UnicodeWidth.stringWidth(cellContent);
+          final paddingNeeded = columnWidths[c] - cellDisplayWidth;
+          buffer.write(cellContent);
+          if (paddingNeeded > 0) {
+            buffer.write(' ' * paddingNeeded);
+          }
           buffer.write(' │');
         }
         buffer.write('\n');
