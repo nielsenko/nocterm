@@ -106,10 +106,10 @@ class _SingleChildScrollViewState extends State<SingleChildScrollView> {
 
     // Page Up/Down for viewport-sized scroll
     if (event.logicalKey == LogicalKey.pageUp) {
-      controller.scrollUp(controller.viewportDimension ?? 10);
+      controller.scrollUp(controller.viewportDimension);
       return true;
     } else if (event.logicalKey == LogicalKey.pageDown) {
-      controller.scrollDown(controller.viewportDimension ?? 10);
+      controller.scrollDown(controller.viewportDimension);
       return true;
     }
 
@@ -118,7 +118,7 @@ class _SingleChildScrollViewState extends State<SingleChildScrollView> {
       controller.jumpTo(0);
       return true;
     } else if (event.logicalKey == LogicalKey.end) {
-      controller.jumpTo(controller.maxScrollExtent ?? 0);
+      controller.jumpTo(controller.maxScrollExtent);
       return true;
     }
 
