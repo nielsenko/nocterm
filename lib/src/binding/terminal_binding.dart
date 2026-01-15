@@ -906,19 +906,8 @@ class TerminalBinding extends NoctermBinding
           continue;
         }
 
-        // Handle zero-width space markers (used for wide character tracking)
+        // Skip zero-width space markers (used for wide character tracking)
         if (cell.char == '\u200B') {
-          // If the previous cell at this position was NOT a marker,
-          // we need to clear it (the wide char in the previous cell
-          // needs its second cell cleared)
-          if (prevCell.char != '\u200B' && prevCell.char != ' ') {
-            terminal.moveCursor(x, y);
-            if (currentStyle != null) {
-              terminal.write(TextStyle.reset);
-              currentStyle = null;
-            }
-            terminal.write(' ');
-          }
           continue;
         }
 
@@ -973,14 +962,8 @@ class TerminalBinding extends NoctermBinding
       for (int x = 0; x < buffer.width; x++) {
         final cell = buffer.getCell(x, y);
 
-        // Handle zero-width space markers (used for wide character tracking)
-        // Write a space to maintain cursor position alignment
+        // Skip zero-width space markers (used for wide character tracking)
         if (cell.char == '\u200B') {
-          if (currentStyle != null) {
-            terminal.write(TextStyle.reset);
-            currentStyle = null;
-          }
-          terminal.write(' ');
           continue;
         }
 
