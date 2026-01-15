@@ -243,8 +243,22 @@ class _ListViewportElement extends RenderObjectElement {
   @override
   void update(Component newComponent) {
     super.update(newComponent);
+    // Clear cached children so they get rebuilt with new props
+    // This is necessary when parent state changes (e.g., selection index)
+    _clearChildren();
     // Force rebuild to update children
     renderObject.markNeedsLayout();
+  }
+
+  /// Clears all cached children, unmounting them properly.
+  void _clearChildren() {
+    for (final child in _children.values) {
+      if (child.mounted) {
+        child.deactivate();
+        child.unmount();
+      }
+    }
+    _children.clear();
   }
 
   @override
@@ -278,23 +292,21 @@ class _ListViewportElement extends RenderObjectElement {
       return null;
     }
 
-    // Build the child widget
+    // Return cached element if it exists - avoids redundant itemBuilder calls
+    final existingChild = _children[index];
+    if (existingChild != null) {
+      return existingChild;
+    }
+
+    // Only call itemBuilder when we need to create a new element
     final child = component.itemBuilder(this, index);
     if (child == null) return null;
 
-    // Update or create element
-    final oldChild = _children[index];
-    if (oldChild != null && Component.canUpdate(oldChild.component, child)) {
-      oldChild.update(child);
-      return oldChild;
-    } else {
-      oldChild?.unmount();
-      // ignore: invalid_use_of_protected_member
-      final newChild = child.createElement();
-      _children[index] = newChild;
-      newChild.mount(this, index);
-      return newChild;
-    }
+    // ignore: invalid_use_of_protected_member
+    final newChild = child.createElement();
+    _children[index] = newChild;
+    newChild.mount(this, index);
+    return newChild;
   }
 
   /// Builds a separator at the given index.
