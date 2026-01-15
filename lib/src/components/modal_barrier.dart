@@ -264,9 +264,9 @@ class _FadeTintState extends State<FadeTint>
 /// For example, when a dialog is on the screen, the page below the dialog is
 /// usually darkened by the modal barrier.
 ///
-/// This widget uses alpha blending to create a semi-transparent overlay effect.
-/// The terminal's alpha blending will composite the barrier color over the
-/// existing content.
+/// Set [obscure] to true to completely hide the content behind the barrier
+/// (fills with spaces). When false, the barrier will only tint the colors of
+/// the underlying content, preserving the text characters.
 ///
 /// See also:
 ///
@@ -279,12 +279,13 @@ class ModalBarrier extends StatelessComponent {
     this.color,
     this.dismissible = true,
     this.onDismiss,
+    this.obscure = true,
   });
 
   /// If non-null, fill the barrier with this color.
   ///
   /// A typical value is `Colors.black.withOpacity(0.5)` for a 50% black scrim.
-  /// Using colors with alpha < 255 will show the content behind dimmed.
+  /// Using colors with alpha < 255 will show the content behind dimmed (if [obscure] is false).
   final Color? color;
 
   /// Whether tapping/clicking the barrier will dismiss it.
@@ -300,12 +301,20 @@ class ModalBarrier extends StatelessComponent {
   /// user taps on the barrier.
   final VoidCallback? onDismiss;
 
+  /// When true (default), fills the barrier area with spaces, completely hiding
+  /// any content underneath.
+  ///
+  /// When false, semi-transparent colors will only tint the underlying content
+  /// without erasing the text characters.
+  final bool obscure;
+
   @override
   Component build(BuildContext context) {
     // Use a GestureDetector if dismissible, otherwise just the colored box
     Component barrier = SizedBox.expand(
-      child:
-          color != null ? ColoredBox(color: color!) : const SizedBox.shrink(),
+      child: color != null
+          ? ColoredBox(color: color!, obscure: obscure)
+          : const SizedBox.shrink(),
     );
 
     if (dismissible && onDismiss != null) {
@@ -324,38 +333,61 @@ class ModalBarrier extends StatelessComponent {
 ///
 /// This is a simple render object that paints a solid color over its entire
 /// area, supporting alpha blending for semi-transparent effects.
+///
+/// Set [obscure] to true to fill with spaces, completely hiding any content
+/// underneath. When false (default), semi-transparent colors will tint the
+/// underlying content without erasing the text.
 class ColoredBox extends SingleChildRenderObjectComponent {
   /// Creates a widget that paints its area with the specified [color].
   const ColoredBox({
     super.key,
     required this.color,
+    this.obscure = false,
     super.child,
   });
 
   /// The color to paint.
   final Color color;
 
+  /// When true, fills the area with spaces to completely hide underlying content.
+  /// When false (default), semi-transparent colors only tint the underlying content.
+  final bool obscure;
+
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderColoredBox(color: color);
+    return RenderColoredBox(color: color, obscure: obscure);
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderColoredBox renderObject) {
-    renderObject.color = color;
+    renderObject
+      ..color = color
+      ..obscure = obscure;
   }
 }
 
 /// A render object that paints a solid color.
 class RenderColoredBox extends RenderObject
     with RenderObjectWithChildMixin<RenderObject> {
-  RenderColoredBox({required Color color}) : _color = color;
+  RenderColoredBox({required Color color, bool obscure = false})
+      : _color = color,
+        _obscure = obscure;
 
   Color _color;
   Color get color => _color;
   set color(Color value) {
     if (_color == value) return;
     _color = value;
+    markNeedsPaint();
+  }
+
+  /// When true, fills the area with spaces (blocking underlying content).
+  /// When false (default), semi-transparent colors only tint the underlying content.
+  bool _obscure;
+  bool get obscure => _obscure;
+  set obscure(bool value) {
+    if (_obscure == value) return;
+    _obscure = value;
     markNeedsPaint();
   }
 
@@ -391,18 +423,19 @@ class RenderColoredBox extends RenderObject
       size.height,
     );
 
-    // If the color has transparency, use applyTint to preserve underlying content
-    // Otherwise, use fillRect to replace the content
-    if (_color.alpha < 255) {
-      // Semi-transparent: apply as a tint overlay, preserving characters
-      canvas.applyTint(rect, _color);
-    } else {
-      // Fully opaque: fill with spaces and the background color
+    // If obscure is true or color is fully opaque, fill with spaces to hide content
+    // Otherwise, use applyTint to preserve underlying content (just change colors)
+    if (_obscure || _color.alpha >= 255) {
+      // Obscure mode or fully opaque: fill with spaces and the background color
+      // This completely hides any underlying text
       canvas.fillRect(
         rect,
         ' ',
         style: TextStyle(backgroundColor: _color),
       );
+    } else {
+      // Semi-transparent without obscure: apply as a tint overlay, preserving characters
+      canvas.applyTint(rect, _color);
     }
 
     // Paint child on top
@@ -449,6 +482,7 @@ class AnimatedModalBarrier extends AnimatedComponent {
     required Animation<Color?> color,
     this.dismissible = true,
     this.onDismiss,
+    this.obscure = true,
   }) : super(listenable: color);
 
   /// The animated color of the barrier.
@@ -460,12 +494,16 @@ class AnimatedModalBarrier extends AnimatedComponent {
   /// Called when the barrier is dismissed.
   final VoidCallback? onDismiss;
 
+  /// When true (default), completely hides content behind the barrier.
+  final bool obscure;
+
   @override
   Component build(BuildContext context) {
     return ModalBarrier(
       color: color.value,
       dismissible: dismissible,
       onDismiss: onDismiss,
+      obscure: obscure,
     );
   }
 }
@@ -484,6 +522,7 @@ class FadeModalBarrier extends StatefulComponent {
     this.dismissible = true,
     this.onDismiss,
     this.duration = const Duration(milliseconds: 200),
+    this.obscure = true,
   });
 
   /// The target color of the barrier when fully visible.
@@ -499,6 +538,9 @@ class FadeModalBarrier extends StatefulComponent {
 
   /// The duration of the fade animation.
   final Duration duration;
+
+  /// When true (default), completely hides content behind the barrier.
+  final bool obscure;
 
   @override
   State<FadeModalBarrier> createState() => _FadeModalBarrierState();
@@ -553,6 +595,7 @@ class _FadeModalBarrierState extends State<FadeModalBarrier>
       color: _colorAnimation,
       dismissible: component.dismissible,
       onDismiss: component.onDismiss,
+      obscure: component.obscure,
     );
   }
 }
