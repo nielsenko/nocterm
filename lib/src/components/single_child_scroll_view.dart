@@ -9,6 +9,9 @@ import '../rendering/scrollable_render_object.dart';
 /// This widget is useful when you have a single box that will normally be
 /// entirely visible, but you need to make sure it can be scrolled if the
 /// container gets too small in one axis.
+///
+/// Set [keyboardScrollable] to true to enable keyboard navigation with
+/// arrow keys, Page Up/Down, and Home/End.
 class SingleChildScrollView extends StatefulComponent {
   const SingleChildScrollView({
     super.key,
@@ -16,6 +19,7 @@ class SingleChildScrollView extends StatefulComponent {
     this.controller,
     this.padding,
     this.child,
+    this.keyboardScrollable = false,
   });
 
   /// The axis along which the scroll view scrolls.
@@ -30,6 +34,14 @@ class SingleChildScrollView extends StatefulComponent {
 
   /// The widget that scrolls.
   final Component? child;
+
+  /// Whether to enable keyboard scrolling with arrow keys, Page Up/Down, etc.
+  ///
+  /// When true, the scroll view will be wrapped in a [Focusable] that handles:
+  /// - Arrow Up/Down (or Left/Right for horizontal): scroll by 1 line
+  /// - Page Up/Down: scroll by viewport height
+  /// - Home/End: scroll to start/end
+  final bool keyboardScrollable;
 
   @override
   State<SingleChildScrollView> createState() => _SingleChildScrollViewState();
@@ -69,6 +81,50 @@ class _SingleChildScrollViewState extends State<SingleChildScrollView> {
     super.dispose();
   }
 
+  bool _handleKeyEvent(KeyboardEvent event) {
+    final controller = _effectiveController;
+    final isVertical = component.scrollDirection == Axis.vertical;
+
+    // Arrow keys for single line scroll
+    if (isVertical) {
+      if (event.logicalKey == LogicalKey.arrowUp) {
+        controller.scrollUp(1.0);
+        return true;
+      } else if (event.logicalKey == LogicalKey.arrowDown) {
+        controller.scrollDown(1.0);
+        return true;
+      }
+    } else {
+      if (event.logicalKey == LogicalKey.arrowLeft) {
+        controller.scrollUp(1.0);
+        return true;
+      } else if (event.logicalKey == LogicalKey.arrowRight) {
+        controller.scrollDown(1.0);
+        return true;
+      }
+    }
+
+    // Page Up/Down for viewport-sized scroll
+    if (event.logicalKey == LogicalKey.pageUp) {
+      controller.scrollUp(controller.viewportDimension ?? 10);
+      return true;
+    } else if (event.logicalKey == LogicalKey.pageDown) {
+      controller.scrollDown(controller.viewportDimension ?? 10);
+      return true;
+    }
+
+    // Home/End for scroll to start/end
+    if (event.logicalKey == LogicalKey.home) {
+      controller.jumpTo(0);
+      return true;
+    } else if (event.logicalKey == LogicalKey.end) {
+      controller.jumpTo(controller.maxScrollExtent ?? 0);
+      return true;
+    }
+
+    return false;
+  }
+
   @override
   Component build(BuildContext context) {
     Component? child = component.child;
@@ -80,11 +136,22 @@ class _SingleChildScrollViewState extends State<SingleChildScrollView> {
       );
     }
 
-    return _SingleChildViewport(
+    Component viewport = _SingleChildViewport(
       scrollDirection: component.scrollDirection,
       controller: _effectiveController,
       child: child,
     );
+
+    // Wrap with Focusable for keyboard scrolling if enabled
+    if (component.keyboardScrollable) {
+      viewport = Focusable(
+        focused: true,
+        onKeyEvent: _handleKeyEvent,
+        child: viewport,
+      );
+    }
+
+    return viewport;
   }
 }
 
