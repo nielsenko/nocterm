@@ -841,8 +841,6 @@ void main() {
       await testNocterm(
         'gesture items',
         (tester) async {
-          int tappedIndex = -1;
-
           await tester.pumpComponent(
             Container(
               width: 30,
@@ -851,7 +849,7 @@ void main() {
                 itemCount: 5,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () => tappedIndex = index,
+                    onTap: () {},
                     child: Text('Tap me $index'),
                   );
                 },
