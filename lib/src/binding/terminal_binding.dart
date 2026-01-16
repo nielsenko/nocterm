@@ -1051,12 +1051,12 @@ class TerminalBinding extends NoctermBinding
     final total = avgBuild + avgLayout + avgPaint + avgDiff + avgAlloc;
 
     print('=== DETAILED PROFILE ($_profileFrames frames) ===');
-    print('  Buffer alloc: ${avgAlloc}μs (${_pct(avgAlloc, total)}%)');
-    print('  Build:        ${avgBuild}μs (${_pct(avgBuild, total)}%)');
-    print('  Layout:       ${avgLayout}μs (${_pct(avgLayout, total)}%)');
-    print('  Paint:        ${avgPaint}μs (${_pct(avgPaint, total)}%)');
-    print('  Diff render:  ${avgDiff}μs (${_pct(avgDiff, total)}%)');
-    print('  TOTAL:        ${total}μs per frame');
+    print('  Buffer alloc: $avgAllocμs (${_pct(avgAlloc, total)}%)');
+    print('  Build:        $avgBuildμs (${_pct(avgBuild, total)}%)');
+    print('  Layout:       $avgLayoutμs (${_pct(avgLayout, total)}%)');
+    print('  Paint:        $avgPaintμs (${_pct(avgPaint, total)}%)');
+    print('  Diff render:  $avgDiffμs (${_pct(avgDiff, total)}%)');
+    print('  TOTAL:        $totalμs per frame');
     print('');
 
     // Reset

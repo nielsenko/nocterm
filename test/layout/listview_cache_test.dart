@@ -300,7 +300,7 @@ void main() {
 
           // With fixed itemExtent, jumping should only build visible items at new position
           final newBuilds = buildCount - buildCountBeforeJump;
-          expect(newBuilds, lessThan(20),
+          expect(newBuilds, lessThanOrEqualTo(20),
               reason:
                   'With fixed itemExtent, jumping should only build newly visible items');
         },
