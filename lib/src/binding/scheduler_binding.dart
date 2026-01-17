@@ -468,7 +468,7 @@ mixin SchedulerBinding on NoctermBinding {
     }
     if (debugPrintScheduleFrameStacks) {
       print('scheduleFrame() called:');
-      print(StackTrace.current.toString().split('\n').take(10).join('\n'));
+      print(StackTrace.current.toString().split('\n').take(50).join('\n'));
     }
     _hasScheduledFrame = true;
     scheduleFrameImpl();

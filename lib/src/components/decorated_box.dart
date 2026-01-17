@@ -40,6 +40,19 @@ class BorderTitle {
 
   /// Returns the length of the title in characters.
   int get length => plainText.length;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BorderTitle &&
+        other.text == text &&
+        other.textSpan == textSpan &&
+        other.alignment == alignment &&
+        other.style == style;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, textSpan, alignment, style);
 }
 
 /// Sentinel color value that indicates "use theme default".
@@ -73,6 +86,18 @@ class BorderSide {
       style: style ?? this.style,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BorderSide &&
+        other.color == color &&
+        other.width == width &&
+        other.style == style;
+  }
+
+  @override
+  int get hashCode => Object.hash(color, width, style);
 }
 
 /// Border style options
@@ -121,6 +146,19 @@ class BoxBorder {
       left: left.usesDefaultColor ? left.copyWith(color: themeColor) : left,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BoxBorder &&
+        other.top == top &&
+        other.right == right &&
+        other.bottom == bottom &&
+        other.left == left;
+  }
+
+  @override
+  int get hashCode => Object.hash(top, right, bottom, left);
 }
 
 /// Box shadow configuration
@@ -136,6 +174,19 @@ class BoxShadow {
   final Offset offset;
   final double blurRadius;
   final double spreadRadius;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BoxShadow &&
+        other.color == color &&
+        other.offset == offset &&
+        other.blurRadius == blurRadius &&
+        other.spreadRadius == spreadRadius;
+  }
+
+  @override
+  int get hashCode => Object.hash(color, offset, blurRadius, spreadRadius);
 }
 
 /// Border radius configuration
@@ -171,6 +222,19 @@ class BorderRadius {
       topRight == Radius.zero &&
       bottomLeft == Radius.zero &&
       bottomRight == Radius.zero;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is BorderRadius &&
+        other.topLeft == topLeft &&
+        other.topRight == topRight &&
+        other.bottomLeft == bottomLeft &&
+        other.bottomRight == bottomRight;
+  }
+
+  @override
+  int get hashCode => Object.hash(topLeft, topRight, bottomLeft, bottomRight);
 }
 
 /// Radius configuration
@@ -232,6 +296,42 @@ class BoxDecoration {
       title: title,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BoxDecoration) return false;
+    // Compare lists element by element
+    if (boxShadow != null && other.boxShadow != null) {
+      if (boxShadow!.length != other.boxShadow!.length) return false;
+      for (int i = 0; i < boxShadow!.length; i++) {
+        if (boxShadow![i] != other.boxShadow![i]) return false;
+      }
+    } else if (boxShadow != other.boxShadow) {
+      return false;
+    }
+    return other.color == color &&
+        other.image == image &&
+        other.border == border &&
+        other.borderRadius == borderRadius &&
+        other.gradient == gradient &&
+        other.backgroundBlendMode == backgroundBlendMode &&
+        other.shape == shape &&
+        other.title == title;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        color,
+        image,
+        border,
+        borderRadius,
+        boxShadow != null ? Object.hashAll(boxShadow!) : null,
+        gradient,
+        backgroundBlendMode,
+        shape,
+        title,
+      );
 }
 
 /// Shape of the box
@@ -244,6 +344,15 @@ enum BoxShape {
 class DecorationImage {
   const DecorationImage({required this.image});
   final Object image;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DecorationImage && other.image == image;
+  }
+
+  @override
+  int get hashCode => image.hashCode;
 }
 
 /// Gradient (placeholder for future implementation)
@@ -264,6 +373,35 @@ class LinearGradient extends Gradient {
   final AlignmentGeometry end;
   final List<Color> colors;
   final List<double>? stops;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LinearGradient) return false;
+    // Compare colors
+    if (colors.length != other.colors.length) return false;
+    for (int i = 0; i < colors.length; i++) {
+      if (colors[i] != other.colors[i]) return false;
+    }
+    // Compare stops
+    if (stops != null && other.stops != null) {
+      if (stops!.length != other.stops!.length) return false;
+      for (int i = 0; i < stops!.length; i++) {
+        if (stops![i] != other.stops![i]) return false;
+      }
+    } else if (stops != other.stops) {
+      return false;
+    }
+    return other.begin == begin && other.end == end;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        begin,
+        end,
+        Object.hashAll(colors),
+        stops != null ? Object.hashAll(stops!) : null,
+      );
 }
 
 /// Blend mode (placeholder)

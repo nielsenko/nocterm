@@ -73,9 +73,13 @@ class LayoutBuilderElement extends RenderObjectElement {
   @override
   void update(Component newComponent) {
     super.update(newComponent);
-    // Mark that we need to rebuild with the new builder function
+    // Mark that we need to rebuild with the new builder function.
+    // We DON'T call markNeedsLayout() here because:
+    // 1. If constraints change, layout will be triggered by the parent anyway
+    // 2. If only the builder changed, we'll use it next time layout runs
+    // 3. Calling markNeedsLayout unconditionally causes infinite frame loops
+    //    when the parent rebuilds frequently (e.g., due to ValueListenableBuilder)
     _needsBuild = true;
-    renderObject.markNeedsLayout();
   }
 
   @override

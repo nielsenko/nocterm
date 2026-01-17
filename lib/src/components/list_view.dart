@@ -350,8 +350,11 @@ class _ListViewportElement extends RenderObjectElement {
     // This is necessary when parent state changes (e.g., selection index)
     _needsChildUpdate = true;
     _updatedThisLayout.clear();
-    // Force rebuild to update children
-    renderObject.markNeedsLayout();
+    // NOTE: We do NOT call markNeedsLayout() here because:
+    // 1. If layout is needed, it will be triggered by constraint changes
+    // 2. Calling it unconditionally causes infinite frame loops when parent
+    //    rebuilds frequently (e.g., due to ValueListenableBuilder)
+    // 3. The _needsChildUpdate flag ensures children get updated on next layout
   }
 
   /// Called by RenderListViewport after layout completes to reset update flags.
