@@ -4,6 +4,9 @@
     "components",
     "building-uis",
     "state",
-    "hot-reload"
+    "animation",
+    "navigation",
+    "hot-reload",
+    "debug-overlay"
   ]
 }

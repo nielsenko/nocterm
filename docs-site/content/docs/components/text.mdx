@@ -291,8 +291,99 @@ Long text wraps. Design for 80-column terminals:
 Text('Short lines read better in terminals')
 ```
 
+## AsciiText
+
+`AsciiText` renders text as large ASCII art using customizable fonts:
+
+```dart
+AsciiText('HELLO')
+```
+
+### Available fonts
+
+Four built-in fonts are available:
+
+```dart
+// Standard (default) - 5 lines high, block style
+AsciiText('HELLO', font: AsciiFont.standard)
+
+// Banner - 7 lines high, large characters
+AsciiText('HELLO', font: AsciiFont.banner)
+
+// Block - 6 lines high, bold appearance
+AsciiText('HELLO', font: AsciiFont.block)
+
+// Slim - 5 lines high, minimalist style
+AsciiText('HELLO', font: AsciiFont.slim)
+```
+
+### Styling
+
+Apply styles like regular text:
+
+```dart
+AsciiText(
+  'WELCOME',
+  font: AsciiFont.block,
+  style: TextStyle(color: Colors.cyan),
+)
+```
+
+### Text alignment
+
+```dart
+AsciiText(
+  'TITLE',
+  font: AsciiFont.standard,
+  textAlign: TextAlign.center,
+)
+```
+
+### Supported characters
+
+Built-in fonts support:
+- Letters A-Z (case-insensitive)
+- Numbers 0-9
+- Common punctuation: `!?.,;:-_()[]{}/<>+=*#@&%$^~`\`'"`
+- Space
+
+Unsupported characters display as fallbacks.
+
+### Custom fonts
+
+Create custom fonts by extending `AsciiFont`:
+
+```dart
+class MyFont extends AsciiFont {
+  const MyFont();
+
+  @override
+  int get height => 3;
+
+  @override
+  int get letterSpacing => 1;  // Optional, defaults to 1
+
+  @override
+  Map<String, AsciiGlyph> get glyphs => {
+    'A': AsciiGlyph([' /\\ ', '/  \\', '----']),
+    'B': AsciiGlyph(['|--\\', '|--/', '|__\\']),
+    // ... more characters
+  };
+}
+
+// Use your custom font
+AsciiText('AB', font: MyFont())
+```
+
+### Best practices
+
+- Use ASCII text for headers, logos, and splash screens
+- Keep text short—ASCII art is wide
+- Test at your target terminal width (fonts can be 6-10 chars per letter)
+- Prefer `standard` or `slim` for space-constrained layouts
+
 ## Next steps
 
-- [Input](/components/input) - Add user input
-- [Layout](/components/layout) - Arrange text with layout components
-- [Scrolling](/components/scrolling) - Display long text with scrolling
+- [Input](/docs/components/input) - Add user input
+- [Layout](/docs/components/layout) - Arrange text with layout components
+- [Scrolling](/docs/components/scrolling) - Display long text with scrolling

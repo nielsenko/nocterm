@@ -103,7 +103,7 @@ ListView(
 
 Users can:
 - Scroll with the mouse wheel
-- Use arrow keys if wrapped in `Focusable`
+- Use arrow keys with `keyboardScrollable: true` (see [Keyboard scrolling](#keyboard-scrolling))
 
 ## ScrollController
 
@@ -180,30 +180,61 @@ double max = controller.position.maxScrollExtent;
 
 ## Keyboard scrolling
 
-Wrap `ListView` in `Focusable` for keyboard scrolling:
+Use `keyboardScrollable` for built-in keyboard navigation:
 
 ```dart
-Focusable(
-  focused: true,
-  onKeyEvent: (event) {
-    // Handle arrow keys for scrolling
-    if (event.logicalKey == LogicalKey.arrowDown) {
-      // Scroll down logic
-      return true;
-    }
-    if (event.logicalKey == LogicalKey.arrowUp) {
-      // Scroll up logic
-      return true;
-    }
-    return false;
-  },
-  child: ListView(
+ListView(
+  keyboardScrollable: true,
+  children: [
+    Text('Item 1'),
+    Text('Item 2'),
+    Text('Item 3'),
+  ],
+)
+```
+
+When `keyboardScrollable` is `true`, the list handles these keys automatically:
+- **Arrow Up/Down** (or Left/Right for horizontal): scroll by 1 line
+- **Page Up/Down**: scroll by viewport height
+- **Home/End**: scroll to start/end
+
+This also works with `SingleChildScrollView`:
+
+```dart
+SingleChildScrollView(
+  keyboardScrollable: true,
+  child: Column(
     children: [...],
   ),
 )
 ```
 
-> **Note**: As of version 0.1.0, `ListView` does not include automatic keyboard navigation. You must manually implement keyboard scrolling using `Focusable` and `ScrollController`.
+### Before and after comparison
+
+```dart
+// Before: Manual keyboard scrolling (still works if you need custom behavior)
+Focusable(
+  onKeyEvent: (event) {
+    if (event.logicalKey == LogicalKey.arrowDown) {
+      scrollController.jumpTo(scrollController.offset + 1);
+      return true;
+    }
+    return false;
+  },
+  child: ListView(
+    controller: scrollController,
+    children: [...],
+  ),
+)
+
+// After: Built-in keyboard scrolling
+ListView(
+  keyboardScrollable: true,
+  children: [...],
+)
+```
+
+> **Note**: The manual `Focusable` approach is still available for custom scrolling behavior.
 
 ## Performance tips
 
@@ -234,6 +265,35 @@ ListView(
 ```
 
 This improves scroll performance.
+
+### Use cacheExtent for smoother scrolling
+
+The `cacheExtent` property controls how many rows are pre-rendered outside the visible area. This makes scrolling feel smoother because content is ready before it becomes visible:
+
+```dart
+ListView(
+  cacheExtent: 10,  // Pre-render 10 rows outside visible area
+  children: [...],
+)
+```
+
+The default is `5.0` (appropriate for TUI where 1 unit = 1 row). Higher values provide smoother scrolling but use more memory.
+
+```dart
+// For very smooth scrolling in a long list
+ListView.builder(
+  cacheExtent: 20,  // Pre-render more items
+  itemCount: 1000,
+  itemBuilder: (context, index) => Text('Item $index'),
+)
+
+// For memory-constrained situations
+ListView.builder(
+  cacheExtent: 2,  // Minimal pre-rendering
+  itemCount: 1000,
+  itemBuilder: (context, index) => ExpensiveWidget(index),
+)
+```
 
 ## Common patterns
 
@@ -324,6 +384,6 @@ ListView.builder(
 
 ## Next steps
 
-- [Overlays](/components/overlays) - Display content on top
-- [Mouse Support](/interactivity/mouse) - Handle mouse events
-- [Layout](/components/layout) - Layout components
+- [Overlays](/docs/components/overlays) - Display content on top
+- [Mouse Support](/docs/interactivity/mouse) - Handle mouse events
+- [Layout](/docs/components/layout) - Layout components

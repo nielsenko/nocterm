@@ -1,3 +1,127 @@
+# 0.4.2
+
+## Bug Fixes
+- **Refactor**: Use built-in `getElementForInheritedComponentOfExactType` for cleaner code
+
+---
+
+# 0.4.1
+
+## Bug Fixes
+- **Test cleanup**: Remove unused variable in test
+
+---
+
+# 0.4.0
+
+## Major Features
+
+### Developer Tools
+- **DebugOverlay**: New debug overlay toggled with `Ctrl+G` showing real-time FPS, build/layout/paint timings, memory usage, and CPU usage
+- **FrameRate presets**: New `FrameRate` class with common presets (fps30, fps60, fps120, unlimited)
+
+### Scrolling Improvements
+- **keyboardScrollable**: New property on `ListView` and `SingleChildScrollView` to enable built-in arrow key scrolling
+- **cacheExtent**: New `cacheExtent` property on `ListView` for smoother scrolling with pre-rendered items
+- **Offset caching**: Performance optimization for variable-height ListView items
+
+### UI Components
+- **Tint widget**: New widget for applying color tints to children
+- **ModalBarrier.obscure**: New property to control barrier visibility
+- **ColoredBox.obscure**: Consistent obscure support across box widgets
+- **BoxConstraints equality**: Added `==` operator for constraint comparison
+
+### Animation
+- **ColorTween**: New tween for animating between colors
+- **Color.lerp**: Linear interpolation support for colors
+
+## Performance Improvements
+- **Paint phase optimization**: Skip paint phase when nothing visual changed
+- **ListView cache optimization**: Smarter cache invalidation to avoid excessive rebuilds
+- **Relayout on resize**: Proper relayout when terminal constraints change
+- **Reduced idle CPU**: Removed forced relayout hack
+
+## Bug Fixes
+- **ListView parent data**: Refactored to use parent data for layout offsets
+- **Scroll bounds**: Improved ListView scroll bounds clamping
+- **Wide character rendering**: Fixed zero-width space handling
+- **Scroll lag**: Resolved O(n) ListView performance issues
+- **Debug overflow indicator**: Disabled by default
+- **Markdown tables**: Use unicode display width for column calculations
+- **Analyzer warnings**: Resolved various warnings and unused code
+
+---
+
+# 0.3.5
+
+## Bug Fixes
+- **GestureDetector**: Fixed tap not working in ListView and with centered content
+
+---
+
+# 0.3.4
+
+## Bug Fixes
+- **Frame rate**: Respect frame rate limiting in TerminalBinding
+
+---
+
+# 0.3.3
+
+## Features
+- **BorderTitle rich text**: Added rich text support to border titles
+- **Clipping**: Implemented proper clipping in `RenderStack` and `Container`
+- **New components**: Added `ClipRect`, `OverflowBox`, and `SizedOverflowBox`
+
+## Bug Fixes
+- **Input freeze**: Fixed input freeze from rapid key sequences
+- **Mouse wheel**: Fixed stacking order issues with mouse wheel events
+
+---
+
+# 0.3.2
+
+## Bug Fixes
+- **Package publishing**: Include `lib/src/third_party` in published package
+
+---
+
+# 0.3.1
+
+## Bug Fixes
+- **Multi-child containers**: Pass slot through ProxyElement to maintain child order
+- **Stack repaint**: Implement `invokeLayoutCallback` to fix Stack repaint bug
+
+---
+
+# 0.3.0
+
+## Major Features
+
+### Animation System
+- **Flutter-like animations**: Complete animation system with `AnimationController`, `Animation`, `Tween`, `Curves`
+- **Ticker system**: Proper `Ticker` and `TickerProvider` for frame-based animations
+- **AnimatedBuilder**: Widget that rebuilds on animation changes
+- **SingleTickerProviderStateMixin**: Mixin for state classes that need animation support
+
+### New Components
+- **AsciiText**: Large ASCII art text renderer with extensible font system
+  - Built-in fonts: `standard`, `banner`, `block`, `slim`
+  - Custom font support via `AsciiFont` extension
+- **Builder**: Simple component for inline building (like Flutter's Builder)
+
+### TextField Improvements
+- **onKeyEvent callback**: Intercept key events before TextField processes them
+
+## Bug Fixes
+- **Overlay state**: Prevent setState call on unmounted OverlayState
+
+## Infrastructure
+- **Release workflow**: Automated pub.dev publishing with OIDC
+- **Version management**: Enhanced release workflow with custom version and README updates
+
+---
+
 # 0.2.0
 
 ## Highlights

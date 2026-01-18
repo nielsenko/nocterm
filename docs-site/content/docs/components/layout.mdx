@@ -358,8 +358,311 @@ Container(
 
 Design for small terminals (80×24). Test your layouts at different sizes.
 
+## Divider
+
+`Divider` draws a horizontal line:
+
+```dart
+Column(
+  children: [
+    Text('Section 1'),
+    Divider(),
+    Text('Section 2'),
+  ],
+)
+```
+
+### Divider styles
+
+```dart
+Divider(style: DividerStyle.single)   // ─ (default)
+Divider(style: DividerStyle.double)   // ═
+Divider(style: DividerStyle.dashed)   // ╌
+Divider(style: DividerStyle.dotted)   // ┈
+Divider(style: DividerStyle.bold)     // ━
+Divider(style: DividerStyle.ascii)    // -
+```
+
+### Divider properties
+
+```dart
+Divider(
+  height: 1,        // Total height including spacing
+  thickness: 1,     // Line thickness
+  indent: 2,        // Space before the line
+  endIndent: 2,     // Space after the line
+  color: Colors.gray,
+  style: DividerStyle.single,
+)
+```
+
+### VerticalDivider
+
+For vertical lines in rows:
+
+```dart
+Row(
+  children: [
+    Text('Left'),
+    VerticalDivider(),
+    Text('Right'),
+  ],
+)
+```
+
+## ProgressBar
+
+`ProgressBar` shows progress:
+
+```dart
+ProgressBar(value: 0.5)  // 50% complete
+```
+
+### Progress bar properties
+
+```dart
+ProgressBar(
+  value: 0.75,                           // 0.0 to 1.0
+  valueColor: Colors.green,              // Fill color
+  backgroundColor: Colors.grey,          // Empty area color
+  showPercentage: true,                  // Show "75%" in center
+  label: 'Loading...',                   // Custom label text
+  fillCharacter: '█',                    // Character for filled area
+  emptyCharacter: '░',                   // Character for empty area
+)
+```
+
+### Border styles
+
+Wrap with a border:
+
+```dart
+SizedBox(
+  width: 40,
+  height: 3,
+  child: ProgressBar(
+    value: 0.6,
+    borderStyle: ProgressBarBorderStyle.rounded,
+    valueColor: Colors.cyan,
+  ),
+)
+```
+
+**Border styles**: `single`, `rounded`, `double`, `ascii`, `bold`
+
+### Indeterminate progress
+
+For unknown progress:
+
+```dart
+ProgressBar(
+  indeterminate: true,
+  valueColor: Colors.yellow,
+)
+```
+
+### Custom characters
+
+```dart
+// Block style
+ProgressBar(value: 0.5, fillCharacter: '▓', emptyCharacter: '░')
+
+// Dot style
+ProgressBar(value: 0.5, fillCharacter: '●', emptyCharacter: '○')
+
+// Simple ASCII
+ProgressBar(value: 0.5, fillCharacter: '=', emptyCharacter: '-')
+```
+
+## Tint
+
+`Tint` applies a color overlay to its child:
+
+```dart
+Tint(
+  color: Colors.blue.withOpacity(0.3),
+  child: MyContent(),
+)
+```
+
+### Use cases
+
+Dim background content:
+
+```dart
+Stack(
+  children: [
+    BackgroundContent(),
+    Tint(
+      color: Colors.black.withOpacity(0.5),
+      child: Dialog(),
+    ),
+  ],
+)
+```
+
+The alpha value controls intensity:
+- `alpha = 0`: No effect
+- `alpha = 128`: 50% blend
+- `alpha = 255`: Fully opaque
+
+### Animated tint
+
+For fade effects:
+
+```dart
+FadeTint(
+  color: Colors.black.withOpacity(0.5),
+  duration: Duration(milliseconds: 200),
+  child: MyContent(),
+)
+```
+
+## LayoutBuilder
+
+`LayoutBuilder` builds content based on available constraints:
+
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    if (constraints.maxWidth > 80) {
+      return WideLayout();
+    } else {
+      return NarrowLayout();
+    }
+  },
+)
+```
+
+### Responsive layouts
+
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    // Use constraint values to decide layout
+    final isWide = constraints.maxWidth > 60;
+    final isTall = constraints.maxHeight > 20;
+
+    if (isWide && isTall) {
+      return FullDashboard();
+    } else if (isWide) {
+      return CompactDashboard();
+    } else {
+      return MobileLayout();
+    }
+  },
+)
+```
+
+### When to use
+
+- Adapting UI to terminal size
+- Different layouts for wide vs narrow terminals
+- Conditional component selection based on space
+
+## ClipRect
+
+`ClipRect` clips its child to a rectangle:
+
+```dart
+ClipRect(
+  child: LargeContent(),  // Content beyond bounds is hidden
+)
+```
+
+### Clip behavior
+
+```dart
+ClipRect(
+  clipBehavior: Clip.hardEdge,  // Default - clip at bounds
+  child: Content(),
+)
+
+ClipRect(
+  clipBehavior: Clip.none,  // No clipping
+  child: Content(),
+)
+```
+
+## OverflowBox
+
+`OverflowBox` lets a child overflow its parent:
+
+```dart
+OverflowBox(
+  maxWidth: 100,   // Child can be up to 100 wide
+  maxHeight: 50,   // Child can be up to 50 tall
+  child: LargeContent(),
+)
+```
+
+### Properties
+
+```dart
+OverflowBox(
+  alignment: Alignment.center,  // Position within parent
+  minWidth: 20,
+  maxWidth: 100,
+  minHeight: 10,
+  maxHeight: 50,
+  child: Content(),
+)
+```
+
+## SizedOverflowBox
+
+`SizedOverflowBox` is a specific size but passes original constraints to child:
+
+```dart
+SizedOverflowBox(
+  size: Size(40, 10),         // This widget is 40x10
+  alignment: Alignment.center,
+  child: Content(),           // Child uses parent's constraints
+)
+```
+
+## ValueListenableBuilder
+
+`ValueListenableBuilder` rebuilds when a value changes:
+
+```dart
+final counter = ValueNotifier<int>(0);
+
+ValueListenableBuilder<int>(
+  valueListenable: counter,
+  builder: (context, value, child) {
+    return Text('Count: $value');
+  },
+)
+```
+
+### With static child
+
+Optimize by passing unchanged parts as `child`:
+
+```dart
+ValueListenableBuilder<int>(
+  valueListenable: counter,
+  builder: (context, value, child) {
+    return Row(
+      children: [
+        child!,  // Static part - not rebuilt
+        Text('$value'),  // Dynamic part - rebuilt
+      ],
+    );
+  },
+  child: Text('Count: '),  // Passed to builder as child
+)
+```
+
+### When to use
+
+- Reactive updates without full setState
+- Sharing state between components
+- Fine-grained rebuilds for performance
+
 ## Next steps
 
-- [Text & Styling](/components/text) - Style text in your layouts
-- [Input](/components/input) - Add interactive components
-- [Building UIs](/fundamentals/building-uis) - Composition patterns
+- [Text & Styling](/docs/components/text) - Style text in your layouts
+- [Input](/docs/components/input) - Add interactive components
+- [Building UIs](/docs/fundamentals/building-uis) - Composition patterns

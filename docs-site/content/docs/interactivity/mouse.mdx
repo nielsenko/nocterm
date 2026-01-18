@@ -26,6 +26,170 @@ Mouse support varies:
 
 Always provide keyboard alternatives for accessibility.
 
+## GestureDetector
+
+`GestureDetector` handles tap, double-tap, and long-press gestures:
+
+```dart
+GestureDetector(
+  onTap: () => print('Tapped!'),
+  child: Container(
+    width: 20,
+    height: 5,
+    child: Text('Click me'),
+  ),
+)
+```
+
+### Tap gestures
+
+```dart
+GestureDetector(
+  onTap: () {
+    // Called when tap completes
+  },
+  onTapDown: (details) {
+    // Called when pointer contacts screen
+    print('Tap at ${details.localPosition}');
+  },
+  onTapUp: (details) {
+    // Called when pointer lifts
+    print('Released at ${details.localPosition}');
+  },
+  onTapCancel: () {
+    // Called when tap is cancelled (e.g., pointer moved away)
+  },
+  child: MyWidget(),
+)
+```
+
+### Double tap
+
+```dart
+GestureDetector(
+  onDoubleTap: () {
+    print('Double tapped!');
+  },
+  child: MyWidget(),
+)
+```
+
+### Long press
+
+```dart
+GestureDetector(
+  onLongPress: () {
+    // Called after holding for ~500ms
+    print('Long press detected!');
+  },
+  onLongPressStart: (details) {
+    // Called when long press begins
+    print('Started at ${details.localPosition}');
+  },
+  onLongPressEnd: (details) {
+    // Called when long press ends
+    print('Ended at ${details.localPosition}');
+  },
+  child: MyWidget(),
+)
+```
+
+### Hit test behavior
+
+Control how the gesture detector responds to hits:
+
+```dart
+GestureDetector(
+  behavior: HitTestBehavior.opaque,  // Captures all hits in bounds
+  onTap: () => print('Tapped'),
+  child: MyWidget(),
+)
+```
+
+**HitTestBehavior** options:
+- `deferToChild` (default): Only detect gestures on child content
+- `opaque`: Capture all hits within bounds, even on empty space
+- `translucent`: Pass hits through to widgets behind
+
+### Combining gestures
+
+Handle multiple gesture types:
+
+```dart
+GestureDetector(
+  onTap: () => print('Tap'),
+  onDoubleTap: () => print('Double tap'),
+  onLongPress: () => print('Long press'),
+  child: Container(
+    decoration: BoxDecoration(border: BoxBorder.all()),
+    padding: EdgeInsets.all(2),
+    child: Text('Try different gestures'),
+  ),
+)
+```
+
+## MouseRegion
+
+`MouseRegion` tracks mouse enter, exit, and hover:
+
+```dart
+MouseRegion(
+  onEnter: (event) => print('Mouse entered'),
+  onExit: (event) => print('Mouse exited'),
+  onHover: (event) => print('Mouse at ${event.x}, ${event.y}'),
+  child: MyWidget(),
+)
+```
+
+### Hover effects
+
+Create hover highlights:
+
+```dart
+class HoverButton extends StatefulComponent {
+  @override
+  State<HoverButton> createState() => _HoverButtonState();
+}
+
+class _HoverButtonState extends State<HoverButton> {
+  bool _isHovering = false;
+
+  @override
+  Component build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _isHovering ? Colors.blue : null,
+        ),
+        child: Text('Hover me'),
+      ),
+    );
+  }
+}
+```
+
+### Combining with GestureDetector
+
+Use both for full interactivity:
+
+```dart
+MouseRegion(
+  onEnter: (_) => setState(() => _isHovering = true),
+  onExit: (_) => setState(() => _isHovering = false),
+  child: GestureDetector(
+    onTap: () => handleTap(),
+    child: Container(
+      decoration: BoxDecoration(
+        color: _isHovering ? Colors.blue : Colors.gray,
+      ),
+      child: Text('Interactive button'),
+    ),
+  ),
+)
+```
+
 ## Best practices
 
 ### Always provide keyboard alternatives
@@ -105,6 +269,6 @@ Different terminals handle mouse differently:
 
 ## Next steps
 
-- [Focus Management](/interactivity/focus) - Manage keyboard focus
-- [Keyboard Events](/interactivity/keyboard) - Handle keyboard input
-- [Input](/components/input) - Input components
+- [Focus Management](/docs/interactivity/focus) - Manage keyboard focus
+- [Keyboard Events](/docs/interactivity/keyboard) - Handle keyboard input
+- [Input](/docs/components/input) - Input components
