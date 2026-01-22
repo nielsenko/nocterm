@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nocterm - Flutter-like TUI Framework for Dart | Build Terminal UIs</title>
+  <meta name="description" content="Build beautiful terminal user interfaces with nocterm, a Flutter-inspired TUI framework for Dart. Declarative, component-based, with hot reload. Modern alternative to ncurses.">
+  <meta name="keywords" content="TUI framework, Dart TUI, terminal UI, Flutter terminal, ncurses alternative, terminal user interface, CLI framework, declarative TUI, hot reload terminal">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="nocterm - Flutter-like TUI Framework for Dart">
+  <meta property="og:description" content="Build terminal UIs like Flutter apps. 45+ components, 6 themes, hot reload, and complete testing. Modern ncurses alternative.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nocterm.dev">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="nocterm - Flutter-like TUI Framework for Dart">
+  <meta name="twitter:description" content="Build terminal UIs like Flutter apps. Declarative, component-based, with hot reload.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://nocterm.dev">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="terminal-container">
+    <!-- Row 1: Hero + Sidebar -->
+    <div class="top-row">
+      <!-- Hero Panel -->
+      <section class="hero-panel">
+        <canvas id="plasma-bg" class="plasma-background" aria-hidden="true"></canvas>
+        <div class="hero-content">
+          <h1 class="main-title">nocterm</h1>
+          <div class="hero-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+          <p class="hero-tagline">If you know Flutter, you know nocterm</p>
+          <p class="hero-features">StatefulComponent • setState() • Row • Column • <strong>hot reload</strong></p>
+        </div>
+      </section>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Stats Panel -->
+        <div class="panel stats-panel">
+          <h2 class="panel-title"><span class="emoji">📊</span> Stats</h2>
+          <div class="panel-divider"></div>
+          <dl class="stats-list">
+            <div class="stat-row">
+              <dt>Components</dt>
+              <dd class="stat-value">45+</dd>
+            </div>
+            <div class="stat-row">
+              <dt>Themes</dt>
+              <dd class="stat-value">6</dd>
+            </div>
+            <div class="stat-row">
+              <dt>Examples</dt>
+              <dd class="stat-value">65+</dd>
+            </div>
+            <div class="stat-row">
+              <dt>Hot Reload</dt>
+              <dd class="stat-value">🔥</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Code Panel -->
+        <div class="panel code-panel">
+          <h2 class="panel-title"><span class="emoji">📝</span> Code</h2>
+          <div class="panel-divider"></div>
+          <pre class="code-block"><code><span class="keyword">class</span> <span class="class-name">Counter</span> <span class="keyword">extends</span> <span class="type">StatefulComponent</span> <span class="punctuation">{</span>
+  <span class="keyword">int</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;
+
+  <span class="type">Component</span> <span class="function">build</span><span class="punctuation">(</span><span class="type">BuildContext</span> <span class="variable">ctx</span><span class="punctuation">)</span> <span class="punctuation">{</span>
+    <span class="keyword">return</span> <span class="type">Column</span><span class="punctuation">(</span>
+      <span class="variable">children</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+        <span class="type">Text</span><span class="punctuation">(</span><span class="string">'Count: $count'</span><span class="punctuation">),</span>
+        <span class="type">Button</span><span class="punctuation">(</span>
+          <span class="variable">onPressed</span><span class="punctuation">:</span> <span class="punctuation">()</span> <span class="operator">=></span> <span class="function">setState</span><span class="punctuation">(()</span> <span class="operator">=></span> <span class="variable">count</span><span class="operator">++</span><span class="punctuation">),</span>
+          <span class="variable">child</span><span class="punctuation">:</span> <span class="type">Text</span><span class="punctuation">(</span><span class="string">'+'</span><span class="punctuation">),</span>
+        <span class="punctuation">),</span>
+      <span class="punctuation">],</span>
+    <span class="punctuation">);</span>
+  <span class="punctuation">}</span>
+<span class="punctuation">}</span></code></pre>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Row 2: Feature Cards -->
+    <div class="features-row">
+      <article class="feature-card" style="--card-index: 0; --accent-color: 255, 107, 157;">
+        <h3><span class="feature-icon">⚡</span> Declarative UI</h3>
+        <div class="feature-divider"></div>
+        <p>setState() reactive updates</p>
+      </article>
+
+      <article class="feature-card" style="--card-index: 1; --accent-color: 254, 202, 87;">
+        <h3><span class="feature-icon">📦</span> 45+ Components</h3>
+        <div class="feature-divider"></div>
+        <p>Row, Column, ListView...</p>
+      </article>
+
+      <article class="feature-card" style="--card-index: 2; --accent-color: 72, 219, 251;">
+        <h3><span class="feature-icon">🎨</span> 6 Themes</h3>
+        <div class="feature-divider"></div>
+        <p>Nord, Dracula, Gruvbox...</p>
+      </article>
+
+      <article class="feature-card" style="--card-index: 3; --accent-color: 255, 159, 67;">
+        <h3><span class="feature-icon">🔥</span> Hot Reload</h3>
+        <div class="feature-divider"></div>
+        <p>Instant code updates</p>
+      </article>
+
+      <article class="feature-card" style="--card-index: 4; --accent-color: 29, 209, 161;">
+        <h3><span class="feature-icon">✓</span> Testing</h3>
+        <div class="feature-divider"></div>
+        <p>testNocterm() built-in</p>
+      </article>
+    </div>
+
+    <!-- Row 3: Why nocterm -->
+    <section class="why-section">
+      <h2 class="section-title">What Makes nocterm Great</h2>
+      <div class="why-grid">
+        <div class="why-item">
+          <h3>Feels Like Flutter</h3>
+          <p>Use the same patterns you already know: StatefulComponent, setState(), Column, Row, Expanded, ListView. If you know Flutter, you're already productive.</p>
+        </div>
+        <div class="why-item">
+          <h3>Modern Architecture</h3>
+          <p>Declarative, component-based design with a virtual terminal. Write UI code that's easy to read, test, and maintain.</p>
+        </div>
+        <div class="why-item">
+          <h3>Production Ready</h3>
+          <p>Differential rendering, animation system, mouse support, markdown rendering, and a complete testing framework built-in.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 4: Component Showcase -->
+    <section class="components-section">
+      <h2 class="section-title">45+ Components Ready to Use</h2>
+      <div class="component-grid">
+        <div class="component-category">
+          <h3>Layout</h3>
+          <ul>
+            <li>Row / Column</li>
+            <li>Stack / Positioned</li>
+            <li>Expanded / Flexible</li>
+            <li>Padding / Center</li>
+            <li>LayoutBuilder</li>
+          </ul>
+        </div>
+        <div class="component-category">
+          <h3>Scrolling</h3>
+          <ul>
+            <li>ListView</li>
+            <li>ListView.builder</li>
+            <li>SingleChildScrollView</li>
+            <li>Scrollbar</li>
+            <li>AutoScrollController</li>
+          </ul>
+        </div>
+        <div class="component-category">
+          <h3>Input</h3>
+          <ul>
+            <li>TextField</li>
+            <li>Focusable</li>
+            <li>GestureDetector</li>
+            <li>MouseRegion</li>
+            <li>KeyboardListener</li>
+          </ul>
+        </div>
+        <div class="component-category">
+          <h3>Visual</h3>
+          <ul>
+            <li>Text / RichText</li>
+            <li>Container / BoxDecoration</li>
+            <li>MarkdownText</li>
+            <li>AsciiText</li>
+            <li>ProgressBar</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 5: Use Cases -->
+    <section class="usecases-section">
+      <h2 class="section-title">What Can You Build?</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <div class="usecase-icon">📊</div>
+          <h3>Dashboards</h3>
+          <p>System monitors, server dashboards, DevOps tools with real-time metrics</p>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">💬</div>
+          <h3>Chat Apps</h3>
+          <p>IRC clients, messaging tools with auto-scroll and rich text</p>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">📝</div>
+          <h3>Productivity</h3>
+          <p>Todo apps, note takers, project managers with keyboard navigation</p>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">🛠️</div>
+          <h3>Dev Tools</h3>
+          <p>Code generators, API testers, database CLIs with rich UIs</p>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">🏠</div>
+          <h3>Smart Home</h3>
+          <p>Home automation dashboards, IoT controllers, climate monitors</p>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">🎮</div>
+          <h3>Games</h3>
+          <p>Roguelikes, text adventures, puzzle games with animations</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 7: Comparison -->
+    <section class="comparison-section">
+      <h2 class="section-title">TUI Framework Landscape</h2>
+      <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight">nocterm</th>
+              <th>Bubble Tea</th>
+              <th>Ratatui</th>
+              <th>Textual</th>
+              <th>Ink</th>
+              <th>ncurses</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Language</td>
+              <td class="highlight">Dart</td>
+              <td>Go</td>
+              <td>Rust</td>
+              <td>Python</td>
+              <td>Node.js</td>
+              <td>C</td>
+            </tr>
+            <tr>
+              <td>Hot Reload</td>
+              <td class="highlight"><span class="yes">✓</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+            </tr>
+            <tr>
+              <td>Declarative</td>
+              <td class="highlight"><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="no">✗</span></td>
+            </tr>
+            <tr>
+              <td>Flutter-like API</td>
+              <td class="highlight"><span class="yes">✓</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="no">✗</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="no">✗</span></td>
+            </tr>
+            <tr>
+              <td>Testing</td>
+              <td class="highlight"><span class="yes">✓</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="no">✗</span></td>
+            </tr>
+            <tr>
+              <td>Animations</td>
+              <td class="highlight"><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="partial">~</span></td>
+              <td><span class="no">✗</span></td>
+            </tr>
+            <tr>
+              <td>Learning Curve</td>
+              <td class="highlight">Low*</td>
+              <td>Medium</td>
+              <td>High</td>
+              <td>Medium</td>
+              <td>Low**</td>
+              <td>High</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="comparison-note">* Zero learning curve for Flutter/Dart developers &nbsp;&nbsp; ** If you know React</p>
+      </div>
+    </section>
+
+    <!-- Row 8: Get Started -->
+    <section class="cta-section">
+      <div class="cta-content">
+        <h2>Ready to Build?</h2>
+        <p>Get started with nocterm in seconds</p>
+      </div>
+      <div class="cta-code">
+        <code><span class="prompt">$</span> dart pub add nocterm</code>
+      </div>
+      <div class="cta-links">
+        <a href="https://pub.dev/packages/nocterm" class="cta-button primary">Get Started</a>
+        <a href="https://docs.nocterm.dev" class="cta-button secondary">Read the Docs</a>
+        <a href="https://github.com/noctermdev/nocterm" class="cta-button secondary">View on GitHub</a>
+      </div>
+    </section>
+
+    <!-- Row 9: Bottom Bar -->
+    <footer class="bottom-bar">
+      <div class="brand">
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">nocterm</span>
+        <span class="brand-version">v0.4.2</span>
+      </div>
+      <div class="wave-container" id="wave" aria-hidden="true"></div>
+      <nav class="bottom-links">
+        <a href="https://docs.nocterm.dev" class="link">Docs</a>
+        <a href="https://github.com/noctermdev/nocterm" class="link">GitHub</a>
+        <a href="https://pub.dev/packages/nocterm" class="link">pub.dev</a>
+      </nav>
+    </footer>
+  </main>
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "nocterm",
+    "description": "Flutter-inspired TUI framework for Dart. Build beautiful terminal user interfaces with a declarative, component-based architecture.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Cross-platform (macOS, Linux, Windows)",
+    "programmingLanguage": "Dart",
+    "url": "https://nocterm.dev",
+    "downloadUrl": "https://pub.dev/packages/nocterm",
+    "softwareVersion": "0.4.2",
+    "author": {
+      "@type": "Organization",
+      "name": "nocterm"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "keywords": "TUI framework, Dart, Flutter, terminal UI, ncurses alternative, CLI"
+  }
+  </script>
+
+  <script src="effects.js"></script>
+</body>
+</html>
