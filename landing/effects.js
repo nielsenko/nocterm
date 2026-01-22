@@ -288,6 +288,14 @@ class WaveEffect {
 }
 
 // ============================================
+// Keyboard Navigation (vim-style)
+// ============================================
+// NOTE: Removed KeyboardNav class - spatial navigation is now handled
+// in index.html directly with the unified nav system using data-nav attributes.
+// This prevents the dual-focus bug where both keyboard-focus and nav-selected
+// classes were being applied simultaneously.
+
+// ============================================
 // Initialize Effects
 // ============================================
 
@@ -315,4 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       waveContainer.style.color = '#5a5a8a';
     }
   }
+
+  // NOTE: Keyboard navigation is now handled in index.html via the unified
+  // spatial navigation system using data-nav attributes.
 });
