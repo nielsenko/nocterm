@@ -14,19 +14,10 @@ class ShowcaseApp extends StatefulComponent {
 }
 
 class _ShowcaseAppState extends State<ShowcaseApp> {
-  int _currentDemo = 0;
-
-  final _demos = <Component Function()>[
-    () => const TextFieldDemo(),
-    () => const ListViewDemo(),
-    () => const CounterDemo(),
-    () => const LayoutDemo(),
-  ];
-
   @override
   Component build(BuildContext context) {
     // Just show the TextField demo - landing page will reload for different demos
-    return Center(child: const TextFieldDemo());
+    return const Center(child: TextFieldDemo());
   }
 }
 
