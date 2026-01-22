@@ -244,6 +244,7 @@ class _DebugOverlayState extends State<DebugOverlay> {
     final showOverlay = debugMode && component.enabled;
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         component.child,
         if (showOverlay)

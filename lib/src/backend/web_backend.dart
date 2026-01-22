@@ -189,25 +189,44 @@ class WebBackend implements TerminalBackend {
   }
 
   void _connect() {
+    print('WebBackend: _connect() called');
     final bridge = noctermBridge;
     if (bridge == null) {
+      print('WebBackend: ERROR - noctermBridge is null!');
       throw StateError(
         'noctermBridge not found. The host (nocterm_web) must call '
         'WebBackend.initializeHost() before loading the guest app.',
       );
     }
+    print('WebBackend: bridge found, registering callbacks...');
 
     // Register callbacks for receiving data from host
     bridge.onInput = _handleHostInput.toJS;
     bridge.onResize = _handleHostResize.toJS;
     bridge.onShutdown = _handleHostShutdown.toJS;
 
+    print('WebBackend: callbacks registered successfully');
     _connected = true;
   }
 
   /// Handle input from host.
-  static void _handleHostInput(JSString data) {
-    final bytes = utf8.encode(data.toDart);
+  static void _handleHostInput(JSAny? data) {
+    print('WebBackend: received input from host');
+    if (data == null) {
+      print('WebBackend: input data is null');
+      return;
+    }
+    // Convert JSAny to String - may come as JSString or need conversion
+    final String str;
+    if (data.isA<JSString>()) {
+      str = (data as JSString).toDart;
+    } else {
+      // Try toString conversion for other types
+      str = data.dartify()?.toString() ?? '';
+    }
+    print('WebBackend: input string: "$str" (length: ${str.length})');
+    final bytes = utf8.encode(str);
+    print('WebBackend: converted to ${bytes.length} bytes: $bytes');
     _inputController.add(bytes);
   }
 
