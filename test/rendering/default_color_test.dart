@@ -1,4 +1,5 @@
 import 'package:nocterm/nocterm.dart';
+import 'package:nocterm/src/utils/terminal_color_support.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -32,6 +33,8 @@ void main() {
     });
 
     test('TextStyle with default background color', () {
+      addTearDown(() => setSupportsTruecolorForTesting(null));
+      setSupportsTruecolorForTesting(true);
       final style = TextStyle(
         color: Colors.white,
         backgroundColor: Color.defaultColor,

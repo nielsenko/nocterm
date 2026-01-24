@@ -1,3 +1,6 @@
+import 'package:nocterm/src/utils/ansi_color_quantizer.dart';
+import 'package:nocterm/src/utils/terminal_color_support.dart';
+
 /// Linearly interpolate between two integers.
 int _lerpInt(int a, int b, double t) {
   return (a + (b - a) * t).round();
@@ -155,10 +158,18 @@ class Color {
       }
       return '\x1b[39m'; // Reset foreground to default
     }
-    if (background) {
-      return '\x1b[48;2;$red;$green;${blue}m';
+    if (supportsTruecolor()) {
+      if (background) {
+        return '\x1b[48;2;$red;$green;${blue}m';
+      }
+      return '\x1b[38;2;$red;$green;${blue}m';
     }
-    return '\x1b[38;2;$red;$green;${blue}m';
+
+    final index = quantizeRgbToAnsi256(red, green, blue);
+    if (background) {
+      return '\x1b[48;5;${index}m';
+    }
+    return '\x1b[38;5;${index}m';
   }
 
   /// The alpha channel, as a double from 0.0 (fully transparent) to 1.0 (fully opaque).
@@ -345,6 +356,7 @@ class HSVColor {
     );
   }
 }
+
 
 /// The thickness of the glyphs used to draw the text.
 ///
