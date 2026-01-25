@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
+import 'package:meta/meta.dart';
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 import 'package:nocterm/src/image/color_quantizer.dart';
@@ -284,24 +285,64 @@ enum BoxFit {
   none,
 }
 
-/// A widget that displays an image.
+/// A widget that displays an image in the terminal.
 ///
-/// This widget follows Flutter's Image widget API pattern.
+/// {@template nocterm.image.experimental}
+/// **Experimental**: This feature is experimental and requires terminal support
+/// for image protocols. Not all terminals support image display.
 ///
-/// Example:
+/// ## Supported Terminals
+///
+/// | Terminal | Kitty | iTerm2 | Sixel | Unicode Blocks |
+/// |----------|-------|--------|-------|----------------|
+/// | **Kitty** | Yes | No | No | Fallback |
+/// | **iTerm2** | No | Yes | No | Fallback |
+/// | **WezTerm** | Yes | Yes | Yes | Fallback |
+/// | **Ghostty** | Yes | No | No | Fallback |
+/// | **Mintty** | No | No | Yes | Fallback |
+/// | **mlterm** | No | No | Yes | Fallback |
+/// | **xterm** (with sixel) | No | No | Yes | Fallback |
+/// | **foot** | No | No | Yes | Fallback |
+/// | **VS Code Terminal** | No | No | No | Fallback only |
+/// | **macOS Terminal** | No | No | No | Fallback only |
+/// | **GNOME Terminal** | No | No | No | Fallback only |
+/// | **Windows Terminal** | No | No | No | Fallback only |
+///
+/// The Unicode blocks fallback works in all terminals but provides lower
+/// resolution (2 pixels per character cell using half-block characters).
+/// {@endtemplate}
+///
+/// ## Example
+///
 /// ```dart
+/// // From a file
+/// Image.file('/path/to/image.png')
+///
+/// // From a URL
+/// Image.network('https://example.com/image.png')
+///
+/// // From memory
+/// Image.memory(bytes)
+///
+/// // With options
 /// Image(
 ///   image: FileImage('/path/to/image.png'),
-///   width: 20, // cells
+///   width: 20,  // cells
 ///   height: 10, // cells
 ///   fit: BoxFit.contain,
+///   protocol: ImageProtocol.kitty, // Force specific protocol
 /// )
-///
-/// // Convenience constructors:
-/// Image.file('/path/to/image.png')
-/// Image.network('https://example.com/image.png')
-/// Image.memory(bytes)
 /// ```
+///
+/// ## Image Protocols
+///
+/// - [ImageProtocol.kitty]: Best quality, supported by Kitty, WezTerm, Ghostty
+/// - [ImageProtocol.iterm2]: Supported by iTerm2 and WezTerm
+/// - [ImageProtocol.sixel]: Older protocol, wide terminal support
+/// - [ImageProtocol.unicodeBlocks]: Universal fallback using Unicode characters
+///
+/// If no protocol is specified, the best available protocol is auto-detected.
+@experimental
 class Image extends StatefulComponent {
   /// Creates an image widget.
   const Image({

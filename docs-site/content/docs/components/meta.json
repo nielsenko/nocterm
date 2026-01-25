@@ -6,6 +6,7 @@
     "input",
     "scrolling",
     "overlays",
+    "images",
     "terminal"
   ]
 }

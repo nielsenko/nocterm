@@ -20,6 +20,7 @@
     "components/input",
     "components/scrolling",
     "components/overlays",
+    "components/images",
     "components/terminal",
     "---Interactivity---",
     "interactivity/keyboard",
