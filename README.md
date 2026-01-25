@@ -1,9 +1,11 @@
 [![CI](https://github.com/norbert515/nocterm/actions/workflows/ci.yml/badge.svg)](https://github.com/norbert515/nocterm/actions/workflows/ci.yml)
 [![Pub Version](https://img.shields.io/pub/v/nocterm)](https://pub.dev/packages/nocterm)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/web-nocterm.dev-blue)](https://nocterm.dev)
 [![Documentation](https://img.shields.io/badge/docs-docs.nocterm.dev-blue)](https://docs.nocterm.dev)
 
 <p align="center">
+<a href="https://nocterm.dev"><strong>Website</strong></a> |
 <a href="https://docs.nocterm.dev"><strong>Docs</strong></a> |
 <a href="https://pub.dev/packages/nocterm"><strong>pub.dev</strong></a> |
 <a href="#quick-start"><strong>Quick Start</strong></a>
