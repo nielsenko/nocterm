@@ -5,6 +5,7 @@ import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 import 'package:nocterm/src/navigation/render_theater.dart';
 import 'package:nocterm/src/rendering/scrollable_render_object.dart';
+import 'package:nocterm/src/image/image_cleanup.dart';
 
 import '../backend/terminal.dart' as term;
 import '../buffer.dart' as buf;
@@ -47,12 +48,12 @@ class TerminalBinding extends NoctermBinding
   final _mouseTracker = MouseTracker();
   final _oscEventsController = StreamController<String>.broadcast();
 
+  /// Previous frame's buffer for differential rendering.
+  buf.Buffer? _previousBuffer;
+
   // Event-driven loop support
   final _eventLoopController = StreamController<void>.broadcast();
   Stream<void> get _eventLoopStream => _eventLoopController.stream;
-
-  /// Previous frame's buffer for differential rendering.
-  buf.Buffer? _previousBuffer;
 
   // Debug frame counting
   int _frameCount = 0;
@@ -153,6 +154,12 @@ class TerminalBinding extends NoctermBinding
     terminal.hideCursor();
     terminal.bindOSCStream(_oscEventsController.stream);
     terminal.clear();
+
+    // Initialize image cleanup manager with terminal writer
+    ImageCleanupManager.instance.setTerminalWriter((data) {
+      terminal.write(data);
+      terminal.flush();
+    });
 
     // Enable mouse tracking (SGR mode for better coordinate support)
     // ESC [ ? 1000 h - Send Mouse X & Y on button press and release
@@ -532,6 +539,11 @@ class TerminalBinding extends NoctermBinding
     // Stop hot reload if it was initialized
     try {
       shutdownWithHotReload();
+    } catch (_) {}
+
+    // Clear all images before leaving alternate screen
+    try {
+      ImageCleanupManager.instance.clearAllImages();
     } catch (_) {}
 
     // Perform terminal cleanup synchronously
@@ -945,6 +957,11 @@ class TerminalBinding extends NoctermBinding
           continue;
         }
 
+        // Skip image placeholder cells - these will be rendered via sixel
+        if (cell.isImagePlaceholder) {
+          continue;
+        }
+
         // Cell changed - move cursor and write
         terminal.moveCursor(x, y);
 
@@ -981,6 +998,9 @@ class TerminalBinding extends NoctermBinding
       terminal.write(TextStyle.reset);
     }
 
+    // Render pending sixel images
+    _renderPendingImages(buffer);
+
     terminal.flush();
   }
 
@@ -998,6 +1018,16 @@ class TerminalBinding extends NoctermBinding
 
         // Skip zero-width space markers (used for wide character tracking)
         if (cell.char == '\u200B') {
+          continue;
+        }
+
+        // Skip image placeholder cells - write space to maintain positioning
+        if (cell.isImagePlaceholder) {
+          if (currentStyle != null) {
+            terminal.write(TextStyle.reset);
+            currentStyle = null;
+          }
+          terminal.write(' ');
           continue;
         }
 
@@ -1036,6 +1066,9 @@ class TerminalBinding extends NoctermBinding
     if (currentStyle != null) {
       terminal.write(TextStyle.reset);
     }
+
+    // Render pending sixel images
+    _renderPendingImages(buffer);
 
     terminal.flush();
   }
@@ -1105,6 +1138,32 @@ class TerminalBinding extends NoctermBinding
   String _pct(int value, int total) {
     if (total == 0) return '0.0';
     return (value * 100 / total).toStringAsFixed(1);
+  }
+
+  /// Renders all pending sixel images from the buffer.
+  void _renderPendingImages(buf.Buffer buffer) {
+    // First, clear any regions that need cleanup (from unmounted images)
+    final cleanups = ImageCleanupManager.instance.consumePendingCleanups();
+    for (final region in cleanups) {
+      _clearImageRegion(region.x, region.y, region.width, region.height);
+    }
+
+    // Then render new sixel images
+    for (final image in buffer.pendingImages) {
+      terminal.writeSixel(image.sixelData, image.x, image.y);
+    }
+    buffer.clearPendingImages();
+  }
+
+  /// Clears an image region by writing spaces.
+  ///
+  /// This is used to clean up Sixel/iTerm2 images when they are unmounted,
+  /// since these protocols don't have native delete commands.
+  void _clearImageRegion(int x, int y, int width, int height) {
+    for (int row = 0; row < height; row++) {
+      terminal.moveCursor(x, y + row);
+      terminal.write(' ' * width);
+    }
   }
 
   /// The actual frame drawing logic, registered as a persistent callback.

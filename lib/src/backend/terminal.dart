@@ -235,4 +235,30 @@ class Terminal {
     const bel = '\x07';
     write('${osc}0;$text$bel');
   }
+
+  /// Write a sixel image to the terminal at the specified position.
+  ///
+  /// Sixel is a bitmap graphics format supported by terminals like xterm,
+  /// mlterm, and others. The sixel data should be a complete escape sequence
+  /// starting with DCS (Device Control String) and ending with ST (String Terminator).
+  ///
+  /// [sixelData] - Pre-encoded sixel escape sequence (DCS...ST).
+  /// [x], [y] - Position in cells where the image should be rendered.
+  ///
+  /// Note: The cursor must be positioned before writing sixel data, as the
+  /// sixel data itself doesn't contain positioning information.
+  ///
+  /// Example:
+  /// ```dart
+  /// terminal.writeSixel(sixelData, 10, 5);
+  /// ```
+  void writeSixel(String sixelData, int x, int y) {
+    // Move cursor to the target position
+    moveCursor(x, y);
+
+    // Write the sixel data directly
+    // The sixel data is a complete escape sequence that will be
+    // interpreted by the terminal to render the image
+    write(sixelData);
+  }
 }

@@ -1,6 +1,10 @@
 import '../framework/framework.dart';
 import '../components/basic.dart';
+import '../components/gesture_detector.dart';
+import '../components/modal_barrier.dart';
 import '../components/stack.dart' show Alignment, Positioned;
+import '../gestures/hit_test.dart' show HitTestBehavior;
+import '../style.dart' show Color;
 import 'route_settings.dart';
 import 'overlay.dart';
 
@@ -76,8 +80,22 @@ class ModalRoute<T> extends Route<T> {
   /// Whether tapping outside the modal dismisses it
   final bool barrierDismissible;
 
-  /// Decoration for the modal container
-  final BoxDecoration? decoration;
+  /// The color of the barrier behind the dialog.
+  ///
+  /// If null, no barrier color is shown.
+  /// Defaults to semi-transparent black when using [NavigatorState.showDialog].
+  final Color? barrierColor;
+
+  /// Whether to animate the barrier color.
+  ///
+  /// When true, the barrier fades in smoothly.
+  /// Defaults to true.
+  final bool animateBarrier;
+
+  /// Duration of the barrier animation.
+  ///
+  /// Defaults to 200ms.
+  final Duration barrierAnimationDuration;
 
   /// Alignment of the modal on screen
   final Alignment alignment;
@@ -92,7 +110,9 @@ class ModalRoute<T> extends Route<T> {
     required this.builder,
     required super.settings,
     this.barrierDismissible = true,
-    this.decoration,
+    this.barrierColor,
+    this.animateBarrier = true,
+    this.barrierAnimationDuration = const Duration(milliseconds: 200),
     this.alignment = Alignment.center,
     this.width,
     this.height,
@@ -103,21 +123,43 @@ class ModalRoute<T> extends Route<T> {
     return <OverlayEntry>[
       // Barrier entry
       OverlayEntry(
-        builder: (context) => Container(),
+        builder: (context) {
+          if (barrierColor == null) {
+            // No barrier color - just an invisible hit target if dismissible
+            if (barrierDismissible) {
+              return GestureDetector(
+                onTap: () => navigator?.pop(),
+                behavior: HitTestBehavior.opaque,
+                child: const SizedBox.expand(),
+              );
+            }
+            return const SizedBox.expand();
+          }
+
+          // With barrier color
+          if (animateBarrier) {
+            return FadeModalBarrier(
+              color: barrierColor,
+              duration: barrierAnimationDuration,
+              dismissible: barrierDismissible,
+              onDismiss: barrierDismissible ? () => navigator?.pop() : null,
+              obscure: false,
+            );
+          } else {
+            return ModalBarrier(
+              color: barrierColor,
+              dismissible: barrierDismissible,
+              onDismiss: barrierDismissible ? () => navigator?.pop() : null,
+              obscure: false,
+            );
+          }
+        },
         opaque: false,
       ),
       // Modal content entry
       OverlayEntry(
         builder: (context) {
           Component modalContent = builder(context);
-
-          // Apply decoration if provided
-          if (decoration != null) {
-            modalContent = DecoratedBox(
-              decoration: decoration!,
-              child: modalContent,
-            );
-          }
 
           // Apply size constraints if provided
           if (width != null || height != null) {

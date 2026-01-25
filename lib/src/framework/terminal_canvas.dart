@@ -275,6 +275,47 @@ class TerminalCanvas {
     return TerminalCanvas(_buffer, clippedArea);
   }
 
+  /// Draw an image at the given position.
+  ///
+  /// This method marks the cell region as an image placeholder and queues
+  /// the sixel data for rendering during the terminal flush phase.
+  ///
+  /// [imageData] - The RGBA pixel data of the image (used for cache validation).
+  /// [sixelData] - Pre-encoded sixel escape sequence string.
+  /// [x], [y] - Position in local canvas coordinates (cells).
+  /// [widthCells], [heightCells] - Size of the image in terminal cells.
+  ///
+  /// Note: The actual sixel output happens during terminal rendering, not here.
+  /// This method just records where the image should be placed.
+  void drawImage(
+    dynamic imageData,
+    String sixelData,
+    int x,
+    int y,
+    int widthCells,
+    int heightCells,
+  ) {
+    // Bounds checking
+    if (x < 0 || y < 0 || x >= area.width || y >= area.height) {
+      return;
+    }
+
+    // Calculate absolute cell coordinates
+    final cellX = area.left.round() + x;
+    final cellY = area.top.round() + y;
+
+    // Clamp to visible area
+    final maxWidth = math.min(widthCells, (area.width - x).toInt());
+    final maxHeight = math.min(heightCells, (area.height - y).toInt());
+
+    if (maxWidth <= 0 || maxHeight <= 0) {
+      return;
+    }
+
+    // Mark cells as image placeholders to prevent text overlap
+    _buffer.markImageRegion(cellX, cellY, maxWidth, maxHeight, sixelData);
+  }
+
   Rect _intersect(Rect a, Rect b) {
     final left = math.max(a.left, b.left);
     final top = math.max(a.top, b.top);

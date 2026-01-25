@@ -326,10 +326,25 @@ class NavigatorState extends State<Navigator> {
   }
 
   /// Show a modal dialog
+  ///
+  /// The [builder] is called to build the dialog content.
+  ///
+  /// If [barrierDismissible] is true (the default), tapping outside the dialog
+  /// will close it.
+  ///
+  /// The [barrierColor] controls the color of the scrim behind the dialog.
+  /// Defaults to 50% black. Set to null to disable the barrier entirely.
+  ///
+  /// If [animateBarrier] is true (the default), the barrier fades in smoothly.
+  ///
+  /// The [barrierAnimationDuration] controls the duration of the fade animation.
+  /// Defaults to 200ms.
   Future<T?> showDialog<T>({
     required Component Function(BuildContext) builder,
     bool barrierDismissible = true,
-    BoxDecoration? decoration,
+    Color? barrierColor = const Color.fromARGB(128, 0, 0, 0),
+    bool animateBarrier = true,
+    Duration barrierAnimationDuration = const Duration(milliseconds: 200),
     Alignment alignment = Alignment.center,
     double? width,
     double? height,
@@ -338,11 +353,9 @@ class NavigatorState extends State<Navigator> {
       builder: builder,
       settings: const RouteSettings(name: '<dialog>'),
       barrierDismissible: barrierDismissible,
-      decoration: decoration ??
-          BoxDecoration(
-            border: BoxBorder.all(style: BoxBorderStyle.double),
-            color: const Color.fromRGB(0, 0, 0),
-          ),
+      barrierColor: barrierColor,
+      animateBarrier: animateBarrier,
+      barrierAnimationDuration: barrierAnimationDuration,
       alignment: alignment,
       width: width,
       height: height,

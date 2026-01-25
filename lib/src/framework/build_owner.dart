@@ -67,7 +67,14 @@ class BuildOwner {
     while (index < dirtyCount) {
       final element = _dirtyElements[index];
       assert(element._inDirtyList);
-      assert(element._lifecycleState == _ElementLifecycle.active);
+
+      // Skip elements that are no longer active (e.g., removed during animation)
+      if (element._lifecycleState != _ElementLifecycle.active) {
+        element._inDirtyList = false;
+        element._dirty = false; // Clear dirty flag since we won't rebuild
+        index += 1;
+        continue;
+      }
 
       element.rebuild();
       element._inDirtyList = false;
@@ -135,6 +142,10 @@ class _InactiveElements {
       assert(child._parent == element);
       _unmount(child);
     });
+    // Dispose the render object if this is a RenderObjectElement
+    if (element is RenderObjectElement) {
+      element.renderObject.dispose();
+    }
     // Then unmount this element
     element.unmount();
     assert(element._lifecycleState == _ElementLifecycle.defunct);

@@ -97,3 +97,7 @@ export 'src/animation/animated_builder.dart';
 
 // Modal Barrier
 export 'src/components/modal_barrier.dart';
+
+// Image support
+export 'src/components/image.dart';
+export 'src/image/image_cleanup.dart' show ImageProtocol;
