@@ -12,6 +12,10 @@ disableKinds = ["taxonomy", "term", "RSS", "sitemap", "robotsTXT", "404"]
   docsURL = "https://docs.nocterm.dev"
   pubdevURL = "https://pub.dev/packages/nocterm"
   version = "v0.4.3"
+  # SEO
+  defaultImage = "/images/og-default.png"
+  twitterHandle = "@noraborys"
+  siteName = "Nocterm"
 
 [markup]
   [markup.highlight]
