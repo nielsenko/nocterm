@@ -25,7 +25,7 @@ class _DevDashboardState extends State<DevDashboard> {
   double _responseTime = 42.5;
   double _memoryMb = 256;
   double _cpuPercent = 34;
-  int _errors = 2;
+  final int _errors = 2;
 
   // Recent requests
   final List<RequestLog> _recentRequests = [
@@ -206,13 +206,13 @@ class _DevDashboardState extends State<DevDashboard> {
         Expanded(
             child: _buildMetricCard(
                 'Response',
-                '${_responseTime.toStringAsFixed(0)}',
+                _responseTime.toStringAsFixed(0),
                 'ms avg',
                 Color(0xFFd29922),
                 '')),
         SizedBox(width: 1),
         Expanded(
-            child: _buildMetricCard('Memory', '${_memoryMb.toStringAsFixed(0)}',
+            child: _buildMetricCard('Memory', _memoryMb.toStringAsFixed(0),
                 'MB', Color(0xFFa371f7), '')),
         SizedBox(width: 1),
         Expanded(
