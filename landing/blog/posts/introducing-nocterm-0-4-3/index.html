@@ -137,10 +137,10 @@
 
 
 <article class="post-content">
-  <p>We&rsquo;re excited to announce <strong>Nocterm v0.4.3</strong>, the latest release of the Flutter-like TUI framework for Dart. This release focuses on rendering reliability, new component capabilities, experimental image support, and improvements to the testing framework.</p>
+  <p>We're excited to announce <strong>Nocterm v0.4.3</strong>, the latest release of the Flutter-like TUI framework for Dart. This release focuses on rendering reliability, new component capabilities, experimental image support, and improvements to the testing framework.</p>
 <h2 id="rendering-improvements">Rendering Improvements</h2>
 <p>The core rendering pipeline has received attention in this release. The <strong>Unicode block encoder</strong> — used for drawing borders, box characters, and block elements — has been updated to handle edge cases that previously caused visual artifacts in certain CI environments and non-UTF-8 locales.</p>
-<p>Differential rendering, which only redraws parts of the terminal that have actually changed, continues to be the default. In v0.4.3, we&rsquo;ve tightened the diffing logic so that rapid <code>setState()</code> calls during animations produce fewer unnecessary redraws.</p>
+<p>Differential rendering, which only redraws parts of the terminal that have actually changed, continues to be the default. In v0.4.3, we've tightened the diffing logic so that rapid <code>setState()</code> calls during animations produce fewer unnecessary redraws.</p>
 <h2 id="image-support-experimental">Image Support (Experimental)</h2>
 <p>One of the most requested features is now available as an <strong>experimental</strong> API. Nocterm can now render images directly in the terminal using protocols like Kitty and iTerm2 inline images.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-dart" data-lang="dart"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">ImageDemo</span> <span class="kd">extends</span> <span class="n">StatelessComponent</span> <span class="p">{</span>
@@ -193,8 +193,8 @@
 </span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">nocterm</span><span class="p">:</span><span class="w"> </span><span class="l">^0.4.3</span><span class="w">
 </span></span></span></code></pre></div><p>Or run:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ dart pub upgrade nocterm
-</span></span></code></pre></div><h2 id="whats-next">What&rsquo;s Next</h2>
-<p>We&rsquo;re working on several features for upcoming releases:</p>
+</span></span></code></pre></div><h2 id="whats-next">What's Next</h2>
+<p>We're working on several features for upcoming releases:</p>
 <ul>
 <li><strong>Scrollable widgets</strong> — More flexible scroll containers beyond ListView</li>
 <li><strong>Overlay system</strong> — Tooltips, dropdowns, and modals that render above other content</li>

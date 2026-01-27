@@ -140,11 +140,11 @@
 
 
 <article class="post-content">
-  <p>I keep running into this problem: I come back to a project after a few days, sometimes a few weeks, and I&rsquo;m staring at the codebase thinking &ldquo;how do I even start this thing?&rdquo;</p>
-<p>Maybe there&rsquo;s a README with setup instructions. Maybe there&rsquo;s a <code>justfile</code> with some commands. But I still need to remember the order: run this first, then that, wait for this to finish, then start the other thing. And if the setup isn&rsquo;t documented well? I end up spelunking through shell history or asking teammates what the magic incantation is.</p>
-<p>I&rsquo;ve been there too many times. So here&rsquo;s how I think about solutions.</p>
+  <p>I keep running into this problem: I come back to a project after a few days, sometimes a few weeks, and I'm staring at the codebase thinking &quot;how do I even start this thing?&quot;</p>
+<p>Maybe there's a README with setup instructions. Maybe there's a <code>justfile</code> with some commands. But I still need to remember the order: run this first, then that, wait for this to finish, then start the other thing. And if the setup isn't documented well? I end up spelunking through shell history or asking teammates what the magic incantation is.</p>
+<p>I've been there too many times. So here's how I think about solutions.</p>
 <h2 id="good-documentation">Good: Documentation</h2>
-<p>The baseline. A README with setup instructions, maybe a <code>CONTRIBUTING.md</code> that explains how to run tests. It works, but it requires reading and remembering. Documentation also gets outdated. The project evolves, someone adds a new step, forgets to update the docs, and suddenly the setup instructions don&rsquo;t work anymore.</p>
+<p>The baseline. A README with setup instructions, maybe a <code>CONTRIBUTING.md</code> that explains how to run tests. It works, but it requires reading and remembering. Documentation also gets outdated. The project evolves, someone adds a new step, forgets to update the docs, and suddenly the setup instructions don't work anymore.</p>
 <p>Still, having <em>something</em> written down is way better than having nothing.</p>
 <h2 id="better-task-runners">Better: Task runners</h2>
 <p>This is where things improve. Tools like <code>just</code> or <code>make</code> let me codify commands. Instead of remembering <code>flutter build apk --release --split-per-abi --target-platform android-arm64</code>, I just run <code>just build</code>.</p>
@@ -154,9 +154,9 @@
     clean     # Clean build artifacts
     format    # Format all code
     test      # Run all tests
-</code></pre><p>New teammate joins? &ldquo;Run <code>just</code> to see what&rsquo;s available.&rdquo; That&rsquo;s huge for discovery.</p>
+</code></pre><p>New teammate joins? &quot;Run <code>just</code> to see what's available.&quot; That's huge for discovery.</p>
 <h2 id="even-better-interactive-dashboards">Even better: Interactive dashboards</h2>
-<p>Task runners solve the &ldquo;what commands exist&rdquo; problem. But they&rsquo;re non-interactive. Run a command, it exits. What about:</p>
+<p>Task runners solve the &quot;what commands exist&quot; problem. But they're non-interactive. Run a command, it exits. What about:</p>
 <ul>
 <li>Toggling feature flags without restarting the app</li>
 <li>Logging in as different test users with one keypress</li>
@@ -165,12 +165,12 @@
 <li>Switching between API environments (local, staging, prod)</li>
 <li>Clearing caches, seeding test data, or resetting database state</li>
 </ul>
-<p>These are the things I actually do ten times a day during development. And they&rsquo;re annoying to do through code changes or CLI commands.</p>
-<p>This is where I find TUI dashboards interesting. Something that treats developers a bit like customers. Shows what&rsquo;s available, what&rsquo;s running, what can be done next. A bit of handholding for when I come back after two weeks and my brain has completely context-switched away.</p>
+<p>These are the things I actually do ten times a day during development. And they're annoying to do through code changes or CLI commands.</p>
+<p>This is where I find TUI dashboards interesting. Something that treats developers a bit like customers. Shows what's available, what's running, what can be done next. A bit of handholding for when I come back after two weeks and my brain has completely context-switched away.</p>
 <p>Tools like <code>lazygit</code>, <code>k9s</code>, and <code>btop</code> are popular for exactly this reason. Keyboard-first, fast, and I never have to leave my terminal.</p>
 <h2 id="why-i-like-dart-for-this">Why I like Dart for this</h2>
 <p>For Flutter projects, Dart is a natural choice. I can share models, API clients, whatever. No need to rewrite stuff in another language just for a dev tool.</p>
-<p>I&rsquo;ve been building <a href="https://nocterm.dev">Nocterm</a>, a TUI framework that uses Flutter-like APIs. If I know Flutter, I already know how to build with it.</p>
+<p>I've been building <a href="https://nocterm.dev">Nocterm</a>, a TUI framework that uses Flutter-like APIs. If I know Flutter, I already know how to build with it.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-dart" data-lang="dart"><span class="line"><span class="cl"><span class="kd">class</span> <span class="nc">MyDashboard</span> <span class="kd">extends</span> <span class="n">StatefulComponent</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">  <span class="err">@</span><span class="n">override</span>
 </span></span><span class="line"><span class="cl">  <span class="n">State</span><span class="o">&lt;</span><span class="n">MyDashboard</span><span class="o">&gt;</span> <span class="n">createState</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="n">_MyDashboardState</span><span class="p">();</span>
@@ -192,9 +192,9 @@
 </span></span><span class="line"><span class="cl">    <span class="p">);</span>
 </span></span><span class="line"><span class="cl">  <span class="p">}</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><p><code>StatefulComponent</code>, <code>setState()</code>, <code>Column</code>, <code>Row</code>. It&rsquo;s all there. Hot reload works too, which makes iterating fast. And I can compile to a native executable that starts instantly.</p>
+</span></span></code></pre></div><p><code>StatefulComponent</code>, <code>setState()</code>, <code>Column</code>, <code>Row</code>. It's all there. Hot reload works too, which makes iterating fast. And I can compile to a native executable that starts instantly.</p>
 <h2 id="a-practical-example-the-dev-dashboard">A practical example: the dev dashboard</h2>
-<p>Here&rsquo;s what I mean in practice. A dev dashboard that combines commands, logs, and service extensions in one place:</p>
+<p>Here's what I mean in practice. A dev dashboard that combines commands, logs, and service extensions in one place:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-dart" data-lang="dart"><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">  <span class="kd">await</span> <span class="n">runApp</span><span class="p">(</span><span class="kd">const</span> <span class="n">DevDashboard</span><span class="p">());</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
@@ -218,11 +218,11 @@
 </span></span><span class="line"><span class="cl">    <span class="p">);</span>
 </span></span><span class="line"><span class="cl">  <span class="p">}</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><p>The sidebar has categories like &ldquo;App Control&rdquo;, &ldquo;Environment&rdquo;, &ldquo;Feature Flags&rdquo;, &ldquo;Debug Tools&rdquo;. The main panel shows what&rsquo;s in each category. Some examples:</p>
+</span></span></code></pre></div><p>The sidebar has categories like &quot;App Control&quot;, &quot;Environment&quot;, &quot;Feature Flags&quot;, &quot;Debug Tools&quot;. The main panel shows what's in each category. Some examples:</p>
 <ul>
 <li><strong>Environment</strong> - Switch between local, staging, production APIs. See the current endpoint at a glance.</li>
-<li><strong>Feature Flags</strong> - Toggle &ldquo;Dark Mode&rdquo;, &ldquo;New Checkout Flow&rdquo;, &ldquo;Beta Features&rdquo; on and off. No app restart needed.</li>
-<li><strong>Test Users</strong> - Log in as &ldquo;free_user&rdquo;, &ldquo;premium_user&rdquo;, &ldquo;admin&rdquo;, or &ldquo;expired_trial&rdquo; with one keypress.</li>
+<li><strong>Feature Flags</strong> - Toggle &quot;Dark Mode&quot;, &quot;New Checkout Flow&quot;, &quot;Beta Features&quot; on and off. No app restart needed.</li>
+<li><strong>Test Users</strong> - Log in as &quot;free_user&quot;, &quot;premium_user&quot;, &quot;admin&quot;, or &quot;expired_trial&quot; with one keypress.</li>
 <li><strong>Debug Tools</strong> - Clear cache, reset onboarding, seed test data, trigger a test crash.</li>
 </ul>
 <p>For Flutter apps, service extensions make this possible. I define them in my app:</p>
@@ -239,8 +239,8 @@
 </span></span><span class="line"><span class="cl">  <span class="kd">await</span> <span class="n">vmService</span><span class="p">.</span><span class="n">callServiceExtension</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nl">isolateId:</span> <span class="n">vm</span><span class="p">.</span><span class="n">isolates</span><span class="o">!</span><span class="p">.</span><span class="n">first</span><span class="p">.</span><span class="n">id</span><span class="p">);</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>If the TUI itself starts the Flutter app (spawning the process with the right flags and environment variables), it can grab the VM service URI directly from stdout. No copy-pasting URLs. Press <code>[R]</code> to run, the app starts, the TUI connects automatically, and service extensions are ready.</p>
-<p>I&rsquo;ve been thinking about packaging this into a reusable library. Something that handles the Flutter process lifecycle and VM service connection. Maybe for a future release.</p>
-<p>Now the whole team has instant access to these tools. QA person needs to test the premium flow? They don&rsquo;t need to ask for test credentials or figure out how to toggle a feature flag in code. They open the dashboard, switch to &ldquo;premium_user&rdquo;, enable &ldquo;New Checkout Flow&rdquo;, and they&rsquo;re testing.</p>
+<p>I've been thinking about packaging this into a reusable library. Something that handles the Flutter process lifecycle and VM service connection. Maybe for a future release.</p>
+<p>Now the whole team has instant access to these tools. QA person needs to test the premium flow? They don't need to ask for test credentials or figure out how to toggle a feature flag in code. They open the dashboard, switch to &quot;premium_user&quot;, enable &quot;New Checkout Flow&quot;, and they're testing.</p>
 <h2 id="keep-the-cli-escape-hatch">Keep the CLI escape hatch</h2>
 <p>TUIs are great, but I still want traditional CLI support. CI/CD needs non-interactive commands. Sometimes I just want to run <code>myapp build --release</code> without navigating a UI.</p>
 <p>The pattern I use:</p>
@@ -255,15 +255,13 @@
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>TUI for daily development, raw CLI for scripts and automation.</p>
 <h2 id="let-ai-help">Let AI help</h2>
-<p>We&rsquo;re in the age of AI writing code, and TUIs are a good fit for that. The structure is declarative, patterns are repetitive, and if it&rsquo;s something Flutter-like, AI models already understand the concepts.</p>
-<p>I find it works well to describe the dashboard I want, point at some docs, and let AI generate a draft. I&rsquo;ll tweak it, but I get something working faster than starting from scratch.</p>
+<p>We're in the age of AI writing code, and TUIs are a good fit for that. The structure is declarative, patterns are repetitive, and if it's something Flutter-like, AI models already understand the concepts.</p>
+<p>I find it works well to describe the dashboard I want, point at some docs, and let AI generate a draft. I'll tweak it, but I get something working faster than starting from scratch.</p>
 <h2 id="wrapping-up">Wrapping up</h2>
-<p>Dev tools should take mental load off, not add to it. A TUI that shows what&rsquo;s available, what&rsquo;s running, what you can do next. That&rsquo;s what makes coming back to a project after two weeks actually pleasant.</p>
-<p>It doesn&rsquo;t need to replace the <code>justfile</code> or <code>Makefile</code>. I think of it as a layer on top. The TUI can call those same commands, but with context and visibility.</p>
-<p>Start simple. A list of commands with descriptions. Maybe a status indicator. Add a log viewer later. Each piece helps.</p>
+<p>Dev tools should take mental load off, not add to it. A TUI that shows what's available, what's running, what you can do next. That's what makes coming back to a project after two weeks actually pleasant.</p>
+<p>It doesn't need to replace the <code>justfile</code> or <code>Makefile</code>. I think of it as a layer on top. The TUI can call those same commands, but with context and visibility.</p>
 <hr>
 <p>The example dev dashboard from this post is in the <a href="https://github.com/Norbert515/nocterm">Nocterm repo</a> under <code>example/dev_dashboard_demo.dart</code> if you want to poke around.</p>
-<p>Anyway, go write more TUIs.</p>
 
 </article>
 

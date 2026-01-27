@@ -27,3 +27,6 @@ disableKinds = ["taxonomy", "term", "RSS", "sitemap", "robotsTXT", "404"]
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.typographer]
+        disable = true
