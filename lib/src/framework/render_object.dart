@@ -268,6 +268,10 @@ abstract class RenderObject {
   /// The parent of this render object in the render tree.
   RenderObject? parent;
 
+  /// Stable identity used by features that need to track render objects
+  /// across rebuilds (e.g., selection). Defaults to the render object instance.
+  Object? selectionId;
+
   /// Data associated with this render object by its parent.
   ///
   /// Parent data is used to store information that the parent render object
@@ -823,6 +827,7 @@ abstract class RenderObjectElement extends Element {
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     _renderObject = component.createRenderObject(this);
+    _renderObject!.selectionId = component.key ?? _renderObject;
     attachRenderObject(newSlot);
   }
 
@@ -830,6 +835,7 @@ abstract class RenderObjectElement extends Element {
   void update(Component newComponent) {
     super.update(newComponent);
     component.updateRenderObject(this, renderObject);
+    renderObject.selectionId = component.key ?? renderObject;
   }
 
   @override

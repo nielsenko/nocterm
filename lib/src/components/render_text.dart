@@ -7,7 +7,7 @@ import '../text/text_layout_engine.dart';
 export '../text/text_layout_engine.dart' show TextOverflow, TextAlign;
 
 /// Render object for displaying text
-class RenderText extends RenderObject {
+class RenderText extends RenderObject with Selectable {
   RenderText({
     required String text,
     TextStyle? style,
@@ -73,6 +73,12 @@ class RenderText extends RenderObject {
   TextLayoutResult? _layoutResult;
 
   @override
+  String get selectableText => _text;
+
+  @override
+  TextLayoutResult? get selectableLayout => _layoutResult;
+
+  @override
   bool hitTestSelf(Offset position) => true;
 
   @override
@@ -112,6 +118,7 @@ class RenderText extends RenderObject {
     // Use the actual size width for alignment, not the constraint
     // The size has been constrained during layout
     final alignmentWidth = size.width.toInt();
+    final style = _style;
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
@@ -145,11 +152,22 @@ class RenderText extends RenderObject {
         // But we might need to clip at the canvas level for safety
       }
 
-      canvas.drawText(
-        Offset(xOffset, offset.dy + i),
-        displayLine,
-        style: _style,
-      );
+      // Use selection-aware painting if there is an active selection
+      if (hasSelection) {
+        paintTextWithSelection(
+          canvas,
+          Offset(xOffset, offset.dy + i),
+          displayLine,
+          style,
+          i,
+        );
+      } else {
+        canvas.drawText(
+          Offset(xOffset, offset.dy + i),
+          displayLine,
+          style: _style,
+        );
+      }
     }
   }
 }

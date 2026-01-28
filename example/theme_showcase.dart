@@ -55,45 +55,48 @@ class _ThemeShowcaseState extends State<ThemeShowcase> {
   Component build(BuildContext context) {
     return TuiTheme(
       data: _currentTheme,
-      child: Focusable(
-        focused: true,
-        onKeyEvent: (event) {
-          if (event.logicalKey == LogicalKey.keyQ ||
-              event.logicalKey == LogicalKey.escape) {
-            shutdownApp();
-            return true;
-          } else if (event.logicalKey == LogicalKey.arrowRight ||
-              event.logicalKey == LogicalKey.keyL) {
-            _nextTheme();
-            return true;
-          } else if (event.logicalKey == LogicalKey.arrowLeft ||
-              event.logicalKey == LogicalKey.keyH) {
-            _previousTheme();
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit1) {
-            _selectTheme(0);
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit2) {
-            _selectTheme(1);
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit3) {
-            _selectTheme(2);
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit4) {
-            _selectTheme(3);
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit5) {
-            _selectTheme(4);
-            return true;
-          } else if (event.logicalKey == LogicalKey.digit6) {
-            _selectTheme(5);
-            return true;
-          }
-          return false;
-        },
-        child: _ThemeShowcaseContent(
-          themeName: _currentThemeName,
-          themeIndex: _currentThemeIndex,
+      child: SelectionArea(
+        onSelectionCompleted: ClipboardManager.copy,
+        child: Focusable(
+          focused: true,
+          onKeyEvent: (event) {
+            if (event.logicalKey == LogicalKey.keyQ ||
+                event.logicalKey == LogicalKey.escape) {
+              shutdownApp();
+              return true;
+            } else if (event.logicalKey == LogicalKey.arrowRight ||
+                event.logicalKey == LogicalKey.keyL) {
+              _nextTheme();
+              return true;
+            } else if (event.logicalKey == LogicalKey.arrowLeft ||
+                event.logicalKey == LogicalKey.keyH) {
+              _previousTheme();
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit1) {
+              _selectTheme(0);
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit2) {
+              _selectTheme(1);
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit3) {
+              _selectTheme(2);
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit4) {
+              _selectTheme(3);
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit5) {
+              _selectTheme(4);
+              return true;
+            } else if (event.logicalKey == LogicalKey.digit6) {
+              _selectTheme(5);
+              return true;
+            }
+            return false;
+          },
+          child: _ThemeShowcaseContent(
+            themeName: _currentThemeName,
+            themeIndex: _currentThemeIndex,
+          ),
         ),
       ),
     );

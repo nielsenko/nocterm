@@ -101,3 +101,7 @@ export 'src/components/modal_barrier.dart';
 // Image support
 export 'src/components/image.dart';
 export 'src/image/image_cleanup.dart' show ImageProtocol;
+
+// Text Selection
+export 'src/components/selection_area.dart';
+export 'src/components/selectable.dart';

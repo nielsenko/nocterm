@@ -49,11 +49,17 @@ class MouseTracker {
   /// The set of annotations currently under the mouse cursor.
   final Set<MouseTrackerAnnotation> _hoveredAnnotations = {};
 
+  /// The set of mouse buttons currently held down.
+  final Set<MouseButton> _pressedButtons = {};
+
   /// Update the hovered annotations based on hit test results and dispatch events.
   void updateAnnotations(
     MouseHitTestResult hitTestResult,
     MouseEvent event,
   ) {
+    _updatePressedButtons(event);
+    final effectiveEvent = _eventWithButtons(event);
+
     // Collect all annotations from the hit test result
     final Set<MouseTrackerAnnotation> newAnnotations = {};
     for (final entry in hitTestResult.mouseEntries) {
@@ -70,7 +76,7 @@ class MouseTracker {
     final exitedAnnotations = _hoveredAnnotations.difference(newAnnotations);
     for (final annotation in exitedAnnotations) {
       if (annotation.validForMouseTracker) {
-        annotation.onExit?.call(event);
+        annotation.onExit?.call(effectiveEvent);
       }
     }
 
@@ -78,14 +84,14 @@ class MouseTracker {
     final enteredAnnotations = newAnnotations.difference(_hoveredAnnotations);
     for (final annotation in enteredAnnotations) {
       if (annotation.validForMouseTracker) {
-        annotation.onEnter?.call(event);
+        annotation.onEnter?.call(effectiveEvent);
       }
     }
 
     // Dispatch hover events to all currently hovered annotations
     for (final annotation in newAnnotations) {
       if (annotation.validForMouseTracker) {
-        annotation.onHover?.call(event);
+        annotation.onHover?.call(effectiveEvent);
       }
     }
 
@@ -100,6 +106,35 @@ class MouseTracker {
       annotation.onExit?.call(event);
     }
     _hoveredAnnotations.clear();
+    _pressedButtons.clear();
+  }
+
+  /// Track pressed buttons from non-motion press/release events.
+  void _updatePressedButtons(MouseEvent event) {
+    // Ignore wheel and motion-only events
+    if (event.button == MouseButton.wheelUp ||
+        event.button == MouseButton.wheelDown) {
+      return;
+    }
+    if (event.isMotion) return;
+
+    if (event.pressed) {
+      _pressedButtons.add(event.button);
+    } else {
+      _pressedButtons.remove(event.button);
+    }
+  }
+
+  /// Return a copy of [event] enriched with the current pressed-buttons set.
+  MouseEvent _eventWithButtons(MouseEvent event) {
+    return MouseEvent(
+      button: event.button,
+      x: event.x,
+      y: event.y,
+      pressed: event.pressed,
+      isMotion: event.isMotion,
+      buttons: Set<MouseButton>.of(_pressedButtons),
+    );
   }
 }
 

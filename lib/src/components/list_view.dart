@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:nocterm/nocterm.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
+
 import '../rendering/scrollable_render_object.dart';
+import 'selection_state.dart';
 
 /// Signature for a function that creates a widget for a given index.
 typedef IndexedWidgetBuilder = Component? Function(
@@ -673,8 +675,12 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   /// Information about visible children after layout.
   final List<_ChildLayoutInfo> _visibleChildren = [];
 
-  /// All built children when not lazy (for accurate extent calculation).
+  /// All built children (viewport + force-built for selection).
   final List<_ChildLayoutInfo> _allChildren = [];
+
+  /// Render objects already in [_allChildren], used to avoid duplicates when
+  /// [_forceBuildSelectionRange] overlaps with the viewport range.
+  final Set<RenderObject> _allChildrenSet = {};
 
   /// First and last item indices that were built (includes cache area).
   /// Used to clean up children outside the cached range.
@@ -683,6 +689,62 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
 
   /// Tracks the average item extent for estimating total scroll extent
   double? _averageItemExtent;
+
+  /// Adds a child to [_allChildren], skipping duplicates.
+  void _addToAllChildren(RenderObject renderObject) {
+    if (_allChildrenSet.add(renderObject)) {
+      _allChildren.add(_ChildLayoutInfo(renderObject: renderObject));
+    }
+  }
+
+  RenderObject? _buildAndLayoutChild({
+    required int index,
+    required BoxConstraints childConstraints,
+    required double layoutOffset,
+    double? extentOverride,
+  }) {
+    final child = _element!.buildChild(index);
+    if (child == null) return null;
+    final renderObject = _getRenderObject(child);
+    if (renderObject == null) return null;
+
+    renderObject.layout(childConstraints, parentUsesSize: true);
+    final childExtent = extentOverride ??
+        (scrollDirection == Axis.vertical
+            ? renderObject.size.height
+            : renderObject.size.width);
+
+    final parentData = renderObject.parentData as ListViewParentData;
+    parentData.layoutOffset = layoutOffset;
+    parentData.extent = childExtent;
+    parentData.index = index;
+
+    return renderObject;
+  }
+
+  RenderObject? _buildAndLayoutSeparator({
+    required int index,
+    required BoxConstraints childConstraints,
+    required double layoutOffset,
+  }) {
+    final separator = _element!.buildSeparator(index);
+    if (separator == null) return null;
+    final separatorRenderObject = _getRenderObject(separator);
+    if (separatorRenderObject == null) return null;
+
+    separatorRenderObject.layout(childConstraints, parentUsesSize: true);
+    final separatorExtent = scrollDirection == Axis.vertical
+        ? separatorRenderObject.size.height
+        : separatorRenderObject.size.width;
+
+    final sepParentData =
+        separatorRenderObject.parentData as ListViewParentData;
+    sepParentData.layoutOffset = layoutOffset;
+    sepParentData.extent = separatorExtent;
+    sepParentData.index = -index - 1;
+
+    return separatorRenderObject;
+  }
 
   /// Finds the best starting index for layout given a scroll offset.
   /// Uses parent data on children for O(n) lookup through existing children.
@@ -722,6 +784,7 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   void performLayout() {
     _visibleChildren.clear();
     _allChildren.clear();
+    _allChildrenSet.clear();
 
     if (_element == null) {
       size = constraints.constrain(Size.zero);
@@ -795,15 +858,55 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     );
 
     // Clean up children outside the cached range in lazy mode
-    if (_lazy) {
+    if (_lazy && !SelectionDragState.isActive) {
       _element!.removeInvisibleChildren(
         _firstBuiltIndex,
         _lastBuiltIndex,
       );
     }
 
+    if (_lazy && SelectionDragState.isActive) {
+      _forceBuildSelectionRange(
+        childConstraints: childConstraints,
+        itemCount: itemCount,
+      );
+    }
+
     // Reset the child update flag after layout completes
     _element?.layoutComplete();
+
+    // Keep parent data offsets in sync for selection/hit testing.
+    _updateChildOffsets(
+      effectivePadding: effectivePadding,
+      viewportExtent: viewportExtent,
+    );
+  }
+
+  void _updateChildOffsets({
+    required EdgeInsets effectivePadding,
+    required double viewportExtent,
+  }) {
+    final scrollOffset = _controller.offset;
+    for (final child in _allChildren) {
+      final renderObject = child.renderObject;
+      final parentData = renderObject.parentData as ListViewParentData;
+      final layoutOffset = parentData.layoutOffset ?? 0.0;
+      final childExtent = parentData.extent ??
+          (scrollDirection == Axis.vertical
+              ? renderObject.size.height
+              : renderObject.size.width);
+      double childPosition = layoutOffset - scrollOffset;
+
+      if (_reverse) {
+        childPosition = viewportExtent - childPosition - childExtent;
+      }
+
+      final childOffset = scrollDirection == Axis.vertical
+          ? Offset(effectivePadding.left, effectivePadding.top + childPosition)
+          : Offset(effectivePadding.left + childPosition, effectivePadding.top);
+
+      parentData.offset = childOffset;
+    }
   }
 
   /// Performs lazy layout - only builds visible children
@@ -837,28 +940,18 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
       if (itemCount != null && itemIndex >= itemCount) break;
 
       // Build item
-      final child = _element!.buildChild(itemIndex);
-      if (child == null) break;
-
-      // Get render object
-      final renderObject = _getRenderObject(child);
-      if (renderObject == null) continue;
-
-      // Layout child
-      renderObject.layout(childConstraints, parentUsesSize: true);
+      final renderObject = _buildAndLayoutChild(
+        index: itemIndex,
+        childConstraints: childConstraints,
+        layoutOffset: currentPosition,
+      );
+      if (renderObject == null) break;
 
       // Track item extent for average calculation
-      final childExtent = scrollDirection == Axis.vertical
-          ? renderObject.size.height
-          : renderObject.size.width;
+      final childExtent =
+          (renderObject.parentData as ListViewParentData).extent!;
       totalMeasuredExtent += childExtent;
       measuredCount++;
-
-      // Store position info in parent data (travels with the child)
-      final parentData = renderObject.parentData as ListViewParentData;
-      parentData.layoutOffset = currentPosition;
-      parentData.extent = childExtent;
-      parentData.index = itemIndex;
 
       // Store child info if visible (not just in cache area)
       if (currentPosition + childExtent > scrollOffset &&
@@ -869,45 +962,32 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
       }
 
       // Add to _allChildren for future lookups
-      _allChildren.add(_ChildLayoutInfo(
-        renderObject: renderObject,
-      ));
+      _addToAllChildren(renderObject);
 
       currentPosition += childExtent;
 
       // Add separator if needed
       if (hasSeparators && (itemCount == null || itemIndex < itemCount - 1)) {
-        final separator = _element!.buildSeparator(itemIndex);
-        if (separator != null) {
-          final separatorRenderObject = _getRenderObject(separator);
-          if (separatorRenderObject != null) {
-            separatorRenderObject.layout(childConstraints,
-                parentUsesSize: true);
-            final separatorExtent = scrollDirection == Axis.vertical
-                ? separatorRenderObject.size.height
-                : separatorRenderObject.size.width;
+        final separatorRenderObject = _buildAndLayoutSeparator(
+          index: itemIndex,
+          childConstraints: childConstraints,
+          layoutOffset: currentPosition,
+        );
+        if (separatorRenderObject != null) {
+          final separatorExtent =
+              (separatorRenderObject.parentData as ListViewParentData).extent!;
 
-            // Store separator position in parent data
-            final sepParentData =
-                separatorRenderObject.parentData as ListViewParentData;
-            sepParentData.layoutOffset = currentPosition;
-            sepParentData.extent = separatorExtent;
-            sepParentData.index = -itemIndex - 1;
-
-            // Store separator if visible
-            if (currentPosition + separatorExtent > scrollOffset &&
-                currentPosition < scrollOffset + viewportExtent) {
-              _visibleChildren.add(_ChildLayoutInfo(
-                renderObject: separatorRenderObject,
-              ));
-            }
-
-            _allChildren.add(_ChildLayoutInfo(
+          // Store separator if visible
+          if (currentPosition + separatorExtent > scrollOffset &&
+              currentPosition < scrollOffset + viewportExtent) {
+            _visibleChildren.add(_ChildLayoutInfo(
               renderObject: separatorRenderObject,
             ));
-
-            currentPosition += separatorExtent;
           }
+
+          _addToAllChildren(separatorRenderObject);
+
+          currentPosition += separatorExtent;
         }
       }
 
@@ -976,30 +1056,18 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
 
     while (itemIndex < maxItems) {
       // Build item
-      final child = _element!.buildChild(itemIndex);
-      if (child == null) break;
+      final renderObject = _buildAndLayoutChild(
+        index: itemIndex,
+        childConstraints: childConstraints,
+        layoutOffset: currentPosition,
+      );
+      if (renderObject == null) break;
 
-      // Get render object
-      final renderObject = _getRenderObject(child);
-      if (renderObject == null) continue;
-
-      // Layout child
-      renderObject.layout(childConstraints, parentUsesSize: true);
-
-      final childExtent = scrollDirection == Axis.vertical
-          ? renderObject.size.height
-          : renderObject.size.width;
-
-      // Store position info in parent data (travels with the child)
-      final parentData = renderObject.parentData as ListViewParentData;
-      parentData.layoutOffset = currentPosition;
-      parentData.extent = childExtent;
-      parentData.index = itemIndex;
+      final childExtent =
+          (renderObject.parentData as ListViewParentData).extent!;
 
       // Store all children info
-      _allChildren.add(_ChildLayoutInfo(
-        renderObject: renderObject,
-      ));
+      _addToAllChildren(renderObject);
 
       // Check if visible
       if (currentPosition < scrollOffset + viewportExtent &&
@@ -1013,36 +1081,25 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
 
       // Add separator if needed
       if (hasSeparators && (itemCount == null || itemIndex < itemCount - 1)) {
-        final separator = _element!.buildSeparator(itemIndex);
-        if (separator != null) {
-          final separatorRenderObject = _getRenderObject(separator);
-          if (separatorRenderObject != null) {
-            separatorRenderObject.layout(childConstraints,
-                parentUsesSize: true);
-            final separatorExtent = scrollDirection == Axis.vertical
-                ? separatorRenderObject.size.height
-                : separatorRenderObject.size.width;
+        final separatorRenderObject = _buildAndLayoutSeparator(
+          index: itemIndex,
+          childConstraints: childConstraints,
+          layoutOffset: currentPosition,
+        );
+        if (separatorRenderObject != null) {
+          final separatorExtent =
+              (separatorRenderObject.parentData as ListViewParentData).extent!;
 
-            // Store separator position in parent data
-            final sepParentData =
-                separatorRenderObject.parentData as ListViewParentData;
-            sepParentData.layoutOffset = currentPosition;
-            sepParentData.extent = separatorExtent;
-            sepParentData.index = -itemIndex - 1;
+          _addToAllChildren(separatorRenderObject);
 
-            _allChildren.add(_ChildLayoutInfo(
+          if (currentPosition < scrollOffset + viewportExtent &&
+              currentPosition + separatorExtent > scrollOffset) {
+            _visibleChildren.add(_ChildLayoutInfo(
               renderObject: separatorRenderObject,
             ));
-
-            if (currentPosition < scrollOffset + viewportExtent &&
-                currentPosition + separatorExtent > scrollOffset) {
-              _visibleChildren.add(_ChildLayoutInfo(
-                renderObject: separatorRenderObject,
-              ));
-            }
-
-            currentPosition += separatorExtent;
           }
+
+          currentPosition += separatorExtent;
         }
       }
 
@@ -1050,6 +1107,74 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     }
 
     return currentPosition; // Exact total extent
+  }
+
+  void _forceBuildSelectionRange({
+    required BoxConstraints childConstraints,
+    required int? itemCount,
+  }) {
+    if (_element == null) return;
+    final range = SelectionDragState.rangeFor(this);
+    if (range == null) return;
+
+    final maxIndex = itemCount != null
+        ? range.maxIndex.clamp(0, itemCount - 1)
+        : range.maxIndex;
+    final minIndex = range.minIndex.clamp(0, maxIndex);
+
+    if (!hasSeparators && itemExtent != null) {
+      for (int index = minIndex; index <= maxIndex; index++) {
+        final renderObject = _buildAndLayoutChild(
+          index: index,
+          childConstraints: childConstraints,
+          layoutOffset: index * itemExtent!,
+          extentOverride: itemExtent,
+        );
+        if (renderObject == null) break;
+
+        _addToAllChildren(renderObject);
+      }
+      return;
+    }
+
+    double currentPosition = 0.0;
+    final lastIndex = itemCount != null ? itemCount - 1 : maxIndex;
+
+    for (int index = 0; index <= lastIndex && index <= maxIndex; index++) {
+      final renderObject = _buildAndLayoutChild(
+        index: index,
+        childConstraints: childConstraints,
+        layoutOffset: currentPosition,
+      );
+      if (renderObject == null) break;
+
+      final childExtent =
+          (renderObject.parentData as ListViewParentData).extent!;
+
+      if (index >= minIndex) {
+        _addToAllChildren(renderObject);
+      }
+
+      currentPosition += childExtent;
+
+      if (hasSeparators && index < lastIndex) {
+        final separatorRenderObject = _buildAndLayoutSeparator(
+          index: index,
+          childConstraints: childConstraints,
+          layoutOffset: currentPosition,
+        );
+        if (separatorRenderObject != null) {
+          final separatorExtent =
+              (separatorRenderObject.parentData as ListViewParentData).extent!;
+
+          if (index >= minIndex) {
+            _addToAllChildren(separatorRenderObject);
+          }
+
+          currentPosition += separatorExtent;
+        }
+      }
+    }
   }
 
   /// Helper to get render object from element and attach it to this viewport.
@@ -1117,13 +1242,20 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
           ? Offset(effectivePadding.left, effectivePadding.top + childPosition)
           : Offset(effectivePadding.left + childPosition, effectivePadding.top);
 
+      // Keep parent data offset in sync for hit testing and selection.
+      parentData.offset = childOffset;
+
       child.renderObject.paint(clippedCanvas, childOffset);
     }
   }
 
   @override
   void visitChildren(RenderObjectVisitor visitor) {
-    for (final child in _visibleChildren) {
+    // Use _allChildren so that tree walks (e.g. SelectionArea collecting
+    // selectables) can discover force-built items outside the viewport.
+    // Paint and hit-testing iterate _visibleChildren directly, so this
+    // does not affect rendering or pointer dispatch.
+    for (final child in _allChildren) {
       visitor(child.renderObject);
     }
   }

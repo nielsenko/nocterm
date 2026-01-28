@@ -6,6 +6,7 @@ import 'package:nocterm/nocterm.dart' hide TextAlign;
 import 'package:nocterm/src/framework/terminal_canvas.dart';
 import '../text/text_layout_engine.dart';
 import '../utils/unicode_width.dart';
+import '../text/selection_utils.dart' as selection_utils;
 import 'text_field/cursor_movement.dart';
 
 /// Controls the text being edited.
@@ -1429,72 +1430,18 @@ class RenderTextField extends RenderObject {
 
   void _paintLineWithSelection(TerminalCanvas canvas, Offset offset,
       String line, TextStyle style, int lineIndex) {
-    // Calculate the character range for this line
-    int lineStartOffset = 0;
-    if (_layoutResult != null && lineIndex > 0) {
-      // Sum up the character count of all previous lines
-      for (int i = 0; i < lineIndex && i < _layoutResult!.lines.length; i++) {
-        lineStartOffset += _layoutResult!.lines[i].length;
-        // Only add 1 for actual newline characters in the text, not wrapped lines
-        if (i < _layoutResult!.lines.length - 1) {
-          final textUpToLine =
-              _text.substring(0, math.min(lineStartOffset, _text.length));
-          if (textUpToLine.endsWith('\n')) {
-            lineStartOffset++;
-          }
-        }
-      }
-    }
-
-    final lineEndOffset = lineStartOffset + line.length;
-
-    // Check if selection intersects with this line
-    if (!_selection.isCollapsed) {
-      final selStart = _selection.start;
-      final selEnd = _selection.end;
-      final selectionColor = _selectionColor ?? Colors.blue;
-
-      // Check if selection overlaps with this line
-      if (selEnd > lineStartOffset && selStart < lineEndOffset) {
-        // Calculate selection within this line
-        final localSelStart = math.max(0, selStart - lineStartOffset);
-        final localSelEnd = math.min(line.length, selEnd - lineStartOffset);
-
-        if (localSelStart < localSelEnd) {
-          // Paint non-selected text before selection
-          if (localSelStart > 0) {
-            final beforeText = line.substring(0, localSelStart);
-            canvas.drawText(offset, beforeText, style: style);
-          }
-
-          // Paint selected text with selection background
-          final selectedText = line.substring(localSelStart, localSelEnd);
-          final beforeWidth = localSelStart > 0
-              ? UnicodeWidth.stringWidth(line.substring(0, localSelStart))
-              : 0;
-          final selectionStyle =
-              style.copyWith(backgroundColor: selectionColor);
-          canvas.drawText(
-              offset + Offset(beforeWidth.toDouble(), 0), selectedText,
-              style: selectionStyle);
-
-          // Paint non-selected text after selection
-          if (localSelEnd < line.length) {
-            final afterText = line.substring(localSelEnd);
-            final beforeSelectedWidth =
-                UnicodeWidth.stringWidth(line.substring(0, localSelEnd));
-            canvas.drawText(
-                offset + Offset(beforeSelectedWidth.toDouble(), 0), afterText,
-                style: style);
-          }
-
-          return;
-        }
-      }
-    }
-
-    // No selection on this line, paint normally
-    canvas.drawText(offset, line, style: style);
+    selection_utils.paintTextWithSelection(
+      canvas: canvas,
+      offset: offset,
+      line: line,
+      style: style,
+      lineIndex: lineIndex,
+      text: _text,
+      lines: _layoutResult?.lines ?? const [],
+      selectionStart: _selection.isCollapsed ? null : _selection.start,
+      selectionEnd: _selection.isCollapsed ? null : _selection.end,
+      selectionColor: _selectionColor ?? Colors.blue,
+    );
   }
 
   void _paintCursor(TerminalCanvas canvas, Offset offset) {

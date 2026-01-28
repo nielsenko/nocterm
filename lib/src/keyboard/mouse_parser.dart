@@ -36,7 +36,7 @@ class MouseParser {
       final buttonCode = int.parse(parts[0]);
       final x = int.parse(parts[1]) - 1; // Convert to 0-based
       final y = int.parse(parts[2]) - 1; // Convert to 0-based
-      final pressed =
+      bool pressed =
           buffer[terminatorIndex] == 0x4D; // 'M' = press, 'm' = release
 
       // Decode button from SGR button code
@@ -58,8 +58,8 @@ class MouseParser {
         final isMotion = (buttonCode & 0x20) != 0; // Bit 5
 
         if (isMotion && baseButton == 3) {
-          // Mouse motion without button press - use left button as placeholder
-          // and mark as not pressed to indicate hover/move
+          // Mouse motion without button press - use left as placeholder and
+          // treat as not pressed to indicate hover/move.
           button = MouseButton.left;
         } else {
           // Regular button events
@@ -85,8 +85,12 @@ class MouseParser {
         return null;
       }
 
-      // Determine if this is a motion event
       final isMotionEvent = (buttonCode & 0x20) != 0; // Bit 5 indicates motion
+
+      // SGR motion with baseButton=3 indicates hover (no buttons pressed).
+      if (isMotionEvent && (buttonCode & 0x3) == 3) {
+        pressed = false;
+      }
 
       return MouseEvent(
         button: button,

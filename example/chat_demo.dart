@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:nocterm/nocterm.dart';
 
 void main() async {
@@ -116,7 +117,9 @@ class _ChatDemoState extends State<ChatDemo> {
   }
 
   bool _handleKeyEvent(KeyboardEvent event) {
-    if (event.logicalKey == LogicalKey.keyA && !inputHasFocus) {
+    if (event.logicalKey == LogicalKey.keyC && event.isControlPressed) {
+      TerminalBinding.instance.requestShutdown();
+    } else if (event.logicalKey == LogicalKey.keyA && !inputHasFocus) {
       _toggleAutoMessages();
       return true;
     } else if (event.logicalKey == LogicalKey.keyC && !inputHasFocus) {
@@ -133,112 +136,117 @@ class _ChatDemoState extends State<ChatDemo> {
 
   @override
   Component build(BuildContext context) {
-    return Focusable(
-      focused: true,
-      onKeyEvent: _handleKeyEvent,
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-            decoration: BoxDecoration(
-              color: Color.fromRGB(0, 50, 100),
-              border: BoxBorder.all(color: Colors.cyan),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Chat Demo',
-                  style: TextStyle(
-                    color: Colors.brightWhite,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Messages: ${messages.length} | Auto-scroll: ${scrollController.isAutoScrollEnabled ? "ON" : "OFF"}',
-                  style: TextStyle(color: Colors.yellow),
-                ),
-              ],
-            ),
-          ),
-
-          // Chat messages area
-          Expanded(
-            child: Container(
+    return SelectionArea(
+      onSelectionCompleted: ClipboardManager.copy,
+      selectionColor: Colors.red,
+      child: Focusable(
+        focused: true,
+        onKeyEvent: _handleKeyEvent,
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 2, vertical: 1),
               decoration: BoxDecoration(
-                border: BoxBorder.all(color: Colors.blue),
+                color: Color.fromRGB(0, 50, 100),
+                border: BoxBorder.all(color: Colors.cyan),
               ),
-              child: messages.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No messages yet. Start typing or press "a" for auto messages.',
-                        style: TextStyle(color: Colors.gray),
-                      ),
-                    )
-                  : Scrollbar(
-                      controller: scrollController,
-                      thumbVisibility: true,
-                      child: ListView.builder(
-                        controller: scrollController,
-                        padding: EdgeInsets.all(1),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          return _MessageWidget(message: message);
-                        },
-                      ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Chat Demo',
+                    style: TextStyle(
+                      color: Colors.brightWhite,
+                      fontWeight: FontWeight.bold,
                     ),
-            ),
-          ),
-
-          // Input area
-          Container(
-            padding: EdgeInsets.all(1),
-            decoration: BoxDecoration(
-              border: BoxBorder(top: BorderSide(color: Colors.blue)),
-              color: Color.fromRGB(20, 20, 40),
-            ),
-            child: Row(
-              children: [
-                Text('> ', style: TextStyle(color: Colors.green)),
-                Expanded(
-                  child: TextField(
-                    controller: textController,
-                    focused: true,
-                    style: TextStyle(color: Colors.white),
-                    placeholder: 'Type a message...',
-                    onSubmitted: (_) => _sendMessage(),
-                    onFocusChange: (focused) {
-                      setState(() {
-                        inputHasFocus = focused;
-                      });
-                    },
                   ),
-                ),
-              ],
+                  Text(
+                    'Messages: ${messages.length} | Auto-scroll: ${scrollController.isAutoScrollEnabled ? "ON" : "OFF"}',
+                    style: TextStyle(color: Colors.yellow),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Status bar
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-            decoration: BoxDecoration(
-              color: Color.fromRGB(0, 20, 40),
-              border: BoxBorder(top: BorderSide(color: Colors.cyan)),
+            // Chat messages area
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: BoxBorder.all(color: Colors.blue),
+                ),
+                child: messages.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No messages yet. Start typing or press "a" for auto messages.',
+                          style: TextStyle(color: Colors.gray),
+                        ),
+                      )
+                    : Scrollbar(
+                        controller: scrollController,
+                        thumbVisibility: true,
+                        child: ListView.builder(
+                          controller: scrollController,
+                          padding: EdgeInsets.all(1),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            return _MessageWidget(message: message);
+                          },
+                        ),
+                      ),
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('[a] Toggle auto messages | ',
-                    style: TextStyle(color: Colors.gray)),
-                Text('[c] Clear chat | ', style: TextStyle(color: Colors.gray)),
-                Text('[↑↓] Scroll | ', style: TextStyle(color: Colors.gray)),
-                Text('[Enter] Send', style: TextStyle(color: Colors.gray)),
-              ],
+
+            // Input area
+            Container(
+              padding: EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                border: BoxBorder(top: BorderSide(color: Colors.blue)),
+                color: Color.fromRGB(20, 20, 40),
+              ),
+              child: Row(
+                children: [
+                  Text('> ', style: TextStyle(color: Colors.green)),
+                  Expanded(
+                    child: TextField(
+                      controller: textController,
+                      focused: true,
+                      style: TextStyle(color: Colors.white),
+                      placeholder: 'Type a message...',
+                      onSubmitted: (_) => _sendMessage(),
+                      onFocusChange: (focused) {
+                        setState(() {
+                          inputHasFocus = focused;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Status bar
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+              decoration: BoxDecoration(
+                color: Color.fromRGB(0, 20, 40),
+                border: BoxBorder(top: BorderSide(color: Colors.cyan)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('[a] Toggle auto messages | ',
+                      style: TextStyle(color: Colors.gray)),
+                  Text('[c] Clear chat | ',
+                      style: TextStyle(color: Colors.gray)),
+                  Text('[↑↓] Scroll | ', style: TextStyle(color: Colors.gray)),
+                  Text('[Enter] Send', style: TextStyle(color: Colors.gray)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -252,6 +252,13 @@ class RenderSingleChildViewport extends RenderObject
   }
 
   @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! BoxParentData) {
+      child.parentData = BoxParentData();
+    }
+  }
+
+  @override
   void performLayout() {
     if (child == null) {
       size = constraints.constrain(Size.zero);
@@ -293,6 +300,14 @@ class RenderSingleChildViewport extends RenderObject
       maxScrollExtent: math.max(0, scrollExtent - viewportExtent),
       viewportDimension: viewportExtent,
     );
+
+    // Store scroll offset in child's parent data so globalPaintOffset
+    // traversals can see the scroll translation.
+    final childParentData = child!.parentData as BoxParentData;
+    final scrollOffset = scrollDirection == Axis.vertical
+        ? Offset(0, -_controller.offset)
+        : Offset(-_controller.offset, 0);
+    childParentData.offset = scrollOffset;
   }
 
   @override
@@ -311,6 +326,10 @@ class RenderSingleChildViewport extends RenderObject
     );
 
     // Paint the child at the combined offset (viewport offset + scroll offset)
+    final childParentData = child!.parentData as BoxParentData?;
+    if (childParentData != null) {
+      childParentData.offset = scrollOffset;
+    }
     child!.paint(clippedCanvas, Offset.zero + scrollOffset);
   }
 

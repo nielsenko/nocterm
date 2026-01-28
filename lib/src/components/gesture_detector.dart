@@ -289,11 +289,12 @@ class _RenderGestureDetector extends RenderMouseRegion {
         // When entering, sync our state with the current button state
         // but don't trigger pointer down unless button is pressed during entry
         if (event.button == MouseButton.left) {
-          if (event.pressed && !_isLeftButtonPressed) {
+          final leftDown = event.pressed || event.isPrimaryButtonDown;
+          if (leftDown && !_isLeftButtonPressed) {
             // Button is pressed as we enter - treat as new press
             _isLeftButtonPressed = true;
             _onPointerDown(event);
-          } else if (!event.pressed) {
+          } else if (!leftDown) {
             // Button not pressed, ensure state is clean
             _isLeftButtonPressed = false;
           }
@@ -302,7 +303,8 @@ class _RenderGestureDetector extends RenderMouseRegion {
       onExit: (event) {
         // When exiting, if button was pressed inside and is now released,
         // we should complete the gesture
-        if (!event.pressed &&
+        final leftDown = event.pressed || event.isPrimaryButtonDown;
+        if (!leftDown &&
             _isLeftButtonPressed &&
             event.button == MouseButton.left) {
           _isLeftButtonPressed = false;
@@ -322,11 +324,12 @@ class _RenderGestureDetector extends RenderMouseRegion {
         // Detect button state transitions (pressed -> not pressed, or vice versa)
         // This works regardless of the isMotion flag by tracking actual state changes
         if (event.button == MouseButton.left) {
-          if (event.pressed && !_isLeftButtonPressed) {
+          final leftDown = event.pressed || event.isPrimaryButtonDown;
+          if (leftDown && !_isLeftButtonPressed) {
             // Button was just pressed while hovering
             _isLeftButtonPressed = true;
             _onPointerDown(event);
-          } else if (!event.pressed && _isLeftButtonPressed) {
+          } else if (!leftDown && _isLeftButtonPressed) {
             // Button was just released while hovering
             _isLeftButtonPressed = false;
             _onPointerUp(event);
