@@ -254,7 +254,7 @@ class RenderScrollbar extends RenderObject
     // Don't show scrollbar if there's nothing to scroll
     if (controller.maxScrollExtent <= 0) return;
 
-    final scrollbarX = offset.dx + size.width - thickness;
+    final scrollbarX = size.width - thickness;
     final scrollbarHeight = size.height;
 
     // Calculate thumb size and position
