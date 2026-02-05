@@ -577,6 +577,30 @@ void main() {
       );
     });
 
+    test('dispose cleans drag state when unmounted mid-drag', () async {
+      await testNocterm(
+        'dispose mid-drag cleanup',
+        (tester) async {
+          await tester.pumpComponent(
+            Container(
+              width: 10,
+              height: 2,
+              child: const _SelectionAreaUnmountHarness(),
+            ),
+          );
+
+          await tester.press(1, 0);
+          expect(SelectionDragState.isActive, isTrue);
+
+          final state = _SelectionAreaUnmountHarness.lastState!;
+          state.unmountSelectionArea();
+          await tester.pump();
+
+          expect(SelectionDragState.isActive, isFalse);
+        },
+      );
+    });
+
     test('ListView items with multiple selectables use positional sort',
         () async {
       await testNocterm(
@@ -1572,6 +1596,44 @@ class _SelectionAreaSwapHarnessState extends State<_SelectionAreaSwapHarness> {
                 Text('New2'),
               ],
             ),
+    );
+  }
+}
+
+class _SelectionAreaUnmountHarness extends StatefulComponent {
+  const _SelectionAreaUnmountHarness();
+
+  static _SelectionAreaUnmountHarnessState? lastState;
+
+  @override
+  State<_SelectionAreaUnmountHarness> createState() =>
+      _SelectionAreaUnmountHarnessState();
+}
+
+class _SelectionAreaUnmountHarnessState
+    extends State<_SelectionAreaUnmountHarness> {
+  bool _mountedSelectionArea = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _SelectionAreaUnmountHarness.lastState = this;
+  }
+
+  void unmountSelectionArea() {
+    setState(() {
+      _mountedSelectionArea = false;
+    });
+  }
+
+  @override
+  Component build(BuildContext context) {
+    if (!_mountedSelectionArea) {
+      return const SizedBox(height: 2);
+    }
+
+    return const SelectionArea(
+      child: Text('Hello'),
     );
   }
 }

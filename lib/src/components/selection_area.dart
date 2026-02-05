@@ -90,6 +90,18 @@ class _SelectionAreaState extends State<SelectionArea> {
   }
 
   @override
+  void dispose() {
+    if (_isActive) {
+      // Ensure global drag state is cleaned up even if the widget unmounts
+      // while a drag is in progress.
+      SelectionDragState.end();
+      _isActive = false;
+      _ranges.clear();
+    }
+    super.dispose();
+  }
+
+  @override
   Component build(BuildContext context) {
     final theme = TuiTheme.of(context);
     final effectiveColor = component.selectionColor ?? theme.selectionColor;
@@ -267,10 +279,12 @@ class RenderSelectionArea extends RenderMouseRegion {
         }
       },
       onExit: (event) {
-        final leftDown = event.pressed || event.isPrimaryButtonDown;
-        if (!leftDown && _isLeftButtonPressed) {
+        if (_isDragging) {
+          // End drag when leaving the region. Otherwise a subsequent release
+          // outside this region may never be dispatched back here.
           _isLeftButtonPressed = false;
           _handlePointerUp(event);
+          return;
         }
         _isLeftButtonPressed = false;
       },
