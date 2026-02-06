@@ -521,6 +521,9 @@ abstract class RenderObject {
   void adoptChild(RenderObject child) {
     setupParentData(child);
     child.parent = this;
+    if (owner != null) {
+      child.attach(owner!);
+    }
     markNeedsLayout();
   }
 
