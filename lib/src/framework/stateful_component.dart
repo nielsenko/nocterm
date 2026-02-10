@@ -133,6 +133,8 @@ class StatefulElement extends BuildableElement {
 
   @override
   void update(Component newComponent) {
+    if (identical(component, newComponent)) return;
+
     super.update(newComponent);
     assert(component == newComponent);
     final StatefulComponent oldComponent = _state._component!;
