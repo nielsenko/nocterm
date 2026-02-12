@@ -82,8 +82,13 @@ release:
             sed -i '' -E "s/nocterm: \^[0-9]+\.[0-9]+\.[0-9]+/nocterm: ^$version_number/" README.md
             sed -i '' -E "s/in early development \([0-9]+\.[0-9]+\.[0-9]+\)/in early development ($version_number)/" README.md
 
+            # Update version on the landing page
+            echo "Updating landing/index.html..."
+            sed -i '' -E "s/brand-version\">v[0-9]+\.[0-9]+\.[0-9]+/brand-version\">v$version_number/" landing/index.html
+            sed -i '' -E "s/\"softwareVersion\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"softwareVersion\": \"$version_number\"/" landing/index.html
+
             # Commit the version bump
-            git add pubspec.yaml README.md
+            git add pubspec.yaml README.md landing/index.html
             git commit -m "chore: bump version to $version_number"
 
             # Push the commit
