@@ -631,21 +631,8 @@ class RenderSelectionArea extends RenderMouseRegion {
       lists.putIfAbsent(contextKey, () => []).add(entry);
     }
 
-    for (final entry in lists.entries) {
-      final context = entry.key;
-      final list = entry.value;
-      if (context is RenderListViewport) {
-        list.sort((a, b) {
-          final aIdx = a.listIndex;
-          final bIdx = b.listIndex;
-          if (aIdx != null && bIdx != null && aIdx != bIdx) {
-            return aIdx.compareTo(bIdx);
-          }
-          return _compareByPosition(a, b);
-        });
-      } else {
-        list.sort(_compareByPosition);
-      }
+    for (final list in lists.values) {
+      list.sort(_compareByPosition);
     }
 
     _contextListsCache = lists;
