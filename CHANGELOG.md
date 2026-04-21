@@ -1,3 +1,16 @@
+# Unreleased
+
+## New Features
+- **RepaintBoundary**: Add widget that caches a subtree into a sub-buffer; wrap animation hotspots to skip full-tree paint walks
+
+## Performance
+- **Paint Dispatch**: Route parent->child paints through paintWithContext so RepaintBoundary caching engages and error boxes render consistently
+
+## Bug Fixes
+- **Paint Pipeline**: Stop flushPaint from clearing _needsPaint before the root paint walk
+
+---
+
 # 0.9.0
 
 ## Features
