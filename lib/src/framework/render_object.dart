@@ -82,22 +82,10 @@ class PipelineOwner {
   }
 
   void flushPaint() {
-    // Sort by depth (deepest first) for paint order
-    final List<RenderObject> dirtyNodes = List<RenderObject>.from(
-      _nodesNeedingPaint,
-    );
+    // Only the list drains here. paint() clears _needsPaint during the
+    // root walk, and a boundary reads the flag there to decide whether
+    // to repaint its cache.
     _nodesNeedingPaint.clear();
-
-    // Sort nodes by depth - deeper nodes should be painted first
-    dirtyNodes.sort((a, b) => b.depth.compareTo(a.depth));
-
-    for (final node in dirtyNodes) {
-      if (node._needsPaint && node.owner == this) {
-        // In a full implementation, this would trigger actual painting
-        // For now, we just mark the node as clean
-        node._needsPaint = false;
-      }
-    }
   }
 }
 
