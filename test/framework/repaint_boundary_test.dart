@@ -191,6 +191,80 @@ void main() {
     });
   });
 
+  group('paintWithContext boundary cache', () {
+    test('caches after the first paint and blits on subsequent frames', () {
+      final boundary = _CountingBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(4, 2)));
+
+      final parentBuffer = Buffer(10, 5);
+      final canvas = TerminalCanvas(parentBuffer, Rect.fromLTWH(0, 0, 10, 5));
+
+      boundary.paintWithContext(canvas, const Offset(1, 1));
+      expect(boundary.paintCount, 1);
+      expect(parentBuffer.getCell(1, 1).char, 'X');
+
+      // Second paint with no dirty: paint() should NOT run again, but
+      // the cached buffer should still blit.
+      parentBuffer.setCell(1, 1, Cell());
+      boundary.paintWithContext(canvas, const Offset(1, 1));
+      expect(boundary.paintCount, 1, reason: 'cache hit - no re-paint');
+      expect(
+        parentBuffer.getCell(1, 1).char,
+        'X',
+        reason: 'cached sub-buffer was blitted',
+      );
+    });
+
+    test('markNeedsPaint invalidates the cache', () {
+      final boundary = _CountingBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(4, 2)));
+      final canvas = TerminalCanvas(Buffer(10, 5), Rect.fromLTWH(0, 0, 10, 5));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      boundary.markNeedsPaint();
+      boundary.paintWithContext(canvas, Offset.zero);
+
+      expect(boundary.paintCount, 2);
+    });
+
+    test('size change invalidates the cache at layout time', () {
+      final boundary = _CountingBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(4, 2)));
+      final canvas = TerminalCanvas(Buffer(10, 5), Rect.fromLTWH(0, 0, 10, 5));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(boundary.paintCount, 1);
+
+      // Re-layout at a different size.
+      boundary.paintSize = const Size(6, 3);
+      boundary.markNeedsLayout();
+      boundary.layout(BoxConstraints.tight(const Size(6, 3)));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(boundary.paintCount, 2);
+    });
+
+    test('offset-only change reuses the cache', () {
+      final boundary = _CountingBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(4, 2)));
+      final buffer = Buffer(10, 5);
+      final canvas = TerminalCanvas(buffer, Rect.fromLTWH(0, 0, 10, 5));
+
+      boundary.paintWithContext(canvas, const Offset(0, 0));
+      expect(boundary.paintCount, 1);
+      expect(buffer.getCell(0, 0).char, 'X');
+
+      // Same boundary, no size change, different offset.
+      boundary.paintWithContext(canvas, const Offset(5, 3));
+      expect(boundary.paintCount, 1, reason: 'cache reused for offset change');
+      expect(
+        buffer.getCell(5, 3).char,
+        'X',
+        reason: 'cached sub-buffer blitted at the new offset',
+      );
+    });
+  });
+
   group('isRepaintBoundary getter', () {
     test('defaults to false on plain RenderObject', () {
       final ro = _LeafRenderObject();
@@ -236,5 +310,27 @@ class _BoundaryRenderObject extends RenderObject {
   @override
   void performLayout() {
     size = constraints.constrain(const Size(5, 1));
+  }
+}
+
+/// A boundary that counts paint invocations and draws a single cell.
+class _CountingBoundary extends RenderObject {
+  int paintCount = 0;
+  Size paintSize = const Size(4, 2);
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  void performLayout() {
+    size = paintSize;
+  }
+
+  @override
+  void paint(TerminalCanvas canvas, Offset offset) {
+    super.paint(canvas, offset);
+    paintCount++;
+    // Something visible so the blit can be checked.
+    canvas.drawText(offset, 'X');
   }
 }

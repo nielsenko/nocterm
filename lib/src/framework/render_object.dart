@@ -383,6 +383,15 @@ abstract class RenderObject {
     }
     _needsPaint = true;
 
+    if (isRepaintBoundary) {
+      // Stop here - this boundary's cache is invalid, and ancestors
+      // don't need to know. Register with the pipeline owner so the
+      // frame-skip check sees work to do.
+      owner?.requestPaint(this);
+      owner?.requestVisualUpdate();
+      return;
+    }
+
     if (parent != null) {
       // Continue propagation up the tree
       parent!.markNeedsPaint();
@@ -483,6 +492,11 @@ abstract class RenderObject {
   }
 
   /// Internal paint method with error handling.
+  ///
+  /// For a [isRepaintBoundary], this method caches the subtree's output
+  /// into [_cachedBuffer] and blits that cache on subsequent frames until
+  /// a descendant marks dirty (see [markNeedsPaint]) or the boundary's
+  /// size changes (see [_invalidateCacheIfSizeChanged]).
   void paintWithContext(TerminalCanvas canvas, Offset offset) {
     // If there was a layout error, show error box and return
     if (_hasLayoutError) {
@@ -494,13 +508,42 @@ abstract class RenderObject {
     _lastError = null;
     _lastStackTrace = null;
 
-    // Paint directly (no caching - we rely on buffer diffing for optimization)
-    try {
-      paint(canvas, offset);
-    } catch (e, stack) {
-      _reportException('paint', e, stack);
-      _paintErrorBox(canvas, offset);
+    if (!isRepaintBoundary) {
+      try {
+        paint(canvas, offset);
+      } catch (e, stack) {
+        _reportException('paint', e, stack);
+        _paintErrorBox(canvas, offset);
+      }
+      return;
     }
+
+    // Boundary path: paint into a cached sub-buffer when dirty, then
+    // blit that cache into the parent canvas at `offset`.
+    final w = _size?.width.round() ?? 0;
+    final h = _size?.height.round() ?? 0;
+    if (w <= 0 || h <= 0) return;
+
+    if (_cachedBuffer == null || _cachedBufferSize != _size || _needsPaint) {
+      final subBuffer = Buffer(w, h);
+      final subCanvas = TerminalCanvas(
+        subBuffer,
+        Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+      );
+      try {
+        paint(subCanvas, Offset.zero);
+      } catch (e, stack) {
+        _reportException('paint', e, stack);
+        _paintErrorBox(subCanvas, Offset.zero);
+      }
+      _cachedBuffer = subBuffer;
+      _cachedBufferSize = _size;
+      // paint() already clears _needsPaint, but set it explicitly to
+      // cover subclasses that forget to call super.paint().
+      _needsPaint = false;
+    }
+
+    canvas.blitBuffer(_cachedBuffer!, offset);
   }
 
   /// Paint an error box when painting fails.
