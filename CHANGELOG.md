@@ -1,3 +1,19 @@
+# Unreleased
+
+## New Features
+- **RepaintBoundary**: Add a widget that caches its subtree into a sub-buffer. Wrap the content that stays still next to an animation to skip its paint walk
+
+## Behavior Changes
+- **Layout errors**: A widget whose layout threw paints a "Layout Error" box under every parent. Parents that called the child's paint() directly used to run the widget's own paint instead
+
+## Performance
+- **Paint Dispatch**: Route parent-to-child paints through paintWithContext so RepaintBoundary caching covers every subtree
+
+## Bug Fixes
+- **Paint Pipeline**: Stop flushPaint from clearing _needsPaint before the root paint walk
+
+---
+
 # 0.9.0
 
 ## Features
