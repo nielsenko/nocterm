@@ -337,7 +337,9 @@ abstract class RenderObject {
   bool get isRepaintBoundary => false;
 
   /// Cached sub-buffer for this boundary; only populated when
-  /// [isRepaintBoundary] is true.
+  /// [isRepaintBoundary] is true. Reused across repaints while the size
+  /// holds, so the cells it hands out through [TerminalCanvas.blitBuffer]
+  /// must never be mutated in place.
   Buffer? _cachedBuffer;
 
   /// The size the cached buffer was painted at. Used to invalidate the
@@ -429,16 +431,16 @@ abstract class RenderObject {
       _hasLayoutError = true;
     }
     _invalidateCacheIfSizeChanged();
+    markNeedsPaint();
   }
 
   /// Discard this boundary's cached sub-buffer if the size no longer
-  /// matches. Called at the end of successful layout.
+  /// matches. Called at the end of layout.
   void _invalidateCacheIfSizeChanged() {
     if (!isRepaintBoundary) return;
     if (_cachedBufferSize != _size) {
       _cachedBuffer = null;
       _cachedBufferSize = null;
-      _needsPaint = true;
     }
   }
 
@@ -485,24 +487,66 @@ abstract class RenderObject {
   }
 
   /// Internal paint method with error handling.
+  ///
+  /// For a [isRepaintBoundary], this method caches the subtree's output
+  /// into [_cachedBuffer] and blits that cache on subsequent frames until
+  /// a descendant marks dirty (see [markNeedsPaint]) or the boundary's
+  /// size changes (see [_invalidateCacheIfSizeChanged]).
+  ///
+  /// Every path through here clears [_needsPaint]. A node that stays
+  /// dirty after painting would swallow the next [markNeedsPaint] from
+  /// its subtree before it reaches the enclosing boundary.
   void paintWithContext(TerminalCanvas canvas, Offset offset) {
-    // If there was a layout error, show error box and return
     if (_hasLayoutError) {
       _paintErrorBox(canvas, offset);
+      _needsPaint = false;
       return;
     }
 
-    // Clear error info if no layout error
     _lastError = null;
     _lastStackTrace = null;
 
-    // Paint directly (no caching - we rely on buffer diffing for optimization)
+    if (!isRepaintBoundary) {
+      _paintOrErrorBox(canvas, offset);
+      return;
+    }
+
+    final w = _size?.width.round() ?? 0;
+    final h = _size?.height.round() ?? 0;
+    if (w <= 0 || h <= 0) {
+      _needsPaint = false;
+      return;
+    }
+
+    var cache = _cachedBuffer;
+    final sizeChanged = cache == null || _cachedBufferSize != _size;
+    if (sizeChanged) {
+      cache = Buffer.transparent(w, h);
+      _cachedBuffer = cache;
+      _cachedBufferSize = _size;
+    } else if (_needsPaint) {
+      cache.clear();
+    }
+    if (sizeChanged || _needsPaint) {
+      final subCanvas = TerminalCanvas(
+        cache,
+        Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+      );
+      _paintOrErrorBox(subCanvas, Offset.zero);
+    }
+
+    canvas.blitBuffer(cache, offset);
+  }
+
+  void _paintOrErrorBox(TerminalCanvas canvas, Offset offset) {
     try {
       paint(canvas, offset);
     } catch (e, stack) {
       _reportException('paint', e, stack);
       _paintErrorBox(canvas, offset);
+      _needsPaint = false;
     }
+    assert(!_needsPaint, '$runtimeType.paint() must call super.paint()');
   }
 
   /// Paint an error box when painting fails.
@@ -642,8 +686,6 @@ abstract class RenderObject {
     _needsLayout = false;
     try {
       performLayout();
-      _invalidateCacheIfSizeChanged();
-      markNeedsPaint();
     } catch (e, stack) {
       _reportException('performLayout', e, stack);
       _hasLayoutError = true;
@@ -652,6 +694,8 @@ abstract class RenderObject {
         _size = _constraints!.constrain(const Size(20, 5));
       }
     }
+    _invalidateCacheIfSizeChanged();
+    markNeedsPaint();
   }
 
   /// Report an exception that occurred during rendering.
