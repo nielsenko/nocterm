@@ -332,6 +332,21 @@ abstract class RenderObject {
   /// This is true after [markNeedsPaint] is called and before paint is performed.
   bool get needsPaint => _needsPaint;
 
+  /// Whether this render object is a repaint boundary.
+  ///
+  /// When true, paintWithContext caches the subtree's output into
+  /// [_cachedBuffer] and markNeedsPaint stops propagating paint dirtying
+  /// at this node. See [RenderRepaintBoundary].
+  bool get isRepaintBoundary => false;
+
+  /// Cached sub-buffer for this boundary; only populated when
+  /// [isRepaintBoundary] is true.
+  Buffer? _cachedBuffer;
+
+  /// The size the cached buffer was painted at. Used to invalidate the
+  /// cache when the boundary's size changes at layout time.
+  Size? _cachedBufferSize;
+
   Object? _lastError;
   StackTrace? _lastStackTrace;
 
@@ -414,6 +429,18 @@ abstract class RenderObject {
       // Set a default size to prevent cascading failures
       _size = constraints.constrain(const Size(10, 5));
       _hasLayoutError = true;
+    }
+    _invalidateCacheIfSizeChanged();
+  }
+
+  /// Discard this boundary's cached sub-buffer if the size no longer
+  /// matches. Called at the end of successful layout.
+  void _invalidateCacheIfSizeChanged() {
+    if (!isRepaintBoundary) return;
+    if (_cachedBufferSize != _size) {
+      _cachedBuffer = null;
+      _cachedBufferSize = null;
+      _needsPaint = true;
     }
   }
 
@@ -616,6 +643,7 @@ abstract class RenderObject {
     _needsLayout = false;
     try {
       performLayout();
+      _invalidateCacheIfSizeChanged();
       markNeedsPaint();
     } catch (e, stack) {
       _reportException('performLayout', e, stack);

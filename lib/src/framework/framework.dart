@@ -11,6 +11,7 @@ import 'package:nocterm/src/rectangle.dart';
 import 'package:nocterm/src/size.dart';
 import 'package:nocterm/src/style.dart';
 
+import '../buffer.dart';
 import 'terminal_canvas.dart';
 
 part 'binding.dart';
