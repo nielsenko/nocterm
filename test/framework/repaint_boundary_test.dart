@@ -38,7 +38,7 @@ void main() {
       final boundary = _BoundaryRenderObject();
       boundary.owner = owner;
 
-      // No ancestor yet - this is the root of the synthetic tree.
+      // No ancestor. This boundary is the root of the synthetic tree.
       expect(owner.hasNodesToPaint, isFalse);
 
       boundary.markNeedsPaint();
@@ -326,11 +326,11 @@ void main() {
       expect(boundary.paintCount, 1);
       expect(parentBuffer.getCell(1, 1).char, 'X');
 
-      // Second paint with no dirty: paint() should NOT run again, but
-      // the cached buffer should still blit.
+      // Second paint while clean. paint() must not run again, but the
+      // cached buffer still blits.
       parentBuffer.setCell(1, 1, Cell());
       boundary.paintWithContext(canvas, const Offset(1, 1));
-      expect(boundary.paintCount, 1, reason: 'cache hit - no re-paint');
+      expect(boundary.paintCount, 1, reason: 'cache hit, no repaint');
       expect(
         parentBuffer.getCell(1, 1).char,
         'X',
@@ -367,6 +367,61 @@ void main() {
       expect(boundary.paintCount, 2);
     });
 
+    test('relayout with new constraints repaints the cache', () {
+      final boundary = _CountingBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(4, 2)));
+      final canvas = TerminalCanvas(Buffer(10, 5), Rect.fromLTWH(0, 0, 10, 5));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(boundary.paintCount, 1);
+
+      // Same resulting size, different constraints: performLayout ran.
+      boundary.layout(const BoxConstraints(maxWidth: 4, maxHeight: 2));
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(boundary.paintCount, 2);
+    });
+
+    test('a layout error under the boundary does not pin the cache', () {
+      final child = _FlakyLayoutChild();
+      final boundary = RenderRepaintBoundary()..child = child;
+      final buffer = Buffer(40, 10);
+      final canvas = TerminalCanvas(buffer, Rect.fromLTWH(0, 0, 40, 10));
+
+      child.markNeedsLayout();
+      boundary.layout(BoxConstraints.tight(const Size(40, 10)));
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(_bufferText(buffer), contains('Layout Error'));
+      expect(child.needsPaint, isFalse);
+
+      child.markNeedsPaint();
+      expect(
+        boundary.needsPaint,
+        isTrue,
+        reason: 'a mark below the error box must still reach the boundary',
+      );
+
+      // Same boundary size, different constraints: the child lays out
+      // again and succeeds this time.
+      boundary.layout(const BoxConstraints(maxWidth: 40, maxHeight: 10));
+      buffer.clear();
+      boundary.paintWithContext(canvas, Offset.zero);
+      final text = _bufferText(buffer);
+      expect(text, contains('OK'));
+      expect(text, isNot(contains('Layout Error')));
+    });
+
+    test('a paint override that skips super.paint fails an assert', () {
+      final node = _ForgetfulLeaf();
+      node.layout(BoxConstraints.tight(const Size(4, 2)));
+      node.markNeedsPaint();
+      final canvas = TerminalCanvas(Buffer(10, 5), Rect.fromLTWH(0, 0, 10, 5));
+
+      expect(
+        () => node.paintWithContext(canvas, Offset.zero),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('offset-only change reuses the cache', () {
       final boundary = _CountingBoundary();
       boundary.layout(BoxConstraints.tight(const Size(4, 2)));
@@ -384,6 +439,108 @@ void main() {
         buffer.getCell(5, 3).char,
         'X',
         reason: 'cached sub-buffer blitted at the new offset',
+      );
+    });
+  });
+
+  group('markNeedsLayout cascade', () {
+    test('markNeedsLayout still cascades paint-dirty through ancestors', () {
+      // RepaintBoundary is a paint boundary, not a relayout boundary.
+      // When a layout actually changes, ancestors' sizes/positions may
+      // change too, so their paint must re-run. The cascade is expected.
+      // This test pins that expectation so a future "contain
+      // markNeedsLayout too" change would be caught.
+      final owner = PipelineOwner();
+      final grandparent = _SpyRenderObject();
+      final boundary = _BoundaryRenderObject();
+      final child = _LeafRenderObject();
+
+      grandparent.owner = owner;
+      boundary.owner = owner;
+      child.owner = owner;
+      boundary.parent = grandparent;
+      child.parent = boundary;
+
+      grandparent.markCount = 0;
+
+      child.markNeedsLayout();
+
+      // markNeedsLayout cascades via parent?.markNeedsLayout(), and
+      // markNeedsLayout itself calls markNeedsPaint() on every node on
+      // the way up. So grandparent DOES get a paint mark.
+      expect(
+        grandparent.markCount,
+        greaterThan(0),
+        reason: 'markNeedsLayout must propagate paint dirtying to '
+            'ancestors, because a relayout may resize them',
+      );
+    });
+  });
+
+  group('frame-skip interaction', () {
+    test('boundary-scoped dirty keeps hasNodesToPaint truthy', () {
+      // terminal_binding._drawFrameCallback consults
+      // pipelineOwner.hasNodesToPaint to decide whether to skip a frame.
+      // After the markNeedsPaint short-circuit, a descendant dirtying
+      // under a boundary must still mark the owner as having work.
+      final owner = PipelineOwner();
+      final boundary = _BoundaryRenderObject();
+      boundary.owner = owner;
+
+      expect(owner.hasNodesToPaint, isFalse);
+      boundary.markNeedsPaint();
+      expect(owner.hasNodesToPaint, isTrue);
+    });
+  });
+
+  group('error fallback in boundary', () {
+    test('child paint exception paints error box into the sub-buffer', () {
+      final boundary = RenderRepaintBoundary()..child = _ThrowingChild();
+      boundary.layout(BoxConstraints.tight(const Size(40, 10)));
+
+      final parentBuffer = Buffer(40, 10);
+      final canvas = TerminalCanvas(parentBuffer, Rect.fromLTWH(0, 0, 40, 10));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+
+      // The blit should have put "Paint Error" text from the error box
+      // into the parent buffer.
+      final rendered = _bufferText(parentBuffer);
+      expect(rendered, contains('Paint Error'));
+    });
+
+    test('cached error box is reused on subsequent paints', () {
+      final child = _ThrowingChild();
+      final boundary = RenderRepaintBoundary()..child = child;
+      boundary.layout(BoxConstraints.tight(const Size(40, 10)));
+      final canvas = TerminalCanvas(
+        Buffer(40, 10),
+        Rect.fromLTWH(0, 0, 40, 10),
+      );
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      final firstThrowCount = child.paintCount;
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(
+        child.paintCount,
+        firstThrowCount,
+        reason: 'cached error-box blit means the throwing child is not '
+            're-invoked on a clean frame',
+      );
+    });
+  });
+
+  group('RenderRepaintBoundary paint', () {
+    test('rejects a non-zero offset', () {
+      final boundary = RenderRepaintBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(5, 3)));
+      final canvas = TerminalCanvas(Buffer(10, 5), Rect.fromLTWH(0, 0, 10, 5));
+
+      expect(
+        // ignore: invalid_use_of_visible_for_overriding_member
+        () => boundary.paint(canvas, const Offset(1, 0)),
+        throwsA(isA<AssertionError>()),
       );
     });
   });
@@ -466,6 +623,65 @@ class _BoundaryRenderObject extends RenderObject {
   void performLayout() {
     size = constraints.constrain(const Size(5, 1));
   }
+}
+
+/// A child whose first performLayout throws; later ones succeed and paint
+/// "OK".
+class _FlakyLayoutChild extends RenderObject {
+  int layoutCount = 0;
+
+  @override
+  void performLayout() {
+    layoutCount++;
+    if (layoutCount == 1) throw StateError('first layout fails');
+    size = constraints.constrain(const Size(40, 10));
+  }
+
+  @override
+  void paint(TerminalCanvas canvas, Offset offset) {
+    super.paint(canvas, offset);
+    canvas.drawText(offset, 'OK');
+  }
+}
+
+/// A leaf whose paint() skips super.paint().
+class _ForgetfulLeaf extends RenderObject {
+  @override
+  void performLayout() {
+    size = constraints.constrain(const Size(4, 2));
+  }
+
+  @override
+  // ignore: must_call_super
+  void paint(TerminalCanvas canvas, Offset offset) {}
+}
+
+/// A child render object whose paint() always throws.
+class _ThrowingChild extends RenderObject {
+  int paintCount = 0;
+
+  @override
+  void performLayout() {
+    size = constraints.constrain(const Size(20, 5));
+  }
+
+  @override
+  void paint(TerminalCanvas canvas, Offset offset) {
+    super.paint(canvas, offset);
+    paintCount++;
+    throw Exception('deliberate paint failure');
+  }
+}
+
+String _bufferText(Buffer buffer) {
+  final sb = StringBuffer();
+  for (final row in buffer.cells) {
+    for (final cell in row) {
+      sb.write(cell.char);
+    }
+    sb.writeln();
+  }
+  return sb.toString();
 }
 
 /// A leaf that accepts any position as a hit.
