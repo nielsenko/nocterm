@@ -140,8 +140,10 @@ class TerminalCanvas {
         // Get existing cell and blend style (handles alpha + background preservation)
         final nextExistingCell = _buffer.getCell(nextCellX, nextCellY);
         final nextEffectiveStyle = style ?? const TextStyle();
-        final nextFinalStyle =
-            _blendStyle(nextEffectiveStyle, nextExistingCell);
+        final nextFinalStyle = _blendStyle(
+          nextEffectiveStyle,
+          nextExistingCell,
+        );
 
         _buffer.setCell(
           nextCellX,
@@ -213,14 +215,7 @@ class TerminalCanvas {
         final existingCell = _buffer.getCell(cellX, cellY);
         final finalStyle = _blendStyle(effectiveStyle, existingCell);
 
-        _buffer.setCell(
-          cellX,
-          cellY,
-          Cell(
-            char: char,
-            style: finalStyle,
-          ),
-        );
+        _buffer.setCell(cellX, cellY, Cell(char: char, style: finalStyle));
       }
     }
   }
@@ -322,14 +317,7 @@ class TerminalCanvas {
     final effectiveStyle = style ?? const TextStyle();
     final finalStyle = _blendStyle(effectiveStyle, existingCell);
 
-    _buffer.setCell(
-      cellX,
-      cellY,
-      Cell(
-        char: char,
-        style: finalStyle,
-      ),
-    );
+    _buffer.setCell(cellX, cellY, Cell(char: char, style: finalStyle));
   }
 
   /// Create a clipped canvas for drawing within a sub-region
@@ -385,6 +373,64 @@ class TerminalCanvas {
 
     // Mark cells as image placeholders to prevent text overlap
     _buffer.markImageRegion(cellX, cellY, maxWidth, maxHeight, sixelData);
+  }
+
+  /// Copy a sub-buffer into this canvas at [offset].
+  ///
+  /// Used by RepaintBoundary to blit its cached sub-buffer into the
+  /// parent canvas. Honours the canvas's [area] clip - cells that fall
+  /// outside the clip region are discarded. Pending sixel images are
+  /// translated into the parent buffer's coordinate space.
+  void blitBuffer(Buffer source, Offset offset) {
+    final dx = offset.dx.round();
+    final dy = offset.dy.round();
+    final aLeft = area.left.round();
+    final aTop = area.top.round();
+    final aRight = (area.left + area.width).round();
+    final aBottom = (area.top + area.height).round();
+
+    // Compute the clipped destination rect once, in absolute buffer
+    // coordinates. The inner loop has no per-cell branching.
+    final dstLeft = aLeft + dx;
+    final dstTop = aTop + dy;
+    final l = dstLeft < aLeft ? aLeft : dstLeft;
+    final t = dstTop < aTop ? aTop : dstTop;
+    int r = dstLeft + source.width;
+    if (r > aRight) r = aRight;
+    if (r > _buffer.width) r = _buffer.width;
+    int b = dstTop + source.height;
+    if (b > aBottom) b = aBottom;
+    if (b > _buffer.height) b = _buffer.height;
+
+    if (r > l && b > t) {
+      final srcOffsetX = l - dstLeft;
+      final srcOffsetY = t - dstTop;
+      final dstCells = _buffer.cells;
+      final srcCells = source.cells;
+      for (int y = t; y < b; y++) {
+        final srcRow = srcCells[y - t + srcOffsetY];
+        final dstRow = dstCells[y];
+        // Tight inner loop: direct array assignment, no function calls
+        // or branches per cell.
+        for (int x = l; x < r; x++) {
+          dstRow[x] = srcRow[x - l + srcOffsetX];
+        }
+      }
+    }
+
+    if (source.pendingImages.isNotEmpty) {
+      for (final img in source.pendingImages) {
+        _buffer.pendingImages.add(
+          PendingImage(
+            x: img.x + aLeft + dx,
+            y: img.y + aTop + dy,
+            width: img.width,
+            height: img.height,
+            sixelData: img.sixelData,
+          ),
+        );
+      }
+    }
   }
 
   Rect _intersect(Rect a, Rect b) {
