@@ -62,6 +62,78 @@ feature, because the boundary behavior can be injected entirely inside
 `markNeedsPaint` (`render_object.dart:341-354`) walks up to the root
 unconditionally; this is where a boundary can short-circuit the propagation.
 
+## Verified against source - drift from the initial sketch
+
+Before any boundary code is written, a few assumptions in the sketch above
+need correcting against the real tree.
+
+1. **Several render objects bypass `paintWithContext` and call
+   `child!.paint()` directly.** This is the single biggest issue: the
+   boundary logic lives inside `paintWithContext`, so any parent that
+   skips it defeats caching for its entire subtree. Confirmed offenders:
+
+   - `lib/src/components/basic.dart:461` - `RenderConstrainedBox.paint`
+   - `lib/src/components/basic.dart:508` - `RenderPadding.paint`
+   - `lib/src/components/basic.dart:593` - `RenderPositionedBox.paint`
+   - `lib/src/components/single_child_scroll_view.dart:345` -
+     `_RenderSingleChildViewport.paint`
+   - `lib/src/components/scrollbar.dart:243` - `RenderScrollbar.paint`
+   - `lib/src/components/modal_barrier.dart:105, 473` - modal barrier /
+     `RenderColoredBox.paint`
+   - `lib/src/rendering/mouse_region.dart:112` - mouse region paint
+
+   A `RepaintBoundary` placed under any of these (e.g. inside a `Padding`
+   or `Align`) would silently never cache. These all need to be
+   normalized to `child!.paintWithContext(...)` **as a plumbing
+   prerequisite**, before any boundary logic lands. A regression test
+   should fail if a new `child!.paint(` appears inside a `paint()` method
+   under `lib/src/`.
+
+2. **`RenderProxyBox` does not exist in this codebase.** The idiomatic
+   base is `RenderObject with RenderObjectWithChildMixin<RenderObject>`.
+   See `RenderPadding` in `lib/src/components/basic.dart` for the
+   canonical shape. The API sketch in §1 below has been updated.
+
+3. **`PipelineOwner.requestPaint` already exists**
+   (`render_object.dart:31-36`) and populates `_nodesNeedingPaint`. No
+   new pipeline API is needed for the short-circuit.
+
+4. **Frame-skip interaction is safe.** `terminal_binding.dart:1195-1231`
+   checks `pipelineOwner.hasNodesToPaint` *before* falling back to
+   `rootRender.needsPaint`. A boundary-short-circuited `markNeedsPaint`
+   calls `owner.requestPaint(this)`, which sets `hasNodesToPaint = true`
+   and keeps the frame from being skipped. Verified - but leave a
+   regression test.
+
+5. **`markNeedsLayout` already calls `markNeedsPaint()` on self**
+   (`render_object.dart:332`) and then walks parents via
+   `parent?.markNeedsLayout()`. Layout propagation is unchanged by the
+   boundary; paint propagation from a relayout-dirty descendant still
+   stops at the nearest enclosing boundary. Worth a unit test.
+
+6. **Line numbers cited above were accurate within a few lines** as of
+   the sketch date. Re-check before editing.
+
+7. **`PipelineOwner.flushPaint` clears `_needsPaint` *before* the root
+   paint walk runs.** `flushPaint` (`render_object.dart:84-100`) today
+   walks `_nodesNeedingPaint` and sets `node._needsPaint = false` on
+   each without actually painting. `terminal_binding._drawFrameCallback`
+   calls `flushPaint()` and *then* calls `renderObject.paintWithContext(...)`
+   at the root. With the naive boundary check
+   `_cachedBuffer == null || _cachedBufferSize != size || _needsPaint`,
+   the dirty flag is already cleared by the time the boundary sees it,
+   and a stale cache gets blitted.
+
+   The cleanest fix is to **remove the `_needsPaint = false` clear from
+   `flushPaint`**. The base `paint()` already sets `_needsPaint = false`
+   (`render_object.dart:435`) during the real root walk, so the clearing
+   in `flushPaint` is a pre-boundary placeholder that becomes incorrect
+   the moment `_needsPaint` starts carrying cache-invalidation semantics.
+   A lighter-touch alternative is to skip the clear only when
+   `isRepaintBoundary` is true - but that leaves the placeholder in
+   place for non-boundary nodes and makes `flushPaint` behave
+   inconsistently. Remove the clear outright.
+
 ## Proposed design
 
 ### 1. API surface
@@ -77,9 +149,41 @@ class RepaintBoundary extends SingleChildRenderObjectComponent {
       RenderRepaintBoundary();
 }
 
-class RenderRepaintBoundary extends RenderProxyBox {
+// nocterm has no RenderProxyBox - mirror the shape of RenderPadding.
+class RenderRepaintBoundary extends RenderObject
+    with RenderObjectWithChildMixin<RenderObject> {
   @override
   bool get isRepaintBoundary => true;
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! BoxParentData) {
+      child.parentData = BoxParentData();
+    }
+  }
+
+  @override
+  void performLayout() {
+    if (child != null) {
+      child!.layout(constraints, parentUsesSize: true);
+      size = child!.size;
+    } else {
+      size = constraints.constrain(Size.zero);
+    }
+  }
+
+  @override
+  void paint(TerminalCanvas canvas, Offset offset) {
+    super.paint(canvas, offset);
+    // Called by the base paintWithContext into the sub-buffer with
+    // offset == Offset.zero; cache + blit happens one level up in
+    // paintWithContext().
+    if (child != null) child!.paintWithContext(canvas, offset);
+  }
+
+  @override
+  bool hitTestChildren(HitTestResult result, {required Offset position}) =>
+      child?.hitTest(result, position: position) ?? false;
 }
 ```
 
@@ -203,16 +307,24 @@ Clip-aware: must honour the canvas's `area` so boundaries inside clips don't
 paint outside their clipped region. The existing `setCell` already handles
 the clip check.
 
-### 6. Wire `flushPaint` to actually paint
+### 6. Stop `flushPaint` from clearing `_needsPaint`
 
-Currently `flushPaint` (`render_object.dart:84-100`) just clears flags. With
-boundaries, it becomes a no-op on the hot path (painting happens inside the
-root walk when a boundary discovers `_needsPaint`), but it still serves as
-the list of boundaries that want to be marked for visual update.
+Per "Verified against source" §7: `flushPaint`'s current clearing of
+`_needsPaint` breaks the boundary's use of that flag as a
+cache-invalidation signal. Remove the clear:
 
-A later optimization: `flushPaint` could paint boundaries into their caches
-*before* the root walk, so the root walk only blits. That avoids a second
-pass but isn't required for correctness.
+```dart
+// render_object.dart, inside PipelineOwner.flushPaint
+for (final node in dirtyNodes) {
+  // Removed: node._needsPaint = false;
+  // The base paint() sets this during the real root walk.
+}
+```
+
+The iteration over `_nodesNeedingPaint` is left in place as a
+placeholder - future optimizations may use it to pre-paint boundaries
+into their caches before the root walk (so the walk only blits). Not
+required for correctness in v1.
 
 ## Expected wins
 
@@ -305,23 +417,159 @@ something closer to single digits.
 
 ## Implementation phases
 
-1. **Wire the plumbing** - `isRepaintBoundary`, `markNeedsPaint`
-   short-circuit, `_cachedBuffer`, `blitBuffer`. No visible API yet; all
-   boundaries return `false`. Goal: no behavior change, no perf
-   regression.
+### Phase 1 - Plumbing (no public API, no behavior change)
 
-2. **Add `RepaintBoundary` widget + `RenderRepaintBoundary`.** Manually
-   wrap a hot spot in the example app; verify with the debug overlay that
-   paint time drops.
+Done when the framework builds, all existing tests pass, and a synthetic
+`isRepaintBoundary = true` override on a test render object demonstrates
+caching + blit.
 
-3. **Resize / invalidation tests.** Ensure cache correctness across
-   resize, theme changes, scroll, focus changes.
+1.1 **Normalize child paint dispatch to `paintWithContext`.** Must land
+    first. Replace `child!.paint(...)` with `child!.paintWithContext(...)`
+    in each of the 8 call sites listed under "Verified against source"
+    §1. Existing tests must stay green (the only effective change is
+    that error handling now wraps these children, which is desirable).
+    Re-grep `child!?\.paint\(` inside `lib/src/` after the edits - expect
+    zero hits inside `paint()` overrides.
 
-4. **Document + CHANGELOG + example.** `doc/repaint-boundary.md` +
-   updates to `doc/` index.
+1.2 **Add `isRepaintBoundary` getter + cache fields to `RenderObject`.**
+    In `lib/src/framework/render_object.dart`: add
+    `bool get isRepaintBoundary => false;` near the other flag getters,
+    and two private fields `Buffer? _cachedBuffer;` and
+    `Size? _cachedBufferSize;`. Import `Buffer` via `framework.dart` if
+    not already in scope.
 
-5. **(Optional) Selective auto-boundaries.** e.g., `ListView.builder` items,
-   `Spinner` widget - measure before committing.
+1.3 **Invalidate cache on size change.** In `RenderObject.layout(...)`
+    (after `performLayout()` succeeds) and in `_layoutWithoutResize`,
+    guard on `isRepaintBoundary && _cachedBufferSize != _size` and null
+    out the cache fields plus set `_needsPaint = true`. Confirm `Size`
+    is a value type with `==` before relying on `!=`; otherwise compare
+    width/height explicitly.
+
+1.4 **Short-circuit `markNeedsPaint`.** Replace the body of
+    `markNeedsPaint` per §2 above. Call `owner?.requestPaint(this)` in
+    the boundary branch, plus an explicit `owner?.requestVisualUpdate()`
+    so re-marking an already-dirty boundary still schedules a frame
+    (`PipelineOwner.requestPaint` only schedules when newly added).
+
+1.5 **Intercept in `paintWithContext`.** Replace the body per §4 above.
+    Set `_needsPaint = false` explicitly in the boundary branch after
+    the sub-paint completes, so descendant `markNeedsPaint` calls
+    during the sub-paint are absorbed by this same pass.
+
+1.6 **Implement `TerminalCanvas.blitBuffer`.** Per §5, but honour the
+    canvas's `area` explicitly with bounds checks (the design's
+    "existing `setCell` already handles the clip check" is imprecise -
+    `TerminalCanvas` has no public `setCell`, so the blit writes
+    directly to the underlying `Buffer` and must do its own clip
+    check). Translate `pendingImages` by `area.left/top + dx/dy` when
+    forwarding to the parent buffer.
+
+1.7 **Plumbing test** - `test/framework/repaint_boundary_test.dart`:
+    build a minimal render-object subclass with
+    `isRepaintBoundary => true`, instrument its `paint()` with a
+    counter, and assert that two consecutive `paintWithContext` calls
+    trigger `paint()` exactly once. Then call `markNeedsPaint` and
+    confirm the next `paintWithContext` paints again.
+
+### Phase 2 - Public `RepaintBoundary` widget
+
+Done when the example app shows a measurable drop in the debug
+overlay's `Paint:` line after wrapping a hot spot.
+
+2.1 Create `lib/src/components/repaint_boundary.dart` with the widget
+    and render object from §1 above.
+
+2.2 Export from `lib/nocterm.dart` near the other component exports.
+
+2.3 Wrap a hot-spot widget (spinner / debug overlay demo) in
+    `example/`. Toggle the debug overlay via `Ctrl+G` (see
+    `debug_overlay.dart:333-335` for the `Build/Layout/Paint` display)
+    and record before/after `Paint:` readings. Any measurable reduction
+    passes correctness; the design's <0.3 ms target is aspirational.
+
+### Phase 3 - Correctness tests
+
+Add test coverage for every edge case. Tests live under
+`test/framework/repaint_boundary_test.dart` (unit) and
+`test/rendering/repaint_boundary_widget_test.dart` (integration via
+`testNocterm`).
+
+| # | Case | Type | Assertion |
+|---|------|------|-----------|
+| 1 | Cache hit | unit | Two frames, no dirty: child `paint()` counter == 1 |
+| 2 | Cache miss on dirty descendant | unit | `markNeedsPaint` on child -> counter == 2 next frame |
+| 3 | `markNeedsPaint` short-circuit | unit | Parent's `markNeedsPaint` NOT called when a descendant under a boundary marks dirty |
+| 4 | Relayout via `markNeedsLayout` | unit | Confirms item 5 from "Verified against source" - relayout-dirty descendant stops at the boundary for paint purposes |
+| 5 | Resize invalidation | integration | Terminal-size change invalidates cache (counter increments) |
+| 6 | Theme / inherited change | integration | `Theme` setState above boundary -> child repaints |
+| 7 | Scroll viewport as its own boundary | integration | Scroll offset change invalidates viewport's cache but not ancestors' |
+| 8 | Sixel image inside boundary | integration | `buffer.pendingImages` contains the correctly translated position after blit |
+| 9 | Error fallback | unit | Child throws in `paint` -> boundary paints error box into sub-buffer; subsequent frames reuse cached error box |
+| 10 | Offset-only change | unit | Parent shifts boundary without size change -> cache reused, blit goes to new offset |
+| 11 | Hit testing unchanged | unit | Position->hit result identical with and without boundary wrap |
+| 12 | Frame-skip regression | integration | With a boundary-dirty descendant and otherwise clean tree, frame is NOT skipped |
+| 13 | Paint-dispatch regression lint | test harness | Walk `lib/src/components/`, fail if `child!.paint(` reappears inside a `paint()` method |
+
+### Phase 4 - Docs, CHANGELOG, example
+
+- `doc/repaint-boundary.md` - user-facing docs with a "when to use /
+  when not to" section (a sub-buffer allocation is O(W*H) cells; not
+  worth it for tiny or cheap subtrees).
+- CHANGELOG entry under Unreleased.
+- `example/repaint_boundary_example.dart` demonstrating a spinner
+  wrapped in a boundary with the debug overlay on.
+
+### Phase 5 (optional) - Selective auto-boundaries
+
+Promote specific internal widgets (`Spinner`,
+`ListView.builder` items) to auto-boundaries only after benchmarking
+each candidate. Small items carry enough sub-buffer-allocation overhead
+to regress some workloads - measure first.
+
+## Risks / unknowns
+
+1. **(Highest)** Paint-dispatch bypass (see §1 of "Verified against
+   source"). Must be fixed in 1.1 or boundaries silently don't work
+   under common layout widgets. Add the lint-style regression test
+   (case #13).
+
+2. **Sub-buffer allocation cost.** A 120*40 boundary allocates ~4800
+   `Cell` objects on its first frame. Acceptable for small widgets;
+   less so for whole-screen boundaries. Document in the "when not to
+   use" section.
+
+3. **Hot reload / HMR.** Reloading a boundary whose child type changes
+   may leave a stale cached buffer. Safest mitigation: null out the
+   cache in `adoptChild`/`dropChild` on boundaries. One-liner; add
+   when implementing 1.2.
+
+4. **Layout callbacks spawning new RenderObjects under a boundary.**
+   `invokeLayoutCallback` (render_object.dart:565) can create children
+   during layout. Those children's `markNeedsPaint` during construction
+   reaches the boundary via the short-circuit and dirties it - the
+   cache rebuild that frame handles them correctly. Covered by case #4.
+
+5. **`flushPaint` still doesn't actually paint.** Unchanged from today;
+   painting happens inside the root walk when a boundary discovers
+   `_needsPaint`. The later optimization mentioned in §6 above ("paint
+   boundaries into caches in `flushPaint` before the root walk") stays
+   out of scope for v1.
+
+6. **Selection, hit testing, sixel translation.** Verified independent
+   of paint output: selection uses `selectionId`; hit testing uses
+   render-tree sizes/offsets; sixel `pendingImages` is explicitly
+   translated in `blitBuffer`. Tests #7, #8, #11 cover these.
+
+## Critical files
+
+- `lib/src/framework/render_object.dart` - the core changes
+- `lib/src/framework/terminal_canvas.dart` - `blitBuffer`
+- `lib/src/components/repaint_boundary.dart` (new) - public API
+- `lib/src/components/basic.dart`, `scrollbar.dart`, `modal_barrier.dart`,
+  `single_child_scroll_view.dart`, `rendering/mouse_region.dart` -
+  paint-dispatch normalization (phase 1.1)
+- `lib/src/binding/terminal_binding.dart` - frame-skip verification
+  (no change expected, but add a regression test)
 
 ## Rough sizing
 
