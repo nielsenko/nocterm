@@ -265,6 +265,38 @@ void main() {
     });
   });
 
+  group('RenderRepaintBoundary hit testing', () {
+    test('hit test traverses the boundary to the child', () {
+      final child = _HitTargetRenderObject();
+      final boundary = RenderRepaintBoundary()..child = child;
+
+      boundary.layout(BoxConstraints.tight(const Size(5, 3)));
+
+      final result = HitTestResult();
+      final hit = boundary.hitTest(result, position: const Offset(1, 1));
+
+      expect(hit, isTrue);
+      expect(
+        result.path,
+        contains(child),
+        reason: 'hit test must traverse RepaintBoundary to reach the child',
+      );
+    });
+
+    test('returns false when there is no child', () {
+      final boundary = RenderRepaintBoundary();
+      boundary.layout(BoxConstraints.tight(const Size(5, 3)));
+
+      final result = HitTestResult();
+      final hit = boundary.hitTestChildren(
+        result,
+        position: const Offset(1, 1),
+      );
+
+      expect(hit, isFalse);
+    });
+  });
+
   group('isRepaintBoundary getter', () {
     test('defaults to false on plain RenderObject', () {
       final ro = _LeafRenderObject();
@@ -311,6 +343,17 @@ class _BoundaryRenderObject extends RenderObject {
   void performLayout() {
     size = constraints.constrain(const Size(5, 1));
   }
+}
+
+/// A leaf that accepts any position as a hit.
+class _HitTargetRenderObject extends RenderObject {
+  @override
+  void performLayout() {
+    size = constraints.constrain(const Size(5, 3));
+  }
+
+  @override
+  bool hitTestSelf(Offset position) => true;
 }
 
 /// A boundary that counts paint invocations and draws a single cell.

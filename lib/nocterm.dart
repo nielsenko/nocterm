@@ -44,6 +44,7 @@ export 'src/components/stack.dart';
 export 'src/components/render_stack.dart' show Stack;
 export 'src/components/clip.dart';
 export 'src/components/performance_overlay.dart';
+export 'src/components/repaint_boundary.dart';
 
 // Navigation
 export 'src/navigation/navigator.dart';
