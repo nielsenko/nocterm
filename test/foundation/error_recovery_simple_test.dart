@@ -28,13 +28,16 @@ void main() {
           final output = tester.terminalState.getText();
           print('Output:\n$output');
 
-          // Check that A and B are visible and the error is between them
+          // Check that A and B are visible and the error box is between them
           expect(output, contains('A'));
           expect(output, contains('B'));
 
-          // The error should show "No Error" because ErrorThrowingWidget
-          // still paints normally after a layout error
-          expect(output, contains('No Error'));
+          // A layout error now consistently renders an error box (the old
+          // "No Error" behavior relied on a parent-widget bypass of
+          // paintWithContext that was fixed during the RepaintBoundary
+          // plumbing - see doc/repaint-boundary-design.md §Verified
+          // against source §1).
+          expect(output, contains('Layout Error'));
 
           // Verify horizontal layout
           final lines = output.split('\n');
@@ -54,58 +57,50 @@ void main() {
     });
 
     test('direct error widget shows error box properly', () async {
-      await testNocterm(
-        'direct error widget',
-        (tester) async {
-          await tester.pumpComponent(
-            const Center(
-              child: SizedBox(
-                width: 40,
-                height: 10,
-                child: ErrorThrowingWidget(
-                  throwInLayout: true,
-                  errorMessage: 'Layout Test',
-                ),
+      await testNocterm('direct error widget', (tester) async {
+        await tester.pumpComponent(
+          const Center(
+            child: SizedBox(
+              width: 40,
+              height: 10,
+              child: ErrorThrowingWidget(
+                throwInLayout: true,
+                errorMessage: 'Layout Test',
               ),
             ),
-          );
+          ),
+        );
 
-          final output = tester.terminalState.getText();
+        final output = tester.terminalState.getText();
 
-          // When layout fails, the widget gets a default size and continues
-          // The ErrorThrowingWidget will show "No Error" in its paint
-          expect(output, contains('No Error'));
-        },
-        debugPrintAfterPump: true,
-      );
+        // Layout error consistently renders an error box via
+        // paintWithContext's _hasLayoutError path.
+        expect(output, contains('Layout Error'));
+      }, debugPrintAfterPump: true);
     });
 
     test('paint error shows error box', () async {
-      await testNocterm(
-        'paint error display',
-        (tester) async {
-          await tester.pumpComponent(
-            const Center(
-              child: SizedBox(
-                width: 40,
-                height: 10,
-                child: ErrorThrowingWidget(
-                  throwInLayout: false,
-                  throwInPaint: true,
-                  errorMessage: 'Paint Test',
-                ),
+      await testNocterm('paint error display', (tester) async {
+        await tester.pumpComponent(
+          const Center(
+            child: SizedBox(
+              width: 40,
+              height: 10,
+              child: ErrorThrowingWidget(
+                throwInLayout: false,
+                throwInPaint: true,
+                errorMessage: 'Paint Test',
               ),
             ),
-          );
+          ),
+        );
 
-          final output = tester.terminalState.getText();
+        final output = tester.terminalState.getText();
 
-          // When paint fails, we should see the error box
-          expect(output, contains('Paint Error'));
-          expect(output, contains('┌')); // Error box border
-        },
-        debugPrintAfterPump: true,
-      );
+        // When paint fails, we should see the error box
+        expect(output, contains('Paint Error'));
+        expect(output, contains('┌')); // Error box border
+      }, debugPrintAfterPump: true);
     });
   });
 }

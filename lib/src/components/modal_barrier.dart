@@ -40,11 +40,7 @@ import 'package:nocterm/nocterm.dart';
 ///  * [ColoredBox], which fills an area with a solid color.
 class Tint extends SingleChildRenderObjectComponent {
   /// Creates a widget that applies a color tint over its child.
-  const Tint({
-    super.key,
-    required this.color,
-    super.child,
-  });
+  const Tint({super.key, required this.color, super.child});
 
   /// The color to blend over the child content.
   ///
@@ -101,17 +97,12 @@ class RenderTint extends RenderObject
     super.paint(canvas, offset);
     if (child != null) {
       final BoxParentData childParentData = child!.parentData as BoxParentData;
-      child!.paint(canvas, offset + childParentData.offset);
+      child!.paintWithContext(canvas, offset + childParentData.offset);
     }
 
     // Then apply the tint on top (only if there's some opacity)
     if (_color.alpha > 0) {
-      final rect = Rect.fromLTWH(
-        offset.dx,
-        offset.dy,
-        size.width,
-        size.height,
-      );
+      final rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
       canvas.applyTint(rect, _color);
     }
   }
@@ -145,11 +136,8 @@ class RenderTint extends RenderObject
 /// ```
 class AnimatedTint extends AnimatedComponent {
   /// Creates an animated tint widget.
-  const AnimatedTint({
-    super.key,
-    required Animation<Color?> color,
-    this.child,
-  }) : super(listenable: color);
+  const AnimatedTint({super.key, required Animation<Color?> color, this.child})
+      : super(listenable: color);
 
   /// The animated color of the tint.
   Animation<Color?> get color => listenable as Animation<Color?>;
@@ -163,10 +151,7 @@ class AnimatedTint extends AnimatedComponent {
     if (currentColor == null || currentColor.alpha == 0) {
       return child ?? const SizedBox.shrink();
     }
-    return Tint(
-      color: currentColor,
-      child: child,
-    );
+    return Tint(color: currentColor, child: child);
   }
 }
 
@@ -248,10 +233,7 @@ class _FadeTintState extends State<FadeTint>
 
   @override
   Component build(BuildContext context) {
-    return AnimatedTint(
-      color: _colorAnimation,
-      child: component.child,
-    );
+    return AnimatedTint(color: _colorAnimation, child: component.child);
   }
 }
 
@@ -440,12 +422,7 @@ class RenderColoredBox extends RenderObject
 
   @override
   void paint(TerminalCanvas canvas, Offset offset) {
-    final rect = Rect.fromLTWH(
-      offset.dx,
-      offset.dy,
-      size.width,
-      size.height,
-    );
+    final rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
 
     // If obscure is true or color is fully opaque, fill with spaces to hide content
     // Otherwise, use applyTint to preserve underlying content (just change colors)
@@ -455,10 +432,7 @@ class RenderColoredBox extends RenderObject
       canvas.fillRect(
         rect,
         ' ',
-        style: TextStyle(
-          color: _foregroundColor,
-          backgroundColor: _color,
-        ),
+        style: TextStyle(color: _foregroundColor, backgroundColor: _color),
       );
     } else {
       // Semi-transparent without obscure: apply as a tint overlay, preserving characters
@@ -469,7 +443,7 @@ class RenderColoredBox extends RenderObject
     super.paint(canvas, offset);
     if (child != null) {
       final BoxParentData childParentData = child!.parentData as BoxParentData;
-      child!.paint(canvas, offset + childParentData.offset);
+      child!.paintWithContext(canvas, offset + childParentData.offset);
     }
   }
 
