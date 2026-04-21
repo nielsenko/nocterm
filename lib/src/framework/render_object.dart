@@ -379,6 +379,11 @@ abstract class RenderObject {
     }
     _needsPaint = true;
 
+    if (isRepaintBoundary) {
+      owner?.requestPaint(this);
+      return;
+    }
+
     if (parent != null) {
       parent!.markNeedsPaint();
     } else {
