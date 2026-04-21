@@ -129,10 +129,7 @@ class _SingleChildScrollViewState extends State<SingleChildScrollView> {
     Component? child = component.child;
 
     if (component.padding != null && child != null) {
-      child = Padding(
-        padding: component.padding!,
-        child: child,
-      );
+      child = Padding(padding: component.padding!, child: child);
     }
 
     Component viewport = _SingleChildViewport(
@@ -175,7 +172,9 @@ class _SingleChildViewport extends SingleChildRenderObjectComponent {
 
   @override
   void updateRenderObject(
-      BuildContext context, RenderSingleChildViewport renderObject) {
+    BuildContext context,
+    RenderSingleChildViewport renderObject,
+  ) {
     renderObject
       ..scrollDirection = scrollDirection
       ..controller = controller;
@@ -341,7 +340,7 @@ class RenderSingleChildViewport extends RenderObject
     if (childParentData != null) {
       childParentData.offset = scrollOffset;
     }
-    child!.paint(clippedCanvas, Offset.zero + scrollOffset);
+    child!.paintWithContext(clippedCanvas, Offset.zero + scrollOffset);
   }
 
   @override
