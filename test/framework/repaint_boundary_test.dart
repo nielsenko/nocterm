@@ -1,8 +1,5 @@
 import 'package:nocterm/nocterm.dart';
-import 'package:nocterm/src/buffer.dart';
-import 'package:nocterm/src/framework/framework.dart';
 import 'package:nocterm/src/framework/terminal_canvas.dart';
-import 'package:nocterm/src/rectangle.dart';
 import 'package:test/test.dart';
 
 /// Unit tests for the RepaintBoundary plumbing on RenderObject.
