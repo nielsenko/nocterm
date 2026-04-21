@@ -109,7 +109,7 @@ class RenderMouseRegion extends RenderObject
     super.paint(canvas, offset);
     if (child != null) {
       final BoxParentData childParentData = child!.parentData as BoxParentData;
-      child!.paint(canvas, offset + childParentData.offset);
+      child!.paintWithContext(canvas, offset + childParentData.offset);
     }
   }
 

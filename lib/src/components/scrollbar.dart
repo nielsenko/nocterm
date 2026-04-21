@@ -227,10 +227,9 @@ class RenderScrollbar extends RenderObject
     child!.layout(childConstraints, parentUsesSize: true);
 
     // Our size includes the scrollbar
-    size = constraints.constrain(Size(
-      child!.size.width + thickness,
-      child!.size.height,
-    ));
+    size = constraints.constrain(
+      Size(child!.size.width + thickness, child!.size.height),
+    );
   }
 
   @override
@@ -239,7 +238,7 @@ class RenderScrollbar extends RenderObject
     if (child == null) return;
 
     // Paint the child first
-    child!.paint(canvas, offset);
+    child!.paintWithContext(canvas, offset);
 
     // Paint scrollbar if we have a controller and should show it
     if (_controller != null && thumbVisibility) {
@@ -302,17 +301,13 @@ class RenderScrollbar extends RenderObject
       canvas.drawText(
         offset + Offset(scrollbarX, 0),
         '▲',
-        style: TextStyle(
-          color: topArrowActive ? _thumbColor : _trackColor,
-        ),
+        style: TextStyle(color: topArrowActive ? _thumbColor : _trackColor),
       );
 
       canvas.drawText(
         offset + Offset(scrollbarX, scrollbarHeight - 1),
         '▼',
-        style: TextStyle(
-          color: bottomArrowActive ? _thumbColor : _trackColor,
-        ),
+        style: TextStyle(color: bottomArrowActive ? _thumbColor : _trackColor),
       );
     }
 
