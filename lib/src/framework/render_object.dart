@@ -15,7 +15,7 @@ class HitTestResult {
 /// The pipeline owner manages the rendering pipeline.
 class PipelineOwner {
   final List<RenderObject> _nodesNeedingLayout = [];
-  final List<RenderObject> _nodesNeedingPaint = [];
+  final Set<RenderObject> _nodesNeedingPaint = {};
 
   /// Flag to track if dirty nodes need to be merged after layout callback
   bool _shouldMergeDirtyNodes = false;
@@ -29,8 +29,7 @@ class PipelineOwner {
   }
 
   void requestPaint(RenderObject renderObject) {
-    if (!_nodesNeedingPaint.contains(renderObject)) {
-      _nodesNeedingPaint.add(renderObject);
+    if (_nodesNeedingPaint.add(renderObject)) {
       requestVisualUpdate();
     }
   }
@@ -330,6 +329,21 @@ abstract class RenderObject {
   /// This is true after [markNeedsPaint] is called and before paint is performed.
   bool get needsPaint => _needsPaint;
 
+  /// Whether this render object is a repaint boundary.
+  ///
+  /// When true, paintWithContext caches the subtree's output into
+  /// [_cachedBuffer] and markNeedsPaint stops propagating paint dirtying
+  /// at this node. See [RenderRepaintBoundary].
+  bool get isRepaintBoundary => false;
+
+  /// Cached sub-buffer for this boundary; only populated when
+  /// [isRepaintBoundary] is true.
+  Buffer? _cachedBuffer;
+
+  /// The size the cached buffer was painted at. Used to invalidate the
+  /// cache when the boundary's size changes at layout time.
+  Size? _cachedBufferSize;
+
   Object? _lastError;
   StackTrace? _lastStackTrace;
 
@@ -354,11 +368,10 @@ abstract class RenderObject {
 
   /// Mark this render object as needing to be repainted.
   ///
-  /// This will cause [paint] to be called during the next paint pass.
-  /// The paint request propagates up to the root on first mark, where it
-  /// requests a visual update. Subsequent calls while already dirty
-  /// short-circuit after re-requesting a visual update (same frame-skip
-  /// concern as [markNeedsLayout]).
+  /// The mark walks up to the nearest repaint boundary, or to the root
+  /// when there is none, and requests a visual update there. A repeat
+  /// mark on a dirty node only re-requests the visual update (same
+  /// frame-skip concern as [markNeedsLayout]).
   void markNeedsPaint() {
     if (_needsPaint) {
       owner?.requestVisualUpdate();
@@ -367,11 +380,8 @@ abstract class RenderObject {
     _needsPaint = true;
 
     if (parent != null) {
-      // Continue propagation up the tree
       parent!.markNeedsPaint();
     } else {
-      // We're the root - always request visual update to ensure a frame
-      // gets scheduled, even if the flag was already set
       owner?.requestVisualUpdate();
     }
   }
@@ -412,6 +422,18 @@ abstract class RenderObject {
       // Set a default size to prevent cascading failures
       _size = constraints.constrain(const Size(10, 5));
       _hasLayoutError = true;
+    }
+    _invalidateCacheIfSizeChanged();
+  }
+
+  /// Discard this boundary's cached sub-buffer if the size no longer
+  /// matches. Called at the end of successful layout.
+  void _invalidateCacheIfSizeChanged() {
+    if (!isRepaintBoundary) return;
+    if (_cachedBufferSize != _size) {
+      _cachedBuffer = null;
+      _cachedBufferSize = null;
+      _needsPaint = true;
     }
   }
 
@@ -615,6 +637,7 @@ abstract class RenderObject {
     _needsLayout = false;
     try {
       performLayout();
+      _invalidateCacheIfSizeChanged();
       markNeedsPaint();
     } catch (e, stack) {
       _reportException('performLayout', e, stack);
