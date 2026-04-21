@@ -265,6 +265,111 @@ void main() {
     });
   });
 
+  group('markNeedsLayout cascade', () {
+    test('pure markNeedsPaint under a boundary does NOT dirty ancestors', () {
+      // Already covered by "stops propagation to parent" above, but
+      // this test documents the complementary layout behavior below
+      // by contrast.
+      final owner = PipelineOwner();
+      final parent = _SpyRenderObject();
+      final boundary = _BoundaryRenderObject();
+      parent.owner = owner;
+      boundary.owner = owner;
+      boundary.parent = parent;
+      parent.markCount = 0;
+
+      boundary.markNeedsPaint();
+
+      expect(parent.markCount, 0);
+    });
+
+    test('markNeedsLayout still cascades paint-dirty through ancestors', () {
+      // RepaintBoundary is a paint boundary, NOT a relayout boundary.
+      // When a layout actually changes, ancestors' sizes/positions may
+      // change too, so their paint must re-run. The cascade is expected.
+      // This test pins that expectation so a future "contain
+      // markNeedsLayout too" change would be caught.
+      final owner = PipelineOwner();
+      final grandparent = _SpyRenderObject();
+      final boundary = _BoundaryRenderObject();
+      final child = _LeafRenderObject();
+
+      grandparent.owner = owner;
+      boundary.owner = owner;
+      child.owner = owner;
+      boundary.parent = grandparent;
+      child.parent = boundary;
+
+      grandparent.markCount = 0;
+
+      child.markNeedsLayout();
+
+      // markNeedsLayout cascades via parent?.markNeedsLayout(), and
+      // markNeedsLayout itself calls markNeedsPaint() on every node on
+      // the way up. So grandparent DOES get a paint mark.
+      expect(
+        grandparent.markCount,
+        greaterThan(0),
+        reason: 'markNeedsLayout must propagate paint dirtying to '
+            'ancestors, because a relayout may resize them',
+      );
+    });
+  });
+
+  group('frame-skip interaction', () {
+    test('boundary-scoped dirty keeps hasNodesToPaint truthy', () {
+      // terminal_binding._drawFrameCallback consults
+      // pipelineOwner.hasNodesToPaint to decide whether to skip a frame.
+      // After the markNeedsPaint short-circuit, a descendant dirtying
+      // under a boundary must still mark the owner as having work.
+      final owner = PipelineOwner();
+      final boundary = _BoundaryRenderObject();
+      boundary.owner = owner;
+
+      expect(owner.hasNodesToPaint, isFalse);
+      boundary.markNeedsPaint();
+      expect(owner.hasNodesToPaint, isTrue);
+    });
+  });
+
+  group('error fallback in boundary', () {
+    test('child paint exception paints error box into the sub-buffer', () {
+      final boundary = RenderRepaintBoundary()..child = _ThrowingChild();
+      boundary.layout(BoxConstraints.tight(const Size(40, 10)));
+
+      final parentBuffer = Buffer(40, 10);
+      final canvas = TerminalCanvas(parentBuffer, Rect.fromLTWH(0, 0, 40, 10));
+
+      boundary.paintWithContext(canvas, Offset.zero);
+
+      // The blit should have put "Paint Error" text from the error box
+      // into the parent buffer.
+      final rendered = _bufferText(parentBuffer);
+      expect(rendered, contains('Paint Error'));
+    });
+
+    test('cached error box is reused on subsequent paints', () {
+      final child = _ThrowingChild();
+      final boundary = RenderRepaintBoundary()..child = child;
+      boundary.layout(BoxConstraints.tight(const Size(40, 10)));
+      final canvas = TerminalCanvas(
+        Buffer(40, 10),
+        Rect.fromLTWH(0, 0, 40, 10),
+      );
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      final firstThrowCount = child.paintCount;
+
+      boundary.paintWithContext(canvas, Offset.zero);
+      expect(
+        child.paintCount,
+        firstThrowCount,
+        reason: 'cached error-box blit means the throwing child is not '
+            're-invoked on a clean frame',
+      );
+    });
+  });
+
   group('RenderRepaintBoundary hit testing', () {
     test('hit test traverses the boundary to the child', () {
       final child = _HitTargetRenderObject();
@@ -343,6 +448,34 @@ class _BoundaryRenderObject extends RenderObject {
   void performLayout() {
     size = constraints.constrain(const Size(5, 1));
   }
+}
+
+/// A child render object whose paint() always throws.
+class _ThrowingChild extends RenderObject {
+  int paintCount = 0;
+
+  @override
+  void performLayout() {
+    size = constraints.constrain(const Size(20, 5));
+  }
+
+  @override
+  void paint(TerminalCanvas canvas, Offset offset) {
+    super.paint(canvas, offset);
+    paintCount++;
+    throw Exception('deliberate paint failure');
+  }
+}
+
+String _bufferText(Buffer buffer) {
+  final sb = StringBuffer();
+  for (final row in buffer.cells) {
+    for (final cell in row) {
+      sb.write(cell.char);
+    }
+    sb.writeln();
+  }
+  return sb.toString();
 }
 
 /// A leaf that accepts any position as a hit.
