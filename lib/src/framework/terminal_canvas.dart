@@ -23,7 +23,12 @@ class TerminalCanvas {
   /// - Foreground colors with alpha < 255 are blended with existing background
   /// - Background colors with alpha < 255 are blended with existing background
   /// - If no background exists, uses Color.defaultColor
+  ///
+  /// A transparent cell has no background to blend with yet, so the style
+  /// is stored as given and [blitBuffer] blends it later.
   TextStyle _blendStyle(TextStyle style, Cell existingCell) {
+    if (existingCell.isTransparent) return style;
+
     Color? blendedColor = style.color;
     Color? blendedBgColor = style.backgroundColor;
 
@@ -140,8 +145,10 @@ class TerminalCanvas {
         // Get existing cell and blend style (handles alpha + background preservation)
         final nextExistingCell = _buffer.getCell(nextCellX, nextCellY);
         final nextEffectiveStyle = style ?? const TextStyle();
-        final nextFinalStyle =
-            _blendStyle(nextEffectiveStyle, nextExistingCell);
+        final nextFinalStyle = _blendStyle(
+          nextEffectiveStyle,
+          nextExistingCell,
+        );
 
         _buffer.setCell(
           nextCellX,
@@ -213,14 +220,7 @@ class TerminalCanvas {
         final existingCell = _buffer.getCell(cellX, cellY);
         final finalStyle = _blendStyle(effectiveStyle, existingCell);
 
-        _buffer.setCell(
-          cellX,
-          cellY,
-          Cell(
-            char: char,
-            style: finalStyle,
-          ),
-        );
+        _buffer.setCell(cellX, cellY, Cell(char: char, style: finalStyle));
       }
     }
   }
@@ -322,14 +322,7 @@ class TerminalCanvas {
     final effectiveStyle = style ?? const TextStyle();
     final finalStyle = _blendStyle(effectiveStyle, existingCell);
 
-    _buffer.setCell(
-      cellX,
-      cellY,
-      Cell(
-        char: char,
-        style: finalStyle,
-      ),
-    );
+    _buffer.setCell(cellX, cellY, Cell(char: char, style: finalStyle));
   }
 
   /// Create a clipped canvas for drawing within a sub-region
@@ -385,6 +378,86 @@ class TerminalCanvas {
 
     // Mark cells as image placeholders to prevent text overlap
     _buffer.markImageRegion(cellX, cellY, maxWidth, maxHeight, sixelData);
+  }
+
+  /// Lays [source] over this canvas with its top-left cell at [offset].
+  ///
+  /// Cells outside the clip [area] are dropped, and so is a wide glyph
+  /// whose second column would land outside it. A transparent cell (see
+  /// [Buffer.transparent]) leaves the destination untouched. Every other
+  /// cell blends over the destination the way [drawText] does, so a cell
+  /// painted without a background keeps the background underneath it.
+  /// Pending sixel images move into this buffer's coordinates, cropped to
+  /// the clip area.
+  void blitBuffer(Buffer source, Offset offset) {
+    final dx = offset.dx.round();
+    final dy = offset.dy.round();
+    final aLeft = area.left.round();
+    final aTop = area.top.round();
+    final aRight = math.min((area.left + area.width).round(), _buffer.width);
+    final aBottom = math.min((area.top + area.height).round(), _buffer.height);
+
+    final dstLeft = aLeft + dx;
+    final dstTop = aTop + dy;
+    final l = math.max(dstLeft, aLeft);
+    final t = math.max(dstTop, aTop);
+    final r = math.min(dstLeft + source.width, aRight);
+    final b = math.min(dstTop + source.height, aBottom);
+
+    if (r > l && b > t) {
+      final dstCells = _buffer.cells;
+      final srcCells = source.cells;
+      for (int y = t; y < b; y++) {
+        final srcRow = srcCells[y - dstTop];
+        final dstRow = dstCells[y];
+        var from = l;
+        var to = r;
+        if (srcRow[from - dstLeft].char == '\u200B') from++;
+        if (to < dstLeft + source.width &&
+            srcRow[to - 1 - dstLeft].width == 2) {
+          to--;
+        }
+        for (int x = from; x < to; x++) {
+          final src = srcRow[x - dstLeft];
+          if (src.isTransparent) continue;
+          final dst = dstRow[x];
+          dstRow[x] = _needsBlend(src.style, dst.style)
+              ? Cell(
+                  char: src.char,
+                  style: _blendStyle(src.style, dst),
+                  isImagePlaceholder: src.isImagePlaceholder,
+                )
+              : src;
+        }
+      }
+    }
+
+    for (final img in source.pendingImages) {
+      final x0 = math.max(img.x + dstLeft, aLeft);
+      final y0 = math.max(img.y + dstTop, aTop);
+      final x1 = math.min(img.x + img.width + dstLeft, aRight);
+      final y1 = math.min(img.y + img.height + dstTop, aBottom);
+      if (x1 <= x0 || y1 <= y0) continue;
+      _buffer.pendingImages.add(
+        PendingImage(
+          x: x0,
+          y: y0,
+          width: x1 - x0,
+          height: y1 - y0,
+          sixelData: img.sixelData,
+        ),
+      );
+    }
+  }
+
+  /// Whether [_blendStyle] would return something other than [src] itself
+  /// when drawn over a cell styled [dst].
+  static bool _needsBlend(TextStyle src, TextStyle dst) {
+    final fg = src.color;
+    final bg = src.backgroundColor;
+    if (fg == null ? dst.color != null : fg.alpha < 255) return true;
+    if (bg == null ? dst.backgroundColor != null : bg.alpha < 255) return true;
+    return false;
   }
 
   Rect _intersect(Rect a, Rect b) {

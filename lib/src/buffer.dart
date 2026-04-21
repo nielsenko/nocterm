@@ -18,14 +18,32 @@ class Cell {
   /// corresponding sixel data will be written to the terminal at this position.
   final bool isImagePlaceholder;
 
+  /// Whether nothing has been painted into this cell yet.
+  ///
+  /// Only [Buffer.transparent] creates such cells. [TerminalCanvas.blitBuffer]
+  /// leaves the destination untouched under them, and drawing into one
+  /// stores the style as given instead of blending it with a background
+  /// that is not there yet.
+  final bool isTransparent;
+
   Cell({
     this.char = ' ',
     TextStyle? style,
     this.isImagePlaceholder = false,
-  }) : style = style ?? const TextStyle();
+  })  : style = style ?? const TextStyle(),
+        isTransparent = false;
+
+  Cell._transparent()
+      : char = ' ',
+        style = const TextStyle(),
+        isImagePlaceholder = false,
+        isTransparent = true;
 
   /// The cell every [Buffer] starts with and [Buffer.clear] resets to.
   static final Cell blank = Cell();
+
+  /// The cell every [Buffer.transparent] starts with.
+  static final Cell transparent = Cell._transparent();
 
   /// Returns the display width of this cell's character.
   /// The width is cached after the first computation for performance.
@@ -49,11 +67,13 @@ class Cell {
     return other is Cell &&
         other.char == char &&
         other.style == style &&
-        other.isImagePlaceholder == isImagePlaceholder;
+        other.isImagePlaceholder == isImagePlaceholder &&
+        other.isTransparent == isTransparent;
   }
 
   @override
-  int get hashCode => Object.hash(char, style, isImagePlaceholder);
+  int get hashCode =>
+      Object.hash(char, style, isImagePlaceholder, isTransparent);
 }
 
 /// Represents a sixel image pending to be rendered.
@@ -96,10 +116,21 @@ class Buffer {
   /// cleared by the terminal renderer after each frame.
   final List<PendingImage> pendingImages = [];
 
-  Buffer(this.width, this.height)
-      : cells = List.generate(
+  /// The cell this buffer starts with and [clear] resets to.
+  final Cell _emptyCell;
+
+  Buffer(int width, int height) : this._(width, height, Cell.blank);
+
+  /// A buffer whose cells stay [Cell.transparent] until painted, so that
+  /// [TerminalCanvas.blitBuffer] can lay it over another buffer.
+  Buffer.transparent(int width, int height)
+      : this._(width, height, Cell.transparent);
+
+  Buffer._(this.width, this.height, Cell emptyCell)
+      : _emptyCell = emptyCell,
+        cells = List.generate(
           height,
-          (_) => List.filled(width, Cell.blank, growable: true),
+          (_) => List.filled(width, emptyCell, growable: true),
         );
 
   Cell getCell(int x, int y) {
@@ -147,7 +178,7 @@ class Buffer {
   void clear() {
     for (var row in cells) {
       for (int i = 0; i < row.length; i++) {
-        row[i] = Cell.blank;
+        row[i] = _emptyCell;
       }
     }
     pendingImages.clear();
