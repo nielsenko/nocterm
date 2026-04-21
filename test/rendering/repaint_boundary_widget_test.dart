@@ -88,11 +88,13 @@ class _SwappingLabel extends StatefulComponent {
 }
 
 class _SwappingLabelState extends State<_SwappingLabel> {
-  String text = 'before';
+  String _text = 'before';
+
+  void updateText(String value) => setState(() => _text = value);
 
   @override
   Component build(BuildContext context) {
-    return RepaintBoundary(child: Text(text));
+    return RepaintBoundary(child: Text(_text));
   }
 }
 
@@ -119,7 +121,7 @@ void main() {
           expect(tester.terminalState.getText(), contains('before'));
 
           final state = tester.findState<_SwappingLabelState>();
-          state.setState(() => state.text = 'after');
+          state.updateText('after');
           await tester.pump();
 
           final output = tester.terminalState.getText();
