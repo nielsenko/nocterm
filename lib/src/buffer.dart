@@ -5,8 +5,8 @@ import 'style.dart';
 import 'utils/unicode_width.dart';
 
 class Cell {
-  String char;
-  TextStyle style;
+  final String char;
+  final TextStyle style;
 
   /// Cached display width of the character.
   /// Computed lazily on first access to avoid expensive width calculations.
@@ -16,13 +16,16 @@ class Cell {
   ///
   /// When true, the cell should not be rendered as text - instead, the
   /// corresponding sixel data will be written to the terminal at this position.
-  bool isImagePlaceholder;
+  final bool isImagePlaceholder;
 
   Cell({
     this.char = ' ',
     TextStyle? style,
     this.isImagePlaceholder = false,
-  }) : style = style ?? TextStyle();
+  }) : style = style ?? const TextStyle();
+
+  /// The cell every [Buffer] starts with and [Buffer.clear] resets to.
+  static final Cell blank = Cell();
 
   /// Returns the display width of this cell's character.
   /// The width is cached after the first computation for performance.
@@ -96,12 +99,12 @@ class Buffer {
   Buffer(this.width, this.height)
       : cells = List.generate(
           height,
-          (_) => List.generate(width, (_) => Cell()),
+          (_) => List.filled(width, Cell.blank, growable: true),
         );
 
   Cell getCell(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
-      return Cell();
+      return Cell.blank;
     }
     return cells[y][x];
   }
@@ -144,17 +147,18 @@ class Buffer {
   void clear() {
     for (var row in cells) {
       for (int i = 0; i < row.length; i++) {
-        row[i] = Cell();
+        row[i] = Cell.blank;
       }
     }
     pendingImages.clear();
   }
 
   void fillArea(Rect area, String char, {TextStyle? style}) {
+    final cell = Cell(char: char, style: style);
     for (double y = area.top; y < area.bottom && y < height; y++) {
       for (double x = area.left; x < area.right && x < width; x++) {
         if (x >= 0 && y >= 0) {
-          setCell(x.toInt(), y.toInt(), Cell(char: char, style: style));
+          setCell(x.toInt(), y.toInt(), cell);
         }
       }
     }
@@ -189,13 +193,10 @@ class Buffer {
       return;
     }
 
-    // Mark cells as image placeholders
+    final placeholder = Cell(char: ' ', isImagePlaceholder: true);
     for (int cy = y; cy < y + clampedHeight; cy++) {
       for (int cx = x; cx < x + clampedWidth; cx++) {
-        cells[cy][cx] = Cell(
-          char: ' ',
-          isImagePlaceholder: true,
-        );
+        cells[cy][cx] = placeholder;
       }
     }
 
