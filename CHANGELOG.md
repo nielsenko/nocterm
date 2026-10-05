@@ -8,6 +8,7 @@
 
 ## Performance
 - **Paint Dispatch**: Route parent-to-child paints through paintWithContext so RepaintBoundary caching covers every subtree
+- **ListView**: `RenderListViewport.getItemOffsetAndExtent` looks an item up by index, where it used to scan every laid-out child. New `laidOutItemRange` gives the first and last index it can answer for
 
 ## Bug Fixes
 - **Paint Pipeline**: Stop flushPaint from clearing _needsPaint before the root paint walk

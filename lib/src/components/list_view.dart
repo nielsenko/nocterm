@@ -740,11 +740,27 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   /// Tracks the average item extent for estimating total scroll extent
   double? _averageItemExtent;
 
+  /// The children in [_allChildren] by [ListViewParentData.index], so
+  /// separators sit under their negative indices.
+  final Map<int, RenderObject> _childrenByIndex = {};
+
+  /// Lowest and highest item index in [_childrenByIndex], separators aside.
+  int? _firstLaidOutIndex;
+  int? _lastLaidOutIndex;
+
   /// Adds a child to [_allChildren], skipping duplicates.
   void _addToAllChildren(RenderObject renderObject) {
-    if (_allChildrenSet.add(renderObject)) {
-      _allChildren.add(_ChildLayoutInfo(renderObject: renderObject));
-    }
+    if (!_allChildrenSet.add(renderObject)) return;
+    _allChildren.add(_ChildLayoutInfo(renderObject: renderObject));
+
+    final index = (renderObject.parentData as ListViewParentData).index;
+    if (index == null) return;
+    _childrenByIndex.putIfAbsent(index, () => renderObject);
+    if (index < 0) return;
+    final first = _firstLaidOutIndex;
+    final last = _lastLaidOutIndex;
+    if (first == null || index < first) _firstLaidOutIndex = index;
+    if (last == null || index > last) _lastLaidOutIndex = index;
   }
 
   RenderObject? _buildAndLayoutChild({
@@ -835,6 +851,9 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     _visibleChildren.clear();
     _allChildren.clear();
     _allChildrenSet.clear();
+    _childrenByIndex.clear();
+    _firstLaidOutIndex = null;
+    _lastLaidOutIndex = null;
 
     if (_element == null) {
       size = constraints.constrain(Size.zero);
@@ -1386,6 +1405,20 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
     return false;
   }
 
+  /// The first and last item index the last layout placed, or null when it
+  /// placed none.
+  ///
+  /// A lazy list places the items in its viewport and cache area, so this is
+  /// the window [getItemOffsetAndExtent] has measured offsets for. An index
+  /// inside it can still be missing while a selection drag builds items
+  /// outside the viewport.
+  (int, int)? get laidOutItemRange {
+    final first = _firstLaidOutIndex;
+    final last = _lastLaidOutIndex;
+    if (first == null || last == null) return null;
+    return (first, last);
+  }
+
   /// Gets the offset and extent of an item by its index.
   ///
   /// Returns a record with (offset, extent) if the item is found,
@@ -1394,25 +1427,11 @@ class RenderListViewport extends RenderObject with ScrollableRenderObjectMixin {
   /// This method works in both lazy and non-lazy modes by reading
   /// from parent data attached to each child render object.
   (double, double)? getItemOffsetAndExtent(int index) {
-    // Search all children for the item with matching index
-    for (final child in _allChildren) {
-      final parentData = child.renderObject.parentData as ListViewParentData?;
-      if (parentData?.index == index &&
-          parentData?.layoutOffset != null &&
-          parentData?.extent != null) {
-        return (parentData!.layoutOffset!, parentData.extent!);
-      }
-    }
-
-    // Also check visible children (in case _allChildren is empty in lazy mode)
-    for (final child in _visibleChildren) {
-      final parentData = child.renderObject.parentData as ListViewParentData?;
-      if (parentData?.index == index &&
-          parentData?.layoutOffset != null &&
-          parentData?.extent != null) {
-        return (parentData!.layoutOffset!, parentData.extent!);
-      }
-    }
+    final parentData =
+        _childrenByIndex[index]?.parentData as ListViewParentData?;
+    final layoutOffset = parentData?.layoutOffset;
+    final extent = parentData?.extent;
+    if (layoutOffset != null && extent != null) return (layoutOffset, extent);
 
     // If item is not found, try to estimate if we have fixed itemExtent
     if (itemExtent != null) {
